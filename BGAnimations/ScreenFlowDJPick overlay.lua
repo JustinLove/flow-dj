@@ -1,5 +1,6 @@
 local pn = GAMESTATE:GetEnabledPlayers()[1]
 local stepstype = GAMESTATE:GetCurrentStyle(pn):GetStepsType()
+local profile = PROFILEMAN:GetMachineProfile()
 
 setenv("FlowDJ", true)
 
@@ -57,11 +58,11 @@ local function SetupNextGame()
 	GAMESTATE:SetCurrentSteps(pn, steps)
 end
 
-local function AddPoint(x, y)
+local function AddPoint(x, y, color)
 	graph:AddChildFromPath(THEME:GetPathG("", "point.lua"))
 	local points = graph:GetChild("point")
 	if points and #points > 0 then
-		points[#points]:xy(20 + x * 90, 20 + y * 25)
+		points[#points]:xy(20 + x * 90, SCREEN_HEIGHT - 20 - y * 25):diffuse(color)
 	end
 end
 
@@ -69,13 +70,25 @@ local function GraphSteps()
 	graph:RemoveAllChildren()
 	local max_nps = 0
 	local all_songs = RemoveUnwantedGroups(SONGMAN:GetAllSongs())
-	for i, song in ipairs(all_songs) do
+	for g, song in ipairs(all_songs) do
 		local song_steps = song:GetStepsByStepsType(stepstype)
 		local song_length = song:GetLastSecond() - song:GetFirstSecond()
-		for i, steps in ipairs(song_steps) do
+		for t, steps in ipairs(song_steps) do
+			--lua.ReportScriptError(steps:PredictMeter())
 			local rating = steps:GetMeter()
 			local nps = calc_nps(pn, song_length, steps)
-			AddPoint(nps, rating)
+			local high_score_list = profile:GetHighScoreListIfExists(song, steps)
+			local color = Color.Black
+			if high_score_list then
+				color = Color.White
+				local score = high_score_list:GetHighestScoreOfName("EVNT")
+				if score then
+					local best = score:GetPercentDP()
+					best = (best - 0.6) * 3.0
+					color = HSV(best * 120, 1, 1)
+				end
+			end
+			AddPoint(nps, rating, color)
 			max_nps = math.max(max_nps, nps)
 		end
 	end
