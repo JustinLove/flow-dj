@@ -58,14 +58,6 @@ local function SetupNextGame()
 	GAMESTATE:SetCurrentSteps(pn, steps)
 end
 
-local function AddPoint(x, y, color)
-	graph:AddChildFromPath(THEME:GetPathG("", "point.lua"))
-	local points = graph:GetChild("point")
-	if points and #points > 0 then
-		points[#points]:xy(20 + x * 90, SCREEN_HEIGHT - 20 - y * 25):diffuse(color)
-	end
-end
-
 local function GraphSteps()
 	graph:RemoveAllChildren()
 	local max_nps = 0
@@ -84,15 +76,24 @@ local function GraphSteps()
 				local score = high_score_list:GetHighestScoreOfName("EVNT")
 				if score then
 					local best = score:GetPercentDP()
-					best = (best - 0.6) * 3.0
+					best = (best - 0.6) * 5.0
 					color = HSV(best * 120, 1, 1)
 				end
 			end
-			AddPoint(nps, rating, color)
+			graph:AddPoint(nps, rating, color)
 			max_nps = math.max(max_nps, nps)
 		end
 	end
 	nps_text:settext(max_nps)
+end
+
+local function GraphFlow()
+	graph:RemoveAllChildren()
+	graph:AddPoint(0, 0, Color.Black)
+	local stages = 16
+	for stage = 1,stages do
+		graph:AddPoint(stage, stage, Color.White)
+	end
 end
 
 local frame = 0
@@ -100,7 +101,8 @@ local function update()
 	--SetupNextGame()
 	--trans_new_screen("ScreenGameplay")
 	if frame == 1 then
-		GraphSteps()
+		--GraphSteps()
+		GraphFlow()
 	end
 	frame = frame + 1
 end
@@ -127,8 +129,19 @@ return Def.ActorFrame{
 		end
 	},
 	Def.ActorFrame{
-		Name= "graph", InitCommand= function(self)
+		Name = "graph", InitCommand = function(self)
 			graph = self
-		end
+			self:xy(20, 20)
+			self:SetWidth(SCREEN_WIDTH - 40)
+			self:SetHeight(SCREEN_HEIGHT - 40)
+
+			self.AddPoint = function(self, x, y, color)
+				self:AddChildFromPath(THEME:GetPathG("", "point.lua"))
+				local points = self:GetChild("point")
+				if points and #points > 0 then
+					points[#points]:xy(x * 40, self:GetHeight() - y * 25):diffuse(color)
+				end
+			end
+		end,
 	}
 }
