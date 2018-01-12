@@ -1,6 +1,7 @@
 local pn = GAMESTATE:GetEnabledPlayers()[1]
 local stepstype = GAMESTATE:GetCurrentStyle(pn):GetStepsType()
 local profile = PROFILEMAN:GetMachineProfile()
+local stages = 16
 
 setenv("FlowDJ", true)
 
@@ -119,7 +120,7 @@ local function PickByMeter(flow)
 	local selections = {}
 	local picked = {}
 	for i,target in ipairs(flow) do
-		for j,sel in ipairs(meters[target]) do
+		for j,sel in ipairs(meters[math.floor(target)]) do
 			local path = sel.song:GetSongFilePath()
 			if not picked[path] then
 				selections[i] = sel
@@ -138,12 +139,11 @@ local function GraphFlow(flow)
 	graph:RemoveAllChildren()
 	graph:AddPoint(0, 0, Color.Black)
 	for stage,target in ipairs(flow) do
-		graph:AddPoint(stage, target, Color.White)
+		graph:AddPoint(stage, math.floor(target), Color.White)
 	end
 end
 
 local function LinearFlow()
-	local stages = 16
 	local flow = {}
 	for stage = 1,stages do
 		flow[stage] = stage
@@ -151,21 +151,63 @@ local function LinearFlow()
 	return flow
 end
 
+local function BezierFlow()
+	local flow = {}
+	local p0 = 3
+	local p1 = 10
+	local p2 = 10
+	local p3 = 3
+	for stage = 1,stages do
+		local t = stage/stages
+		local it = 1 - t
+		local meter = it*it*it*p0 + 3*it*it*t*p1 + 3*it*t*t*p2 + t*t*t*p3
+		lua.ReportScriptError(meter)
+		flow[stage] = meter
+	end
+	return flow
+end
+
+local function ManualFlow()
+	local flow = {}
+	local edges = math.floor(stages / 5)
+	for stage = 1,edges do
+		flow[stage] = stage * 2
+		flow[stages+1-stage] = stage * 2
+	end
+	for stage = edges+1,stages-edges do
+		flow[stage] = 7
+	end
+	return flow
+end
+
+local function WiggleFlow(flow)
+	local offset = math.random(0,math.pi)
+	local scale = math.random(1,3)
+	for i,target in ipairs(flow) do
+		flow[i] = target + math.sin(scale*i + offset)
+	end
+	return flow
+end
+
 local function SetupNextGame()
-	local flow = LinearFlow()
+	local flow = WiggleFlow(ManualFlow())
 	local selections = PickByMeter(flow)
 	local sel = selections[GAMESTATE:GetCurrentStageIndex()+1]
-	GAMESTATE:SetCurrentSong(sel.song)
-	GAMESTATE:SetCurrentSteps(pn, sel.steps)
+	if sel then
+		GAMESTATE:SetCurrentSong(sel.song)
+		GAMESTATE:SetCurrentSteps(pn, sel.steps)
+		trans_new_screen("ScreenGameplay")
+	else
+		trans_new_screen("ScreenTitleMenu")
+	end
 end
 
 local frame = 0
 local function update()
 	SetupNextGame()
-	trans_new_screen("ScreenGameplay")
 	if frame == 1 then
 		--GraphSteps()
-		local flow = LinearFlow()
+		local flow = WiggleFlow(ManualFlow())
 		GraphFlow(flow)
 		local selections = PickByMeter(flow)
 		debug_text:settext(SelectionsDebug(selections))
