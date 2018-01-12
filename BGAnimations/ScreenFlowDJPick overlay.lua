@@ -18,6 +18,22 @@ local function SongsDebug(songs)
 	return table.concat(debug, "\n")
 end
 
+local function StepsDebug(steps)
+	local debug = {}
+	for i,step in ipairs(steps) do
+		debug[i] = SongDebug(SONGMAN:GetSongFromSteps(step))
+	end
+	return table.concat(debug, "\n")
+end
+
+local function SelectionsDebug(selections)
+	local debug = {}
+	for i,item in ipairs(selections) do
+		debug[i] = SongDebug(item.song)
+	end
+	return table.concat(debug, "\n")
+end
+
 local function Truncate(table, to)
 	local truncated = {}
 	local length = math.min(to, #table)
@@ -87,13 +103,62 @@ local function GraphSteps()
 	nps_text:settext(max_nps)
 end
 
-local function GraphFlow()
+local function BucketByMeter()
+	local all_songs = RemoveUnwantedGroups(SONGMAN:GetAllSongs())
+	local meters = {}
+	for g, song in ipairs(all_songs) do
+		local song_steps = song:GetStepsByStepsType(stepstype)
+		local song_length = song:GetLastSecond() - song:GetFirstSecond()
+		for t, steps in ipairs(song_steps) do
+			--lua.ReportScriptError(steps:PredictMeter())
+			local rating = steps:GetMeter()
+			if not meters[rating] then
+				meters[rating] = {}
+			end
+			table.insert(meters[rating], {
+				steps = steps,
+				song = song,
+			})
+		end
+	end
+	return meters
+end
+
+local function PickByMeter(flow)
+	local meters = BucketByMeter()
+	local selections = {}
+	local picked = {}
+	for i,target in ipairs(flow) do
+		for j,sel in ipairs(meters[target]) do
+			local path = sel.song:GetSongFilePath()
+			if not picked[path] then
+				selections[i] = sel
+				picked[path] = sel
+				break
+			end
+		end
+		if not selections[i] then
+			lua.ReportScriptError("missing " .. target)
+		end
+	end
+	return selections
+end
+
+local function GraphFlow(flow)
 	graph:RemoveAllChildren()
 	graph:AddPoint(0, 0, Color.Black)
-	local stages = 16
-	for stage = 1,stages do
-		graph:AddPoint(stage, stage, Color.White)
+	for stage,target in ipairs(flow) do
+		graph:AddPoint(stage, target, Color.White)
 	end
+end
+
+local function LinearFlow()
+	local stages = 16
+	local flow = {}
+	for stage = 1,stages do
+		flow[stage] = stage
+	end
+	return flow
 end
 
 local frame = 0
@@ -102,7 +167,10 @@ local function update()
 	--trans_new_screen("ScreenGameplay")
 	if frame == 1 then
 		--GraphSteps()
-		GraphFlow()
+		local flow = LinearFlow()
+		GraphFlow(flow)
+		local selections = PickByMeter(flow)
+		debug_text:settext(SelectionsDebug(selections))
 	end
 	frame = frame + 1
 end
