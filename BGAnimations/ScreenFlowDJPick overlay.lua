@@ -64,16 +64,6 @@ end
 local graph = false
 local debug_text = false
 
-local function SetupNextGame()
-	local all_songs = RemoveUnwantedGroups(SONGMAN:GetAllSongs())
-	local song = all_songs[1]
-	debug_text:settext(SongsDebug(Truncate(all_songs, 16)))
-	local song_steps = song:GetStepsByStepsType(stepstype)
-	local steps = song_steps[1]
-	GAMESTATE:SetCurrentSong(song)
-	GAMESTATE:SetCurrentSteps(pn, steps)
-end
-
 local function GraphSteps()
 	graph:RemoveAllChildren()
 	local max_nps = 0
@@ -161,10 +151,18 @@ local function LinearFlow()
 	return flow
 end
 
+local function SetupNextGame()
+	local flow = LinearFlow()
+	local selections = PickByMeter(flow)
+	local sel = selections[GAMESTATE:GetCurrentStageIndex()+1]
+	GAMESTATE:SetCurrentSong(sel.song)
+	GAMESTATE:SetCurrentSteps(pn, sel.steps)
+end
+
 local frame = 0
 local function update()
-	--SetupNextGame()
-	--trans_new_screen("ScreenGameplay")
+	SetupNextGame()
+	trans_new_screen("ScreenGameplay")
 	if frame == 1 then
 		--GraphSteps()
 		local flow = LinearFlow()
