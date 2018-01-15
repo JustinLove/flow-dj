@@ -1,7 +1,15 @@
 local pn = GAMESTATE:GetEnabledPlayers()[1]
 
-local function input()
-	trans_new_screen("ScreenFlowDJPick")
+local function input(event)
+	local pn= event.PlayerNumber
+	if not pn then return end
+	local button= event.GameButton
+	if not button then return end
+	if event.type == "InputEventType_Release" then return end
+	if button == "Start" then
+		trans_new_screen("ScreenFlowDJPick")
+		return
+	end
 end
 
 return Def.ActorFrame{

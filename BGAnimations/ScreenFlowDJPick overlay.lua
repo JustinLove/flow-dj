@@ -3,12 +3,15 @@ local stepstype = GAMESTATE:GetCurrentStyle(pn):GetStepsType()
 local profile = PROFILEMAN:GetMachineProfile()
 local stages = 16
 
+lua.ReportScriptError('----------------')
+
 setenv("FlowDJ", true)
 
 local function SongDebug(song)
 	return song:GetDisplayMainTitle() ..  " " ..
 		song:GetDisplayBpms()[1] .. "-" ..
-		song:GetDisplayBpms()[2]
+		song:GetDisplayBpms()[2] .. " " ..
+		PROFILEMAN:GetSongNumTimesPlayed(song, 'ProfileSlot_Machine')
 end
 
 local function SongsDebug(songs)
@@ -33,6 +36,16 @@ local function SelectionsDebug(selections)
 		debug[i] = SongDebug(item.song)
 	end
 	return table.concat(debug, "\n")
+end
+
+local function RecentSongs()
+	local recent = {}
+	for i = 1,STATSMAN:GetStagesPlayed() do
+		local stats = STATSMAN:GetPlayedStageStats(i)
+		local songs = stats:GetPlayedSongs()
+		recent[i] = songs[1]
+	end
+	return recent
 end
 
 local function Truncate(table, to)
@@ -62,8 +75,28 @@ local function RemoveUnwantedGroups(songs)
 	return filtered_songs
 end
 
+local function RemoveRecentSongs(songs)
+	local filtered_songs = {}
+	local recent = RecentSongs()
+	for i,song in ipairs(songs) do
+		local found = false
+		for j,rec in ipairs(recent) do
+			if song == rec then
+				found = true
+				break
+			end
+		end
+		if not found then
+			table.insert(filtered_songs, song)
+		end
+	end
+	return filtered_songs
+end
+
+
 local graph = false
-local debug_text = false
+local left_text = false
+local right_text = false
 
 local function GraphSteps()
 	graph:RemoveAllChildren()
@@ -95,7 +128,7 @@ local function GraphSteps()
 end
 
 local function BucketByMeter()
-	local all_songs = RemoveUnwantedGroups(SONGMAN:GetAllSongs())
+	local all_songs = RemoveRecentSongs(RemoveUnwantedGroups(SONGMAN:GetAllSongs()))
 	local meters = {}
 	for g, song in ipairs(all_songs) do
 		local song_steps = song:GetStepsByStepsType(stepstype)
@@ -175,7 +208,7 @@ local function ManualFlow()
 		flow[stages+1-stage] = stage * 2
 	end
 	for stage = edges+1,stages-edges do
-		flow[stage] = 8
+		flow[stage] = 7
 	end
 	return flow
 end
@@ -189,7 +222,6 @@ local function WiggleFlow(flow)
 	return flow
 end
 
-
 local function SetupNextGame()
 	local current_stage = (getenv("FlowDJStage") or 0) + 1
 	setenv("FlowDJStage", current_stage)
@@ -200,8 +232,8 @@ local function SetupNextGame()
 	if sel then
 		GAMESTATE:SetCurrentSong(sel.song)
 		GAMESTATE:SetCurrentSteps(pn, sel.steps)
-		--trans_new_screen("ScreenGameplay")
-		trans_new_screen("ScreenFlowDJBounce")
+		trans_new_screen("ScreenGameplay")
+		--trans_new_screen("ScreenFlowDJBounce")
 	else
 		trans_new_screen("ScreenTitleMenu")
 	end
@@ -209,29 +241,51 @@ end
 
 local frame = 0
 local function update()
-	SetupNextGame()
-	if frame == 1 then
+	--SetupNextGame()
+	frame = frame + 1
+	if frame == 2 then
 		--GraphSteps()
 		local flow = WiggleFlow(ManualFlow())
 		GraphFlow(flow)
 		local selections = PickByMeter(flow)
-		debug_text:settext(SelectionsDebug(selections))
+		left_text:settext(SelectionsDebug(selections))
+		right_text:settext(SongsDebug(RecentSongs()))
 	end
-	frame = frame + 1
+end
+
+local function input(event)
+	local pn= event.PlayerNumber
+	if not pn then return end
+	local button= event.GameButton
+	if not button then return end
+	if event.type == "InputEventType_Release" then return end
+	if button == "Start" then
+		SetupNextGame()
+		return
+	end
 end
 
 return Def.ActorFrame{
 	Def.ActorFrame{
 		Name = "Picker", OnCommand = function(self)
 			self:SetUpdateFunction(update)
+			SCREENMAN:GetTopScreen():AddInputCallback(input)
 		end,
 	},
 	Def.BitmapText{
-		Name = "Notice", Font = "Common Normal", InitCommand = function(self)
-			debug_text = self
+		Name = "Left", Font = "Common Normal", InitCommand = function(self)
+			left_text = self
 			self:maxwidth(SCREEN_HEIGHT)
 			self:zoom(0.5)
-			self:xy(_screen.cx, _screen.cy)
+			self:xy(_screen.cx - SCREEN_WIDTH/4, _screen.cy)
+		end
+	},
+	Def.BitmapText{
+		Name = "Right", Font = "Common Normal", InitCommand = function(self)
+			right_text = self
+			self:maxwidth(SCREEN_HEIGHT)
+			self:zoom(0.5)
+			self:xy(_screen.cx + SCREEN_WIDTH/4, _screen.cy)
 		end
 	},
 	Def.BitmapText{
