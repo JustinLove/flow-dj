@@ -24,3 +24,16 @@ function rec_print_table_to_str(t, indent, depth_remaining)
 	table.insert(lines, indent .. "end")
 	return table.concat(lines, "\n")
 end
+
+function WaitForStart(event)
+	local pn= event.PlayerNumber
+	if not pn then return end
+	local button= event.GameButton
+	if not button then return end
+	if event.type == "InputEventType_Release" then return end
+	if button == "Start" then
+		return true
+	else
+		return false
+	end
+end

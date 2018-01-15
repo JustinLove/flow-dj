@@ -217,8 +217,8 @@ local function SetupNextGame()
 	if sel then
 		GAMESTATE:SetCurrentSong(sel.song)
 		GAMESTATE:SetCurrentSteps(pn, sel.steps)
-		trans_new_screen("ScreenGameplay")
-		--trans_new_screen("ScreenFlowDJBounce")
+		--trans_new_screen("ScreenGameplay")
+		trans_new_screen("ScreenFlowDJBounce")
 	else
 		trans_new_screen("ScreenTitleMenu")
 	end
@@ -239,14 +239,8 @@ local function update()
 end
 
 local function input(event)
-	local pn= event.PlayerNumber
-	if not pn then return end
-	local button= event.GameButton
-	if not button then return end
-	if event.type == "InputEventType_Release" then return end
-	if button == "Start" then
+	if WaitForStart(event) then
 		SetupNextGame()
-		return
 	end
 end
 
