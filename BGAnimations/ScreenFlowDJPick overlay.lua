@@ -3,7 +3,7 @@ local stepstype = GAMESTATE:GetCurrentStyle(pn):GetStepsType()
 local profile = PROFILEMAN:GetMachineProfile()
 local stages = 16
 
-lua.ReportScriptError('----------------')
+lua.ReportScriptError('----------------' .. math.random())
 
 setenv("FlowDJ", true)
 
@@ -75,25 +75,6 @@ local function RemoveUnwantedGroups(songs)
 	return filtered_songs
 end
 
-local function RemoveRecentSongs(songs)
-	local filtered_songs = {}
-	local recent = RecentSongs()
-	for i,song in ipairs(songs) do
-		local found = false
-		for j,rec in ipairs(recent) do
-			if song == rec then
-				found = true
-				break
-			end
-		end
-		if not found then
-			table.insert(filtered_songs, song)
-		end
-	end
-	return filtered_songs
-end
-
-
 local graph = false
 local left_text = false
 local right_text = false
@@ -128,7 +109,7 @@ local function GraphSteps()
 end
 
 local function BucketByMeter()
-	local all_songs = RemoveRecentSongs(RemoveUnwantedGroups(SONGMAN:GetAllSongs()))
+	local all_songs = RemoveUnwantedGroups(SONGMAN:GetAllSongs())
 	local meters = {}
 	for g, song in ipairs(all_songs) do
 		local song_steps = song:GetStepsByStepsType(stepstype)
@@ -152,12 +133,16 @@ local function PickByMeter(flow)
 	local meters = BucketByMeter()
 	local selections = {}
 	local picked = {}
+	local recent = RecentSongs()
+	for i,song in ipairs(recent) do
+		picked[song:GetSongFilePath()] = true
+	end
 	for i,target in ipairs(flow) do
 		for j,sel in ipairs(meters[math.floor(target)]) do
 			local path = sel.song:GetSongFilePath()
 			if not picked[path] then
 				selections[i] = sel
-				picked[path] = sel
+				picked[path] = true
 				break
 			end
 		end
