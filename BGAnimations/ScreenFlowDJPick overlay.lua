@@ -75,6 +75,11 @@ local function RemoveUnwantedGroups(songs)
 	return filtered_songs
 end
 
+local function SortByPlayCount(songs)
+	table.sort(songs, function(a, b) return PROFILEMAN:GetSongNumTimesPlayed(a, 'ProfileSlot_Machine') < PROFILEMAN:GetSongNumTimesPlayed(b, 'ProfileSlot_Machine') end )
+	return songs
+end
+
 local graph = false
 local left_text = false
 local right_text = false
@@ -109,7 +114,7 @@ local function GraphSteps()
 end
 
 local function BucketByMeter()
-	local all_songs = RemoveUnwantedGroups(SONGMAN:GetAllSongs())
+	local all_songs = SortByPlayCount(RemoveUnwantedGroups(SONGMAN:GetAllSongs()))
 	local meters = {}
 	for g, song in ipairs(all_songs) do
 		local song_steps = song:GetStepsByStepsType(stepstype)
