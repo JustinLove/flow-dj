@@ -175,7 +175,7 @@ local function ManualFlow()
 		flow[stages+1-stage] = stage * 2
 	end
 	for stage = edges+1,stages-edges do
-		flow[stage] = 7
+		flow[stage] = 8
 	end
 	return flow
 end
@@ -189,14 +189,19 @@ local function WiggleFlow(flow)
 	return flow
 end
 
+
 local function SetupNextGame()
+	local current_stage = (getenv("FlowDJStage") or 0) + 1
+	setenv("FlowDJStage", current_stage)
+	--local current_stage = GAMESTATE:GetCurrentStageIndex()+1
 	local flow = WiggleFlow(ManualFlow())
 	local selections = PickByMeter(flow)
-	local sel = selections[GAMESTATE:GetCurrentStageIndex()+1]
+	local sel = selections[current_stage]
 	if sel then
 		GAMESTATE:SetCurrentSong(sel.song)
 		GAMESTATE:SetCurrentSteps(pn, sel.steps)
-		trans_new_screen("ScreenGameplay")
+		--trans_new_screen("ScreenGameplay")
+		trans_new_screen("ScreenFlowDJBounce")
 	else
 		trans_new_screen("ScreenTitleMenu")
 	end

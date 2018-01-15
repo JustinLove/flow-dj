@@ -26,3 +26,5 @@ ScreenSelectPlayMode acccepts custom options
 ScreenSelectPlayMode needs additional config for highlight graphics - see error messages
 SelectMusicOrCourse - entry point when returning
 drunken uses a extra pick screen to do selection logic, probably needed for select play mode transitions to skip select music
+
+Some objects are not available at actor init, must wait until oncommand
