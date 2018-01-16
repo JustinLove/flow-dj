@@ -3,6 +3,10 @@ local stepstype = GAMESTATE:GetCurrentStyle(pn):GetStepsType()
 local profile = PROFILEMAN:GetMachineProfile()
 local stages = 16
 
+local graph = false
+local left_text = false
+local right_text = false
+
 lua.ReportScriptError('----------------' .. math.random())
 
 flow_dj_enabled = true
@@ -80,9 +84,39 @@ local function SortByPlayCount(songs)
 	return songs
 end
 
-local graph = false
-local left_text = false
-local right_text = false
+local function GraphWeight(weighted)
+	graph:RemoveAllChildren()
+	graph:AddPoint(0, 0, Color.Black)
+	for i,item in ipairs(weighted) do
+		graph:AddPoint(item.count / 3, item.weight * 30, Color.White)
+	end
+end
+
+local function WeightByPlayCount(songs)
+	local weighted = {}
+	local most = 0
+	for i,song in ipairs(songs) do
+		local count = PROFILEMAN:GetSongNumTimesPlayed(song, 'ProfileSlot_Machine')
+		most = math.max(most, count)
+		weighted[i] = {
+			song = song,
+			title = song:GetDisplayMainTitle(),
+			count = count
+		}
+	end
+	most = (most / 2) + 1
+	local total = 0
+	for i,item in ipairs(weighted) do
+		weighted[i].weight = math.random() * (weighted[i].count + 1) / (weighted[i].count + most)
+	end
+	table.sort(weighted, function(a, b) return a.weight < b.weight end )
+	GraphWeight(weighted)
+	local sorted = {}
+	for i,item in ipairs(weighted) do
+		sorted[i] = weighted[i].song
+	end
+	return sorted
+end
 
 local function GraphSteps()
 	graph:RemoveAllChildren()
@@ -114,7 +148,7 @@ local function GraphSteps()
 end
 
 local function BucketByMeter()
-	local all_songs = SortByPlayCount(RemoveUnwantedGroups(SONGMAN:GetAllSongs()))
+	local all_songs = WeightByPlayCount(RemoveUnwantedGroups(SONGMAN:GetAllSongs()))
 	local meters = {}
 	for g, song in ipairs(all_songs) do
 		local song_steps = song:GetStepsByStepsType(stepstype)
@@ -236,7 +270,7 @@ local function update()
 	if frame == 2 then
 		--GraphSteps()
 		local flow = WiggleFlow(ManualFlow())
-		GraphFlow(flow)
+		--GraphFlow(flow)
 		local selections = PickByMeter(flow)
 		right_text:settext(SelectionsDebug(selections))
 		left_text:settext(SongsDebug(RecentSongs()))
