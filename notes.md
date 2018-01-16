@@ -10,7 +10,11 @@ https://dguzek.github.io/Lua-For-SM5/
 
 consensual has persistent mods
 
-No memory of songs played this round, causing repeats
+- Way to set options
+- reset values on mode entry
+- more selection factors
+- score prediction
+- actual score reaction
 
 ## Solved
 

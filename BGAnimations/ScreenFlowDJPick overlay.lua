@@ -272,16 +272,16 @@ end
 
 local function SetupNextGame()
 	flow_dj_stage = flow_dj_stage + 1
-	local current_stage = flow_dj_stage
-	--local current_stage = GAMESTATE:GetCurrentStageIndex()+1
-	local flow = WiggleFlow(ManualFlow(2, 7), 1)
+	--local current_stage = flow_dj_stage
+	local current_stage = GAMESTATE:GetCurrentStageIndex()+1
+	local flow = WiggleFlow(ManualFlow(2, 7.7), 1)
 	local selections = PickByMeter(flow)
 	local sel = selections[current_stage]
 	if sel then
 		GAMESTATE:SetCurrentSong(sel.song)
 		GAMESTATE:SetCurrentSteps(pn, sel.steps)
-		--trans_new_screen("ScreenGameplay")
-		trans_new_screen("ScreenFlowDJBounce")
+		trans_new_screen("ScreenGameplay")
+		--trans_new_screen("ScreenFlowDJBounce")
 	else
 		trans_new_screen("ScreenTitleMenu")
 	end
@@ -289,16 +289,15 @@ end
 
 local frame = 0
 local function update()
-	--SetupNextGame()
 	frame = frame + 1
 	if frame == 2 then
 		--GraphSteps()
-		local flow = WiggleFlow(ManualFlow(0.8, 0.6), 0.1)
-		GraphFlow(flow, 2)
 		local flow = WiggleFlow(ManualFlow(2, 7.7), 1)
+		GraphFlow(flow, 1)
 		local selections = PickByMeter(flow)
 		right_text:settext(SelectionsDebug(selections))
 		left_text:settext(SongsDebug(RecentSongs()))
+		SetupNextGame()
 	end
 end
 
