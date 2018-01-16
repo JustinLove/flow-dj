@@ -5,7 +5,7 @@ local stages = 16
 
 lua.ReportScriptError('----------------' .. math.random())
 
-setenv("FlowDJ", true)
+flow_dj_enabled = true
 
 local function SongDebug(song)
 	return song:GetDisplayMainTitle() ..  " " ..
@@ -213,8 +213,8 @@ local function WiggleFlow(flow)
 end
 
 local function SetupNextGame()
-	local current_stage = (getenv("FlowDJStage") or 0) + 1
-	setenv("FlowDJStage", current_stage)
+	flow_dj_stage = flow_dj_stage + 1
+	local current_stage = flow_dj_stage
 	--local current_stage = GAMESTATE:GetCurrentStageIndex()+1
 	local flow = WiggleFlow(ManualFlow())
 	local selections = PickByMeter(flow)
@@ -238,8 +238,8 @@ local function update()
 		local flow = WiggleFlow(ManualFlow())
 		GraphFlow(flow)
 		local selections = PickByMeter(flow)
-		left_text:settext(SelectionsDebug(selections))
-		right_text:settext(SongsDebug(RecentSongs()))
+		right_text:settext(SelectionsDebug(selections))
+		left_text:settext(SongsDebug(RecentSongs()))
 	end
 end
 

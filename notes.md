@@ -19,6 +19,7 @@ Can overwrite members of Branch
 Can overwrite global functions
 Gamecommands do not see my custom functions and overrides
 Gamecommand setenv does not seem to work
+Global variables defined in Scripts will persist, variables in BGAanimations will not
 No apparant way to add new PlayMode
 
 ScreenSelectPlayMode has screen transitions in each option
