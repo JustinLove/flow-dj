@@ -11,6 +11,11 @@ lua.ReportScriptError('----------------' .. math.random())
 
 flow_dj_enabled = true
 
+if flow_dj_stage == 0 then
+	flow_dj_offset = math.random(0,math.pi)
+	flow_dj_scale = math.random(1,3)
+end
+
 local function SongDebug(song)
 	return song:GetDisplayMainTitle() ..  " " ..
 		song:GetDisplayBpms()[1] .. "-" ..
@@ -110,7 +115,7 @@ local function WeightByPlayCount(songs)
 		weighted[i].weight = math.random() * (weighted[i].count + 1) / (weighted[i].count + most)
 	end
 	table.sort(weighted, function(a, b) return a.weight < b.weight end )
-	GraphWeight(weighted)
+	--GraphWeight(weighted)
 	local sorted = {}
 	for i,item in ipairs(weighted) do
 		sorted[i] = weighted[i].song
@@ -238,10 +243,8 @@ local function ManualFlow()
 end
 
 local function WiggleFlow(flow)
-	local offset = math.random(0,math.pi)
-	local scale = math.random(1,3)
 	for i,target in ipairs(flow) do
-		flow[i] = target + math.sin(scale*i + offset)
+		flow[i] = target + math.sin(flow_dj_scale*i + flow_dj_offset)
 	end
 	return flow
 end
@@ -270,7 +273,7 @@ local function update()
 	if frame == 2 then
 		--GraphSteps()
 		local flow = WiggleFlow(ManualFlow())
-		--GraphFlow(flow)
+		GraphFlow(flow)
 		local selections = PickByMeter(flow)
 		right_text:settext(SelectionsDebug(selections))
 		left_text:settext(SongsDebug(RecentSongs()))
