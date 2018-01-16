@@ -152,23 +152,47 @@ local function GraphSteps()
 	nps_text:settext(max_nps)
 end
 
-local function BucketByMeter()
+local function GetScore(song, steps)
+	local high_score_list = profile:GetHighScoreListIfExists(song, steps)
+	if high_score_list then
+		local score = high_score_list:GetHighestScoreOfName("EVNT")
+		if score then
+			return score:GetPercentDP()
+		end
+	end
+
+	return 0
+end
+
+local function PossibleSteps()
 	local all_songs = WeightByPlayCount(RemoveUnwantedGroups(SONGMAN:GetAllSongs()))
-	local meters = {}
+	local possible = {}
 	for g, song in ipairs(all_songs) do
 		local song_steps = song:GetStepsByStepsType(stepstype)
 		local song_length = song:GetLastSecond() - song:GetFirstSecond()
 		for t, steps in ipairs(song_steps) do
 			--lua.ReportScriptError(steps:PredictMeter())
-			local rating = steps:GetMeter()
-			if not meters[rating] then
-				meters[rating] = {}
-			end
-			table.insert(meters[rating], {
+			table.insert(possible, {
 				steps = steps,
 				song = song,
+				nps = calc_nps(pn, song_length, steps),
+				meter = steps:GetMeter(),
+				score = GetScore(song, steps),
 			})
 		end
+	end
+	return possible
+end
+
+local function BucketByMeter()
+	local all_steps = PossibleSteps()
+	local meters = {}
+	for i, item in ipairs(all_steps) do
+		--lua.ReportScriptError(steps:PredictMeter())
+		if not meters[item.meter] then
+			meters[item.meter] = {}
+		end
+		table.insert(meters[item.meter], item)
 	end
 	return meters
 end
@@ -197,11 +221,11 @@ local function PickByMeter(flow)
 	return selections
 end
 
-local function GraphFlow(flow)
+local function GraphFlow(flow, scale)
 	graph:RemoveAllChildren()
 	graph:AddPoint(0, 0, Color.Black)
 	for stage,target in ipairs(flow) do
-		graph:AddPoint(stage, math.floor(target), Color.White)
+		graph:AddPoint(stage, target*scale, Color.White)
 	end
 end
 
@@ -229,22 +253,22 @@ local function BezierFlow()
 	return flow
 end
 
-local function ManualFlow()
+local function ManualFlow(start, middle)
 	local flow = {}
 	local edges = math.floor(stages / 5)
 	for stage = 1,edges do
-		flow[stage] = stage * 2
-		flow[stages+1-stage] = stage * 2
+		flow[stage] = start + (((stage-1) / edges) * (middle - start))
+		flow[stages+1-stage] = start + ((stage-1) / edges) * (middle - start)
 	end
 	for stage = edges+1,stages-edges do
-		flow[stage] = 7
+		flow[stage] = middle
 	end
 	return flow
 end
 
-local function WiggleFlow(flow)
+local function WiggleFlow(flow, scale)
 	for i,target in ipairs(flow) do
-		flow[i] = target + math.sin(flow_dj_scale*i + flow_dj_offset)
+		flow[i] = target + (math.sin(flow_dj_scale*i + flow_dj_offset) * scale)
 	end
 	return flow
 end
@@ -253,7 +277,7 @@ local function SetupNextGame()
 	flow_dj_stage = flow_dj_stage + 1
 	local current_stage = flow_dj_stage
 	--local current_stage = GAMESTATE:GetCurrentStageIndex()+1
-	local flow = WiggleFlow(ManualFlow())
+	local flow = WiggleFlow(ManualFlow(2, 7), 1)
 	local selections = PickByMeter(flow)
 	local sel = selections[current_stage]
 	if sel then
@@ -272,8 +296,9 @@ local function update()
 	frame = frame + 1
 	if frame == 2 then
 		--GraphSteps()
-		local flow = WiggleFlow(ManualFlow())
-		GraphFlow(flow)
+		local flow = WiggleFlow(ManualFlow(0.8, 0.6), 0.1)
+		GraphFlow(flow, 2)
+		local flow = WiggleFlow(ManualFlow(2, 7), 1)
 		local selections = PickByMeter(flow)
 		right_text:settext(SelectionsDebug(selections))
 		left_text:settext(SongsDebug(RecentSongs()))
