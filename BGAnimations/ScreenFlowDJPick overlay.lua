@@ -17,10 +17,11 @@ if flow_dj_stage == 0 then
 end
 
 local function SongDebug(song)
-	return song:GetDisplayMainTitle() ..  " " ..
-		song:GetDisplayBpms()[1] .. "-" ..
-		song:GetDisplayBpms()[2] .. " " ..
-		PROFILEMAN:GetSongNumTimesPlayed(song, 'ProfileSlot_Machine')
+	return string.format("%40s %d-%d #%d",
+	  song:GetDisplayMainTitle(),
+		song:GetDisplayBpms()[1],
+		song:GetDisplayBpms()[2],
+		PROFILEMAN:GetSongNumTimesPlayed(song, 'ProfileSlot_Machine'))
 end
 
 local function SongsDebug(songs)
@@ -39,10 +40,18 @@ local function StepsDebug(steps)
 	return table.concat(debug, "\n")
 end
 
+local function SelectionDebug(sel)
+	return string.format("%s m%d %0.1fnps %0.2f",
+		SongDebug(sel.song),
+		sel.meter,
+		sel.nps,
+		sel.score)
+end
+
 local function SelectionsDebug(selections)
 	local debug = {}
 	for i,item in ipairs(selections) do
-		debug[i] = SongDebug(item.song)
+		debug[i] = SelectionDebug(item)
 	end
 	return table.concat(debug, "\n")
 end
@@ -286,7 +295,7 @@ local function update()
 		--GraphSteps()
 		local flow = WiggleFlow(ManualFlow(0.8, 0.6), 0.1)
 		GraphFlow(flow, 2)
-		local flow = WiggleFlow(ManualFlow(2, 7), 1)
+		local flow = WiggleFlow(ManualFlow(2, 7.7), 1)
 		local selections = PickByMeter(flow)
 		right_text:settext(SelectionsDebug(selections))
 		left_text:settext(SongsDebug(RecentSongs()))
