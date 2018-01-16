@@ -184,21 +184,8 @@ local function PossibleSteps()
 	return possible
 end
 
-local function BucketByMeter()
-	local all_steps = PossibleSteps()
-	local meters = {}
-	for i, item in ipairs(all_steps) do
-		--lua.ReportScriptError(steps:PredictMeter())
-		if not meters[item.meter] then
-			meters[item.meter] = {}
-		end
-		table.insert(meters[item.meter], item)
-	end
-	return meters
-end
-
 local function PickByMeter(flow)
-	local meters = BucketByMeter()
+	local possible = PossibleSteps()
 	local selections = {}
 	local picked = {}
 	local recent = RecentSongs()
@@ -206,9 +193,10 @@ local function PickByMeter(flow)
 		picked[song:GetSongFilePath()] = true
 	end
 	for i,target in ipairs(flow) do
-		for j,sel in ipairs(meters[math.floor(target)]) do
+		local meter = math.floor(target)
+		for j,sel in ipairs(possible) do
 			local path = sel.song:GetSongFilePath()
-			if not picked[path] then
+			if sel.meter == meter and not picked[path] then
 				selections[i] = sel
 				picked[path] = true
 				break
