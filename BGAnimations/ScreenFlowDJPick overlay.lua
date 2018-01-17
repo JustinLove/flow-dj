@@ -209,10 +209,22 @@ local initial_theta = {
 	meter = -0.02,
 }
 
+local function AddFactors(steps)
+	for i,sel in ipairs(steps) do
+		sel.factors = {
+			c = 1,
+			meter = sel.meter,
+		}
+	end
+end
+
 local function ComputeCost(steps, theta)
 	local cost = 0
 	for p,sel in ipairs(steps) do
-		local prediction = theta.c + theta.meter * sel.meter
+		local prediction = 0
+		for key,value in pairs(theta) do
+			prediction = prediction + value * sel.factors[key]
+		end
 		cost = cost + (prediction - sel.score) ^ 2
 	end
 	cost = cost / (2*#steps)
@@ -228,13 +240,18 @@ local function GradientDescent(steps, theta)
 			meter = 0,
 		}
 		for s,sel in ipairs(steps) do
-			local prediction = theta.c + theta.meter * sel.meter
+			local prediction = 0
+			for key,value in pairs(theta) do
+				prediction = prediction + value * sel.factors[key]
+			end
 			local error = prediction - sel.score
-			dtheta.c = dtheta.c + error
-			dtheta.meter = dtheta.meter + error * sel.meter
+			for key,value in pairs(dtheta) do
+				dtheta[key] = dtheta[key] + error * sel.factors[key]
+			end
 		end
-		theta.c = theta.c - alpha * (dtheta.c / #steps)
-		theta.meter = theta.meter - alpha * (dtheta.meter / #steps)
+		for key,value in pairs(theta) do
+			theta[key] = theta[key] - alpha * (dtheta[key] / #steps)
+		end
 		ComputeCost(steps, theta)
 	end
 	lua.ReportScriptError(theta.c)
@@ -246,13 +263,17 @@ local function GraphPredictions(steps, theta)
 	graph:RemoveAllChildren()
 	graph:AddPoint(0, 0, Color.Black)
 	for p,sel in ipairs(steps) do
-		local prediction = theta.c + theta.meter * sel.meter
+		local prediction = 0
+		for key,value in pairs(theta) do
+			prediction = prediction + value * sel.factors[key]
+		end
 		graph:AddPoint(sel.score * 20, prediction * 20, Color.White)
 	end
 end
 
 local function PredictScore()
 	local possible = PossibleSteps()
+	AddFactors(possible)
 	local training = {}
 	for p,sel in ipairs(possible) do
 		if sel.score ~= 0 then
