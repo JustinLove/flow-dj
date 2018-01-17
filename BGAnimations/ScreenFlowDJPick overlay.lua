@@ -6,6 +6,16 @@ local stages = 16
 local graph = false
 local left_text = false
 local right_text = false
+local timer_actor = false
+local function get_screen_time()
+	if timer_actor then
+		return timer_actor:GetSecsIntoEffect()
+	else
+		return 0
+	end
+end
+
+local entering_song = false
 
 lua.ReportScriptError('----------------' .. math.random())
 
@@ -280,8 +290,7 @@ local function SetupNextGame()
 	if sel then
 		GAMESTATE:SetCurrentSong(sel.song)
 		GAMESTATE:SetCurrentSteps(pn, sel.steps)
-		trans_new_screen("ScreenGameplay")
-		--trans_new_screen("ScreenFlowDJBounce")
+		entering_song = get_screen_time() + 1.5
 	else
 		trans_new_screen("ScreenTitleMenu")
 	end
@@ -289,6 +298,12 @@ end
 
 local frame = 0
 local function update()
+	if entering_song then
+		if get_screen_time() > entering_song then
+			trans_new_screen("ScreenGameplay")
+			--trans_new_screen("ScreenFlowDJBounce")
+		end
+	end
 	frame = frame + 1
 	if frame == 2 then
 		--GraphSteps()
@@ -303,7 +318,11 @@ end
 
 local function input(event)
 	if WaitForStart(event) then
-		SetupNextGame()
+		if entering_song then
+			trans_new_screen("ScreenPlayerOptions")
+		else
+			SetupNextGame()
+		end
 	end
 end
 
@@ -352,5 +371,12 @@ return Def.ActorFrame{
 				end
 			end
 		end,
-	}
+	},
+	Def.Actor{
+		Name= "timer",
+		InitCommand= function(self)
+			self:effectperiod(2^16)
+			timer_actor= self
+		end,
+	},
 }
