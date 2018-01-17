@@ -204,9 +204,33 @@ local function PossibleSteps()
 	return possible
 end
 
+local function NormalizeFactors(steps)
+	local range = {}
+	local avg = {}
+	for key,value in pairs(steps[1].factors) do
+		local min = steps[1].factors[key]
+		local max = steps[1].factors[key]
+		for i,sel in ipairs(steps) do
+			min = math.min(sel.factors[key])
+			max = math.max(sel.factors[key])
+		end
+		range[key] = (max - min) + 1
+		avg[key] = min + range[key]/2
+	end
+
+	for i,sel in ipairs(steps) do
+		for key,value in pairs(sel.factors) do
+			if key ~= 'c' then
+				sel.factors[key] = (sel.factors[key] - avg[key]) / range[key]
+			end
+		end
+	end
+end
+
 local initial_theta = {
 	c = 0.8,
-	meter = -0.02,
+	meter = -0.01,
+	nps = -0.01,
 }
 
 local function AddFactors(steps)
@@ -214,8 +238,10 @@ local function AddFactors(steps)
 		sel.factors = {
 			c = 1,
 			meter = sel.meter,
+			nps = sel.nps,
 		}
 	end
+	NormalizeFactors(steps)
 end
 
 local function ComputeCost(steps, theta)
@@ -235,10 +261,10 @@ end
 local function GradientDescent(steps, theta)
 	local alpha = 0.01
 	for i = 1,10 do
-		local dtheta = {
-			c = 0,
-			meter = 0,
-		}
+		local dtheta = {}
+		for key,value in pairs(theta) do
+			dtheta[key] = 0
+		end
 		for s,sel in ipairs(steps) do
 			local prediction = 0
 			for key,value in pairs(theta) do
@@ -283,7 +309,7 @@ local function PredictScore()
 	ComputeCost(training, initial_theta)
 	local theta = GradientDescent(training, initial_theta)
 	ComputeCost(training, theta)
-	GraphPredictions(training, theta)
+	GraphPredictions(possible, theta)
 end
 
 local function PickByMeter(flow)
