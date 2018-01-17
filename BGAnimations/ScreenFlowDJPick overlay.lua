@@ -204,6 +204,67 @@ local function PossibleSteps()
 	return possible
 end
 
+local initial_theta = {
+	c = 0.8,
+	meter = -0.02,
+}
+
+local function ComputeCost(steps, theta)
+	local cost = 0
+	for p,sel in ipairs(steps) do
+		local prediction = theta.c + theta.meter * sel.meter
+		cost = cost + (prediction - sel.score) ^ 2
+	end
+	cost = cost / (2*#steps)
+	lua.ReportScriptError(cost)
+	return cost
+end
+
+local function GradientDescent(steps, theta)
+	local alpha = 0.01
+	for i = 1,10 do
+		local dtheta = {
+			c = 0,
+			meter = 0,
+		}
+		for s,sel in ipairs(steps) do
+			local prediction = theta.c + theta.meter * sel.meter
+			local error = prediction - sel.score
+			dtheta.c = dtheta.c + error
+			dtheta.meter = dtheta.meter + error * sel.meter
+		end
+		theta.c = theta.c - alpha * (dtheta.c / #steps)
+		theta.meter = theta.meter - alpha * (dtheta.meter / #steps)
+		ComputeCost(steps, theta)
+	end
+	lua.ReportScriptError(theta.c)
+	lua.ReportScriptError(theta.meter)
+	return theta
+end
+
+local function GraphPredictions(steps, theta)
+	graph:RemoveAllChildren()
+	graph:AddPoint(0, 0, Color.Black)
+	for p,sel in ipairs(steps) do
+		local prediction = theta.c + theta.meter * sel.meter
+		graph:AddPoint(sel.score * 20, prediction * 20, Color.White)
+	end
+end
+
+local function PredictScore()
+	local possible = PossibleSteps()
+	local training = {}
+	for p,sel in ipairs(possible) do
+		if sel.score ~= 0 then
+			table.insert(training, sel)
+		end
+	end
+	ComputeCost(training, initial_theta)
+	local theta = GradientDescent(training, initial_theta)
+	ComputeCost(training, theta)
+	GraphPredictions(training, theta)
+end
+
 local function PickByMeter(flow)
 	local possible = PossibleSteps()
 	local selections = {}
@@ -306,11 +367,12 @@ local function update()
 	if frame == 2 then
 		--GraphSteps()
 		local flow = WiggleFlow(ManualFlow(2, 7.7), 1)
-		GraphFlow(flow, 1)
+		--GraphFlow(flow, 1)
 		local selections = PickByMeter(flow)
 		right_text:settext(SelectionsDebug(selections))
 		left_text:settext(SongsDebug(RecentSongs()))
 		--SetupNextGame()
+		PredictScore()
 	end
 end
 
@@ -365,7 +427,7 @@ return Def.ActorFrame{
 				self:AddChildFromPath(THEME:GetPathG("", "point.lua"))
 				local points = self:GetChild("point")
 				if points and #points > 0 then
-					points[#points]:xy(x * 40, self:GetHeight() - y * 25):diffuse(color)
+					points[#points]:xy(x * 20, self:GetHeight() - y * 20):diffuse(color)
 				end
 			end
 		end,
