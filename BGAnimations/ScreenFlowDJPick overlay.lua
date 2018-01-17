@@ -211,8 +211,8 @@ local function NormalizeFactors(steps)
 		local min = steps[1].factors[key]
 		local max = steps[1].factors[key]
 		for i,sel in ipairs(steps) do
-			min = math.min(sel.factors[key])
-			max = math.max(sel.factors[key])
+			min = math.min(min, sel.factors[key])
+			max = math.max(max, sel.factors[key])
 		end
 		range[key] = (max - min) + 1
 		avg[key] = min + range[key]/2
@@ -222,15 +222,19 @@ local function NormalizeFactors(steps)
 		for key,value in pairs(sel.factors) do
 			if key ~= 'c' then
 				sel.factors[key] = (sel.factors[key] - avg[key]) / range[key]
+			lua.ReportScriptError(range[key])
 			end
 		end
+		--rec_print_table(sel.factors)
 	end
 end
 
 local initial_theta = {
-	c = 0.8,
-	meter = -0.01,
-	nps = -0.01,
+	c = 0,
+	meter = 0,
+	meter2 = 0,
+	nps = 0,
+	nps2 = 0,
 }
 
 local function AddFactors(steps)
@@ -238,7 +242,9 @@ local function AddFactors(steps)
 		sel.factors = {
 			c = 1,
 			meter = sel.meter,
+			meter2 = sel.meter * sel.meter,
 			nps = sel.nps,
+			nps2 = sel.nps * sel.nps,
 		}
 	end
 	NormalizeFactors(steps)
@@ -254,13 +260,13 @@ local function ComputeCost(steps, theta)
 		cost = cost + (prediction - sel.score) ^ 2
 	end
 	cost = cost / (2*#steps)
-	lua.ReportScriptError(cost)
+	--lua.ReportScriptError(cost)
 	return cost
 end
 
 local function GradientDescent(steps, theta)
-	local alpha = 0.01
-	for i = 1,10 do
+	local alpha = 0.1
+	for i = 1,100 do
 		local dtheta = {}
 		for key,value in pairs(theta) do
 			dtheta[key] = 0
@@ -282,6 +288,8 @@ local function GradientDescent(steps, theta)
 	end
 	lua.ReportScriptError(theta.c)
 	lua.ReportScriptError(theta.meter)
+	lua.ReportScriptError(theta.nps)
+	lua.ReportScriptError(ComputeCost(steps, theta))
 	return theta
 end
 
