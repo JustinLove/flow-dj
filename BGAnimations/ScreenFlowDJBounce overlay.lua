@@ -1,6 +1,6 @@
 local pn = GAMESTATE:GetEnabledPlayers()[1]
 
-flow_dj_stage = flow_dj_stage + 1
+FlowDJ.stage = FlowDJ.stage + 1
 
 local function input(event)
 	if WaitForStart(event) then

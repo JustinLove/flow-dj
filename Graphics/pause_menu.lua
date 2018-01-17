@@ -23,7 +23,7 @@ if GAMESTATE:IsCourseMode() then
 		"end_course",
 	}
 end
-if flow_dj_enabled == true then
+if FlowDJ.enabled == true then
 	menu_choices= {
 		"continue_playing",
 		"skip_song",
@@ -134,8 +134,8 @@ local choice_actions= {
 		screen_gameplay:PostScreenMessage("SM_NotesEnded", 0)
 	end,
 	exit= function(pn)
-		flow_dj_enabled = false
-		flow_dj_stage = 0
+		FlowDJ.enabled = false
+		FlowDJ.stage = 0
 		backout("ScreenTitleMenu")
 	end,
 }

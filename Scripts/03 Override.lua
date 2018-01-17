@@ -5,7 +5,7 @@ function SelectMusicOrCourse()
 		return "ScreenNetSelectMusic"
 	elseif GAMESTATE:IsCourseMode() then
 		return "ScreenSelectCourse"
-	elseif flow_dj_enabled == true then
+	elseif FlowDJ.enabled == true then
 		return "ScreenFlowDJPick"
 	else
 		return "ScreenSelectMusic"
