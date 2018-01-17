@@ -10,7 +10,6 @@ https://dguzek.github.io/Lua-For-SM5/
 
 consensual has persistent mods
 
-- reset values on mode entry
 - more selection factors
 - score prediction
 - actual score reaction

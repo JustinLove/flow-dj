@@ -21,6 +21,7 @@ lua.ReportScriptError('----------------' .. math.random())
 
 flow_dj_enabled = true
 
+flow_dj_stage = GAMESTATE:GetCurrentStageIndex()
 if flow_dj_stage == 0 then
 	flow_dj_offset = math.random(0,math.pi)
 	flow_dj_scale = math.random(1,3)
@@ -281,12 +282,9 @@ local function WiggleFlow(flow, scale)
 end
 
 local function SetupNextGame()
-	flow_dj_stage = flow_dj_stage + 1
-	--local current_stage = flow_dj_stage
-	local current_stage = GAMESTATE:GetCurrentStageIndex()+1
 	local flow = WiggleFlow(ManualFlow(2, 7.7), 1)
 	local selections = PickByMeter(flow)
-	local sel = selections[current_stage]
+	local sel = selections[flow_dj_stage]
 	if sel then
 		GAMESTATE:SetCurrentSong(sel.song)
 		GAMESTATE:SetCurrentSteps(pn, sel.steps)
@@ -312,7 +310,7 @@ local function update()
 		local selections = PickByMeter(flow)
 		right_text:settext(SelectionsDebug(selections))
 		left_text:settext(SongsDebug(RecentSongs()))
-		SetupNextGame()
+		--SetupNextGame()
 	end
 end
 
