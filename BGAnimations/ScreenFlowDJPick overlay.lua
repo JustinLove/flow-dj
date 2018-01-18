@@ -353,8 +353,17 @@ local function GraphPredictions(steps, theta)
 	end
 end
 
-local function PredictScore()
-	local possible = PossibleSteps()
+local function AddPredictions(steps, theta)
+	for p,sel in ipairs(steps) do
+		local prediction = 0
+		for key,value in pairs(theta) do
+			prediction = prediction + value * sel.factors[key]
+		end
+		sel.predicted_score = prediction
+	end
+end
+
+local function PredictScore(possible)
 	AddFactors(possible)
 	local training = {}
 	for p,sel in ipairs(possible) do
@@ -362,12 +371,11 @@ local function PredictScore()
 			table.insert(training, sel)
 		end
 	end
-	ComputeCost(training, initial_theta)
 	local theta,history = GradientDescent(training, initial_theta)
-	ComputeCost(training, theta)
+	AddPredictions(possible, theta)
 	GraphPredictions(possible, theta)
 	--GraphData(history)
-	right_text:settext(ThetaDebug(theta) .. "\n" .. history[#history])
+	--right_text:settext(ThetaDebug(theta) .. "\n" .. history[#history])
 	--right_text:settext(rec_print_table_to_str(CountRadarUsage(possible)))
 end
 
@@ -384,6 +392,38 @@ local function PickByMeter(flow)
 		for j,sel in ipairs(possible) do
 			local path = sel.song:GetSongFilePath()
 			if sel.meter == meter and not picked[path] then
+				selections[i] = sel
+				picked[path] = true
+				break
+			end
+		end
+		if not selections[i] then
+			lua.ReportScriptError("missing " .. target)
+		end
+	end
+	return selections
+end
+
+local function PickByScore(flow)
+	local possible = PossibleSteps()
+	PredictScore(possible)
+	local selections = {}
+	local picked = {}
+	local recent = RecentSongs()
+	local range = 0.02
+	for i,song in ipairs(recent) do
+		picked[song:GetSongFilePath()] = true
+	end
+	for i,target in ipairs(flow) do
+		local low = target - range
+		local high = target + range
+		for j,sel in ipairs(possible) do
+			local path = sel.song:GetSongFilePath()
+			local score = sel.score
+			if score == 0 then
+				score = sel.predicted_score
+			end
+			if low < score and score < high and not picked[path] then
 				selections[i] = sel
 				picked[path] = true
 				break
@@ -443,7 +483,7 @@ end
 local function SetupNextGame()
 	local flow = WiggleFlow(ManualFlow(2, 7.7), 1)
 	local selections = PickByMeter(flow)
-	local sel = selections[FlowDJ.stage]
+	local sel = selections[FlowDJ.stage + 1]
 	if sel then
 		GAMESTATE:SetCurrentSong(sel.song)
 		GAMESTATE:SetCurrentSteps(pn, sel.steps)
@@ -464,13 +504,18 @@ local function update()
 	frame = frame + 1
 	if frame == 2 then
 		--GraphSteps()
-		local flow = WiggleFlow(ManualFlow(2, 7.7), 1)
+
+		local flow = WiggleFlow(ManualFlow(0.85, 0.7), 0.05)
+		GraphData(flow)
+		local selections = PickByScore(flow)
+
+		--local flow = WiggleFlow(ManualFlow(2, 7.7), 1)
 		--GraphData(flow)
-		local selections = PickByMeter(flow)
-		--right_text:settext(SelectionsDebug(selections))
+		--local selections = PickByMeter(flow)
+		right_text:settext(SelectionsDebug(selections))
 		left_text:settext(SongsDebug(RecentSongs()))
-		--SetupNextGame()
-		PredictScore()
+		SetupNextGame()
+		PredictScore(PossibleSteps())
 	end
 end
 
@@ -503,7 +548,7 @@ return Def.ActorFrame{
 		Name = "Right", Font = "Common Normal", InitCommand = function(self)
 			right_text = self
 			self:maxwidth(SCREEN_HEIGHT)
-			self:zoom(0.3)
+			self:zoom(0.5)
 			self:xy(_screen.cx + SCREEN_WIDTH/4, _screen.cy)
 		end
 	},
