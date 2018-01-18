@@ -67,6 +67,20 @@ local function SelectionsDebug(selections)
 	return table.concat(debug, "\n")
 end
 
+local function ThetaDebug(theta)
+	local names = {}
+	for key,value in pairs(theta) do
+		table.insert(names, key)
+	end
+	table.sort(names)
+
+	local debug = {}
+	for i,key in ipairs(names) do
+		debug[i] = string.format("%40s %f", key, theta[key])
+	end
+	return table.concat(debug, "\n")
+end
+
 local function RecentSongs()
 	local recent = {}
 	for i = 1,STATSMAN:GetStagesPlayed() do
@@ -259,10 +273,13 @@ end
 local initial_theta = {
 	c = 0,
 	meter = 0,
+	meter2 = 0,
 	nps = 0,
+	nps2 = 0,
 }
 for c,category in ipairs(RadarCategory) do
 	initial_theta[category] = 0
+	initial_theta[category.."2"] = 0
 end
 
 local function AddFactors(steps)
@@ -270,11 +287,15 @@ local function AddFactors(steps)
 		sel.factors = {
 			c = 1,
 			meter = sel.meter,
+			meter2 = sel.meter * sel.meter,
 			nps = sel.nps,
+			nps2 = sel.nps * sel.nps,
 		}
 		local radar = sel.steps:GetRadarValues(pn)
 		for c,category in ipairs(RadarCategory) do
-			sel.factors[category] = radar:GetValue(category)
+			local value = radar:GetValue(category)
+			sel.factors[category] = value
+			sel.factors[category.."2"] = value * value
 		end
 	end
 	NormalizeFactors(steps)
@@ -297,7 +318,7 @@ end
 local function GradientDescent(steps, theta)
 	local alpha = 0.03
 	local cost_history = {}
-	for i = 1,100 do
+	for i = 1,30 do
 		local dtheta = {}
 		for key,value in pairs(theta) do
 			dtheta[key] = 0
@@ -346,7 +367,7 @@ local function PredictScore()
 	ComputeCost(training, theta)
 	GraphPredictions(possible, theta)
 	--GraphData(history)
-	right_text:settext(rec_print_table_to_str(theta) .. "\n" .. history[#history])
+	right_text:settext(ThetaDebug(theta) .. "\n" .. history[#history])
 	--right_text:settext(rec_print_table_to_str(CountRadarUsage(possible)))
 end
 
@@ -482,7 +503,7 @@ return Def.ActorFrame{
 		Name = "Right", Font = "Common Normal", InitCommand = function(self)
 			right_text = self
 			self:maxwidth(SCREEN_HEIGHT)
-			self:zoom(0.5)
+			self:zoom(0.3)
 			self:xy(_screen.cx + SCREEN_WIDTH/4, _screen.cy)
 		end
 	},
