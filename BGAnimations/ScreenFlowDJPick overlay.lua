@@ -94,6 +94,22 @@ function calc_nps(pn, song_len, steps)
 	return notes / song_len
 end
 
+function CountRadarUsage(steps)
+	local counts = {}
+	for c,category in ipairs(RadarCategory) do
+		counts[category] = 0
+	end
+	for s,sel in ipairs(steps) do
+		local radar = sel.steps:GetRadarValues(pn)
+		for c,category in ipairs(RadarCategory) do
+			if radar:GetValue(category) ~= 0 then
+				counts[category] = counts[category] + 1
+			end
+		end
+	end
+	return counts
+end
+
 local function RemoveUnwantedGroups(songs)
 	local filtered_songs = {}
 	for i,song in ipairs(songs) do
@@ -243,9 +259,7 @@ end
 local initial_theta = {
 	c = 0,
 	meter = 0,
-	meter2 = 0,
 	nps = 0,
-	nps2 = 0,
 }
 
 local function AddFactors(steps)
@@ -253,9 +267,7 @@ local function AddFactors(steps)
 		sel.factors = {
 			c = 1,
 			meter = sel.meter,
-			meter2 = sel.meter * sel.meter,
 			nps = sel.nps,
-			nps2 = sel.nps * sel.nps,
 		}
 	end
 	NormalizeFactors(steps)
@@ -327,7 +339,8 @@ local function PredictScore()
 	ComputeCost(training, theta)
 	GraphPredictions(possible, theta)
 	--GraphData(history)
-	right_text:settext(rec_print_table_to_str(theta) .. "\n" .. history[#history])
+	--right_text:settext(rec_print_table_to_str(theta) .. "\n" .. history[#history])
+	right_text:settext(rec_print_table_to_str(CountRadarUsage(possible)))
 end
 
 local function PickByMeter(flow)
@@ -487,7 +500,6 @@ return Def.ActorFrame{
 				if points and #points > 0 then
 					points[#points]:xy(x, 1 - y):diffuse(color)
 				end
-				--self:GetChild("background"):xy(0.5, 0.5):diffuse(color)
 			end
 
 			self.Clear = function(self)
