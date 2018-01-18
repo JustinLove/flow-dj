@@ -109,11 +109,23 @@ local function SortByPlayCount(songs)
 	return songs
 end
 
+local function GraphData(data)
+	graph:Clear()
+	graph:AddPoint(0, 0, Color.Black)
+	local max = 0
+	for i,item in ipairs(data) do
+		max = math.max(max, item)
+	end
+	for i,item in ipairs(data) do
+		graph:AddPoint(i/#data, item/max, Color.White)
+	end
+end
+
 local function GraphWeight(weighted)
-	graph:RemoveAllChildren()
+	graph:Clear()
 	graph:AddPoint(0, 0, Color.Black)
 	for i,item in ipairs(weighted) do
-		graph:AddPoint(item.count / 3, item.weight * 30, Color.White)
+		graph:AddPoint(item.count / 30, item.weight, Color.White)
 	end
 end
 
@@ -144,7 +156,7 @@ local function WeightByPlayCount(songs)
 end
 
 local function GraphSteps()
-	graph:RemoveAllChildren()
+	graph:Clear()
 	local max_nps = 0
 	local all_songs = RemoveUnwantedGroups(SONGMAN:GetAllSongs())
 	for g, song in ipairs(all_songs) do
@@ -165,7 +177,7 @@ local function GraphSteps()
 					color = HSV(best * 120, 1, 1)
 				end
 			end
-			graph:AddPoint(nps, rating, color)
+			graph:AddPoint(nps/10, rating/20, color)
 			max_nps = math.max(max_nps, nps)
 		end
 	end
@@ -222,7 +234,6 @@ local function NormalizeFactors(steps)
 		for key,value in pairs(sel.factors) do
 			if key ~= 'c' then
 				sel.factors[key] = (sel.factors[key] - avg[key]) / range[key]
-			lua.ReportScriptError(range[key])
 			end
 		end
 		--rec_print_table(sel.factors)
@@ -265,7 +276,8 @@ local function ComputeCost(steps, theta)
 end
 
 local function GradientDescent(steps, theta)
-	local alpha = 0.1
+	local alpha = 0.03
+	local cost_history = {}
 	for i = 1,100 do
 		local dtheta = {}
 		for key,value in pairs(theta) do
@@ -284,24 +296,20 @@ local function GradientDescent(steps, theta)
 		for key,value in pairs(theta) do
 			theta[key] = theta[key] - alpha * (dtheta[key] / #steps)
 		end
-		ComputeCost(steps, theta)
+		cost_history[i] = ComputeCost(steps, theta)
 	end
-	lua.ReportScriptError(theta.c)
-	lua.ReportScriptError(theta.meter)
-	lua.ReportScriptError(theta.nps)
-	lua.ReportScriptError(ComputeCost(steps, theta))
-	return theta
+	return theta, cost_history
 end
 
 local function GraphPredictions(steps, theta)
-	graph:RemoveAllChildren()
+	graph:Clear()
 	graph:AddPoint(0, 0, Color.Black)
 	for p,sel in ipairs(steps) do
 		local prediction = 0
 		for key,value in pairs(theta) do
 			prediction = prediction + value * sel.factors[key]
 		end
-		graph:AddPoint(sel.score * 20, prediction * 20, Color.White)
+		graph:AddPoint(sel.score, prediction, Color.White)
 	end
 end
 
@@ -315,9 +323,11 @@ local function PredictScore()
 		end
 	end
 	ComputeCost(training, initial_theta)
-	local theta = GradientDescent(training, initial_theta)
+	local theta,history = GradientDescent(training, initial_theta)
 	ComputeCost(training, theta)
 	GraphPredictions(possible, theta)
+	--GraphData(history)
+	right_text:settext(rec_print_table_to_str(theta) .. "\n" .. history[#history])
 end
 
 local function PickByMeter(flow)
@@ -343,14 +353,6 @@ local function PickByMeter(flow)
 		end
 	end
 	return selections
-end
-
-local function GraphFlow(flow, scale)
-	graph:RemoveAllChildren()
-	graph:AddPoint(0, 0, Color.Black)
-	for stage,target in ipairs(flow) do
-		graph:AddPoint(stage, target*scale, Color.White)
-	end
 end
 
 local function LinearFlow()
@@ -422,9 +424,9 @@ local function update()
 	if frame == 2 then
 		--GraphSteps()
 		local flow = WiggleFlow(ManualFlow(2, 7.7), 1)
-		--GraphFlow(flow, 1)
+		--GraphData(flow)
 		local selections = PickByMeter(flow)
-		right_text:settext(SelectionsDebug(selections))
+		--right_text:settext(SelectionsDebug(selections))
 		left_text:settext(SongsDebug(RecentSongs()))
 		--SetupNextGame()
 		PredictScore()
@@ -475,17 +477,33 @@ return Def.ActorFrame{
 		Name = "graph", InitCommand = function(self)
 			graph = self
 			self:xy(20, 20)
-			self:SetWidth(SCREEN_WIDTH - 40)
-			self:SetHeight(SCREEN_HEIGHT - 40)
+			local scale = math.min(SCREEN_WIDTH - 40, SCREEN_HEIGHT - 50)
+			self:zoom(scale)
 
 			self.AddPoint = function(self, x, y, color)
-				self:AddChildFromPath(THEME:GetPathG("", "point.lua"))
-				local points = self:GetChild("point")
+				local data = self:GetChild("data")
+				data:AddChildFromPath(THEME:GetPathG("", "point.lua"))
+				local points = data:GetChild("point")
 				if points and #points > 0 then
-					points[#points]:xy(x * 20, self:GetHeight() - y * 20):diffuse(color)
+					points[#points]:xy(x, 1 - y):diffuse(color)
 				end
+				--self:GetChild("background"):xy(0.5, 0.5):diffuse(color)
+			end
+
+			self.Clear = function(self)
+				self:GetChild("data"):RemoveAllChildren()
 			end
 		end,
+		Def.ActorFrame{
+			Def.Quad{
+				Name= "backdrop", InitCommand = cmd(setsize, 1, 1; xy, 0.5, 0.5),
+				OnCommand = cmd(diffuse, Alpha(Color.Black, 0.5))
+			},
+			Name= "background", InitCommand= cmd(visible, true),
+		},
+		Def.ActorFrame{
+			Name= "data", InitCommand= cmd(visible, true),
+		},
 	},
 	Def.Actor{
 		Name= "timer",
