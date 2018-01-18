@@ -261,6 +261,9 @@ local initial_theta = {
 	meter = 0,
 	nps = 0,
 }
+for c,category in ipairs(RadarCategory) do
+	initial_theta[category] = 0
+end
 
 local function AddFactors(steps)
 	for i,sel in ipairs(steps) do
@@ -269,6 +272,10 @@ local function AddFactors(steps)
 			meter = sel.meter,
 			nps = sel.nps,
 		}
+		local radar = sel.steps:GetRadarValues(pn)
+		for c,category in ipairs(RadarCategory) do
+			sel.factors[category] = radar:GetValue(category)
+		end
 	end
 	NormalizeFactors(steps)
 end
@@ -339,8 +346,8 @@ local function PredictScore()
 	ComputeCost(training, theta)
 	GraphPredictions(possible, theta)
 	--GraphData(history)
-	--right_text:settext(rec_print_table_to_str(theta) .. "\n" .. history[#history])
-	right_text:settext(rec_print_table_to_str(CountRadarUsage(possible)))
+	right_text:settext(rec_print_table_to_str(theta) .. "\n" .. history[#history])
+	--right_text:settext(rec_print_table_to_str(CountRadarUsage(possible)))
 end
 
 local function PickByMeter(flow)
