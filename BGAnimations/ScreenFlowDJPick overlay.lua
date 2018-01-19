@@ -310,7 +310,7 @@ local function Cross(factors)
 	end
 end
 
-local poly = 1
+local poly = 2
 
 Polynomial(initial_theta, poly)
 --Cross(initial_theta)
@@ -347,10 +347,14 @@ local function ComputeCost(steps, theta)
 	return cost
 end
 
-local function GradientDescent(steps, theta)
-	local alpha = 0.03
+local function GradientDescent(steps, init_theta)
+	local theta = {}
+	for key,value in pairs(init_theta) do
+		theta[key] = value
+	end
+	local alpha = 0.1
 	local cost_history = {}
-	for i = 1,30 do
+	for i = 1,10000 do
 		local dtheta = {}
 		for key,value in pairs(theta) do
 			dtheta[key] = 0
@@ -425,6 +429,34 @@ local function TrainingData(scored)
 	end
 	lua.ReportScriptError(#training .. " " .. #test)
 	return training,test
+end
+
+local function SamplePredictions(scored)
+	local training, test = TrainingData(scored)
+	lua.ReportScriptError(#training .. " " .. #test)
+	local theta,history = GradientDescent(training, initial_theta)
+	return history[#history], ComputeCost(test, theta)
+end
+
+local function MultipleTraining(possible)
+	AddFactors(possible)
+	local scored = ScoredSteps(possible)
+	local training_history = {}
+	local test_history = {}
+	local total_training_cost = 0
+	local total_test_cost = 0
+	local rounds = 100
+	for i = 1,rounds do
+		local training_cost, test_cost = SamplePredictions(scored)
+		total_training_cost = total_training_cost + training_cost
+		total_test_cost = total_test_cost + test_cost
+		training_history[i] = training_cost
+		test_history[i] = test_cost
+	end
+	right_text:settext(
+		(total_training_cost / rounds) .. "\n" ..
+		(total_test_cost / rounds))
+	GraphData(training_history)
 end
 
 local function EvaluatePredictions(possible)
@@ -591,6 +623,7 @@ local function update()
 		right_text:settext(SelectionsDebug(selections))
 		left_text:settext(SongsDebug(RecentSongs()))
 		EvaluatePredictions(PossibleSteps())
+		--MultipleTraining(PossibleSteps())
 
 		if auto_start then
 			SetupNextGame(Configure())

@@ -10,8 +10,10 @@ https://dguzek.github.io/Lua-For-SM5/
 
 consensual has persistent mods
 
+- incremental gradient descent without locking update
+- display convergence (log scale?)
+- perhaps allow computation between every round, until press
 - more selection factors
-- score prediction
 - actual score reaction
 
 ## Solved
