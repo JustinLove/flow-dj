@@ -1,7 +1,9 @@
+local stages = 16
+local auto_start = false
+
 local pn = GAMESTATE:GetEnabledPlayers()[1]
 local stepstype = GAMESTATE:GetCurrentStyle(pn):GetStepsType()
 local profile = PROFILEMAN:GetMachineProfile()
-local stages = 16
 
 local graph = false
 local left_text = false
@@ -375,7 +377,8 @@ local function PredictScore(possible)
 	AddPredictions(possible, theta)
 	GraphPredictions(possible, theta)
 	--GraphData(history)
-	--right_text:settext(ThetaDebug(theta) .. "\n" .. history[#history])
+	right_text:settext(ThetaDebug(theta) .. "\n" .. history[#history])
+	right_text:zoom(0.35)
 	--right_text:settext(rec_print_table_to_str(CountRadarUsage(possible)))
 end
 
@@ -480,9 +483,16 @@ local function WiggleFlow(flow, scale)
 	return flow
 end
 
-local function SetupNextGame()
-	local flow = WiggleFlow(ManualFlow(2, 7.7), 1)
-	local selections = PickByMeter(flow)
+local function Configure()
+	local flow = WiggleFlow(ManualFlow(0.85, 0.7), 0.05)
+	local selections = PickByScore(flow)
+	--local flow = WiggleFlow(ManualFlow(2, 7.7), 1)
+	--local selections = PickByMeter(flow)
+	GraphData(flow)
+	return selections
+end
+
+local function SetupNextGame(selections)
 	local sel = selections[FlowDJ.stage + 1]
 	if sel then
 		GAMESTATE:SetCurrentSong(sel.song)
@@ -505,17 +515,15 @@ local function update()
 	if frame == 2 then
 		--GraphSteps()
 
-		local flow = WiggleFlow(ManualFlow(0.85, 0.7), 0.05)
-		GraphData(flow)
-		local selections = PickByScore(flow)
+		local selections = Configure()
 
-		--local flow = WiggleFlow(ManualFlow(2, 7.7), 1)
-		--GraphData(flow)
-		--local selections = PickByMeter(flow)
 		right_text:settext(SelectionsDebug(selections))
 		left_text:settext(SongsDebug(RecentSongs()))
-		SetupNextGame()
 		PredictScore(PossibleSteps())
+
+		if auto_start then
+			SetupNextGame(Configure())
+		end
 	end
 end
 
@@ -524,7 +532,7 @@ local function input(event)
 		if entering_song then
 			trans_new_screen("ScreenPlayerOptions")
 		else
-			SetupNextGame()
+			SetupNextGame(Configure())
 		end
 	end
 end
