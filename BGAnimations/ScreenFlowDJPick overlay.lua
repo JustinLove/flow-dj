@@ -284,7 +284,7 @@ end
 local function Polynomial(factors, degree)
 	local keys = {}
 	for key,value in pairs(factors) do
-		if key ~= c then
+		if key ~= 'c' then
 			table.insert(keys, key)
 		end
 	end
@@ -295,9 +295,25 @@ local function Polynomial(factors, degree)
 	end
 end
 
+local function Cross(factors)
+	local keys = {}
+	for key,value in pairs(factors) do
+		if key ~= 'c' then
+			table.insert(keys, key)
+		end
+	end
+	for a,keya in ipairs(keys) do
+		for b = 1,a do
+			local keyb = keys[b]
+			factors[keya..keyb] = factors[keya] * factors[keyb]
+		end
+	end
+end
+
 local poly = 1
 
 Polynomial(initial_theta, poly)
+--Cross(initial_theta)
 
 local function AddFactors(steps)
 	for i,sel in ipairs(steps) do
@@ -312,6 +328,7 @@ local function AddFactors(steps)
 			sel.factors[category] = value
 		end
 		Polynomial(sel.factors, poly)
+		--Cross(sel.factors)
 	end
 	NormalizeFactors(steps)
 end
@@ -391,6 +408,7 @@ local function PredictScore(possible)
 	GraphPredictions(possible, theta)
 	--GraphData(history)
 	right_text:settext(ThetaDebug(theta) .. "\n" .. history[#history])
+	lua.ReportScriptError(history[#history])
 	right_text:zoom(0.35)
 	--right_text:settext(rec_print_table_to_str(CountRadarUsage(possible)))
 end
