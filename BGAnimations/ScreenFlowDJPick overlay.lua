@@ -373,15 +373,13 @@ local function GradientDescent(steps, theta)
 	return theta, cost_history
 end
 
-local function GraphPredictions(steps, theta)
-	graph:Clear()
-	graph:AddPoint(0, 0, Color.Black)
+local function GraphPredictions(steps, theta, color)
 	for p,sel in ipairs(steps) do
 		local prediction = 0
 		for key,value in pairs(theta) do
 			prediction = prediction + value * sel.factors[key]
 		end
-		graph:AddPoint(sel.score, prediction, Color.White)
+		graph:AddPoint(sel.score, prediction, color)
 	end
 end
 
@@ -395,22 +393,64 @@ local function AddPredictions(steps, theta)
 	end
 end
 
-local function PredictScore(possible)
-	AddFactors(possible)
-	local training = {}
+local function Scramble(list)
+	for i = 1,#list do
+		local j = math.random(#list)
+		local temp = list[i]
+		list[i] = list[j]
+		list[j] = temp
+	end
+end
+
+local function ScoredSteps(possible)
+	local scored = {}
 	for p,sel in ipairs(possible) do
 		if sel.score ~= 0 then
-			table.insert(training, sel)
+			table.insert(scored, sel)
 		end
 	end
+	return scored
+end
+
+local function TrainingData(scored)
+	Scramble(scored)
+	local training_size = math.floor(#scored * 0.7)
+	local training = {}
+	for i = 1,training_size do
+		training[i] = scored[i]
+	end
+	local test = {}
+	for i = training_size+1,#scored do
+		test[i-training_size] = scored[i]
+	end
+	lua.ReportScriptError(#training .. " " .. #test)
+	return training,test
+end
+
+local function EvaluatePredictions(possible)
+	AddFactors(possible)
+	local scored = ScoredSteps(possible)
+	local training, test = TrainingData(scored)
+	lua.ReportScriptError(#training .. " " .. #test)
 	local theta,history = GradientDescent(training, initial_theta)
-	AddPredictions(possible, theta)
-	GraphPredictions(possible, theta)
+	graph:Clear()
+	graph:AddPoint(0, 0, Color.Black)
+	GraphPredictions(training, theta, Color.Green)
+	GraphPredictions(test, theta, Color.Yellow)
 	--GraphData(history)
-	right_text:settext(ThetaDebug(theta) .. "\n" .. history[#history])
+	right_text:settext(ThetaDebug(theta) .. "\n" ..
+		history[#history] .. "\n" ..
+		ComputeCost(test, theta))
 	lua.ReportScriptError(history[#history])
 	right_text:zoom(0.35)
 	--right_text:settext(rec_print_table_to_str(CountRadarUsage(possible)))
+end
+
+local function PredictScore(possible)
+	AddFactors(possible)
+	local scored = ScoredSteps(possible)
+	local theta,history = GradientDescent(scored, initial_theta)
+	AddPredictions(possible, theta)
 end
 
 local function PickByMeter(flow)
@@ -550,7 +590,7 @@ local function update()
 
 		right_text:settext(SelectionsDebug(selections))
 		left_text:settext(SongsDebug(RecentSongs()))
-		PredictScore(PossibleSteps())
+		EvaluatePredictions(PossibleSteps())
 
 		if auto_start then
 			SetupNextGame(Configure())
