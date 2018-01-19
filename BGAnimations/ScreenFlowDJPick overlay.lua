@@ -275,30 +275,43 @@ end
 local initial_theta = {
 	c = 0,
 	meter = 0,
-	meter2 = 0,
 	nps = 0,
-	nps2 = 0,
 }
 for c,category in ipairs(RadarCategory) do
 	initial_theta[category] = 0
-	initial_theta[category.."2"] = 0
 end
+
+local function Polynomial(factors, degree)
+	local keys = {}
+	for key,value in pairs(factors) do
+		if key ~= c then
+			table.insert(keys, key)
+		end
+	end
+	for d = 2,degree do
+		for i,key in ipairs(keys) do
+			factors[key..d] = factors[key] ^ d
+		end
+	end
+end
+
+local poly = 1
+
+Polynomial(initial_theta, poly)
 
 local function AddFactors(steps)
 	for i,sel in ipairs(steps) do
 		sel.factors = {
 			c = 1,
 			meter = sel.meter,
-			meter2 = sel.meter * sel.meter,
 			nps = sel.nps,
-			nps2 = sel.nps * sel.nps,
 		}
 		local radar = sel.steps:GetRadarValues(pn)
 		for c,category in ipairs(RadarCategory) do
 			local value = radar:GetValue(category)
 			sel.factors[category] = value
-			sel.factors[category.."2"] = value * value
 		end
+		Polynomial(sel.factors, poly)
 	end
 	NormalizeFactors(steps)
 end
