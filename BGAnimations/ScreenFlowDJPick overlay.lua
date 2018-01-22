@@ -31,7 +31,7 @@ end
 
 local function SongDebug(song)
 	return string.format("%40s %d-%d #%d",
-	  song:GetDisplayMainTitle(),
+		song:GetDisplayMainTitle(),
 		song:GetDisplayBpms()[1],
 		song:GetDisplayBpms()[2],
 		PROFILEMAN:GetSongNumTimesPlayed(song, 'ProfileSlot_Machine'))
@@ -129,7 +129,7 @@ end
 local function RemoveUnwantedGroups(songs)
 	local filtered_songs = {}
 	for i,song in ipairs(songs) do
-		if song:GetGroupName() ~= "Muted" and song:GetGroupName() ~= "Impossible" then
+		if song:GetGroupName() ~= "Muted" then
 			table.insert(filtered_songs, song)
 		end
 	end
@@ -276,6 +276,9 @@ local initial_theta = {
 	c = 0,
 	meter = 0,
 	nps = 0,
+	significant_timing_changes = 0,
+	min_bpm = 0,
+	max_bpm = 0,
 }
 for c,category in ipairs(RadarCategory) do
 	initial_theta[category] = 0
@@ -284,7 +287,7 @@ end
 local function Polynomial(factors, degree)
 	local keys = {}
 	for key,value in pairs(factors) do
-		if key ~= 'c' then
+		if key ~= 'c' and key ~= 'significant_timing_changes' then
 			table.insert(keys, key)
 		end
 	end
@@ -317,10 +320,13 @@ Polynomial(initial_theta, poly)
 
 local function AddFactors(steps)
 	for i,sel in ipairs(steps) do
+		local bpms = sel.song:GetDisplayBpms()
 		sel.factors = {
 			c = 1,
 			meter = sel.meter,
 			nps = sel.nps,
+			min_bpm = bpms[1] or 0,
+			max_bpm = bpms[2] or 120,
 		}
 		local radar = sel.steps:GetRadarValues(pn)
 		for c,category in ipairs(RadarCategory) do
@@ -328,6 +334,10 @@ local function AddFactors(steps)
 			sel.factors[category] = value
 		end
 		Polynomial(sel.factors, poly)
+		sel.factors['significant_timing_changes'] = 0
+		if sel.steps:HasSignificantTimingChanges() then
+			sel.factors['significant_timing_changes'] = 1
+		end
 		--Cross(sel.factors)
 	end
 	NormalizeFactors(steps)
@@ -354,7 +364,7 @@ local function GradientDescent(steps, init_theta)
 	end
 	local alpha = 0.1
 	local cost_history = {}
-	for i = 1,10000 do
+	for i = 1,100 do
 		local dtheta = {}
 		for key,value in pairs(theta) do
 			dtheta[key] = 0
@@ -474,7 +484,7 @@ local function EvaluatePredictions(possible)
 		history[#history] .. "\n" ..
 		ComputeCost(test, theta))
 	lua.ReportScriptError(history[#history])
-	right_text:zoom(0.35)
+	right_text:zoom(0.30)
 	--right_text:settext(rec_print_table_to_str(CountRadarUsage(possible)))
 end
 
