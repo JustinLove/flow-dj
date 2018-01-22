@@ -10,11 +10,14 @@ https://dguzek.github.io/Lua-For-SM5/
 
 consensual has persistent mods
 
-- incremental gradient descent without locking update
-- display convergence (log scale?)
-- perhaps allow computation between every round, until press
-- more selection factors
-- actual score reaction
+- usable screens
+  - song preview - score?
+- config?
+- profiles?
+  - what happens with no data?
+  - multiple players?
+- more selection factors ?
+- actual score reaction ?
 
 ## Solved
 

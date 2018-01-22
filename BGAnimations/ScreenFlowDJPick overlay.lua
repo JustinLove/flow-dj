@@ -431,6 +431,10 @@ local function ScoredSteps(possible)
 	return scored
 end
 
+local possible_steps = PossibleSteps()
+AddFactors(possible_steps)
+local scored_steps = ScoredSteps(possible_steps)
+
 local function TrainingData(scored)
 	Scramble(scored)
 	local training_size = math.floor(#scored * 0.7)
@@ -497,15 +501,6 @@ local function EvaluatePredictions(possible)
 	--right_text:settext(rec_print_table_to_str(CountRadarUsage(possible)))
 end
 
-local function PredictScore(possible)
-	AddFactors(possible)
-	local scored = ScoredSteps(possible)
-	local theta = CopyTable(initial_theta)
-	local history = {}
-	GradientDescent(scored, theta, history)
-	AddPredictions(possible, theta)
-end
-
 local function PickByMeter(flow)
 	local possible = PossibleSteps()
 	local selections = {}
@@ -532,8 +527,7 @@ local function PickByMeter(flow)
 end
 
 local function PickByScore(flow)
-	local possible = PossibleSteps()
-	PredictScore(possible)
+	AddPredictions(possible_steps, FlowDJ.theta)
 	local selections = {}
 	local picked = {}
 	local recent = RecentSongs()
@@ -544,7 +538,7 @@ local function PickByScore(flow)
 	for i,target in ipairs(flow) do
 		local low = target - range
 		local high = target + range
-		for j,sel in ipairs(possible) do
+		for j,sel in ipairs(possible_steps) do
 			local path = sel.song:GetSongFilePath()
 			local score = sel.score
 			if score == 0 then
@@ -627,21 +621,13 @@ local function SetupNextGame(selections)
 	end
 end
 
-local incremental_possible = PossibleSteps()
-AddFactors(incremental_possible)
-local incremental_scored = ScoredSteps(incremental_possible)
 local incremental_history = {}
 
 local function IncrementalUpdate()
-	GradientDescent(incremental_scored, FlowDJ.theta, incremental_history)
+	GradientDescent(scored_steps, FlowDJ.theta, incremental_history)
 	if #incremental_history % 10 == 0 then
-		GraphPredictions(incremental_scored, FlowDJ.theta, Color.White)
+		GraphPredictions(scored_steps, FlowDJ.theta, Color.White)
 	end
-	--GraphData(incremental_history)
-	right_text:settext(ThetaDebug(FlowDJ.theta) .. "\n" ..
-		incremental_history[#incremental_history] .. "\n" ..
-		#incremental_history)
-	right_text:zoom(0.30)
 end
 
 local frame = 0
@@ -653,19 +639,21 @@ local function update()
 		end
 	end
 	IncrementalUpdate()
+	left_text:settext(ThetaDebug(FlowDJ.theta) .. "\n" ..
+		incremental_history[#incremental_history] .. "\n" ..
+		#incremental_history)
+	left_text:zoom(0.30)
 	frame = frame + 1
 	if frame == 2 then
 		--GraphSteps()
-		GraphPredictions(incremental_scored, FlowDJ.theta, Color.White)
-
 		local selections = Configure()
 
 		right_text:settext(SelectionsDebug(selections))
-		left_text:settext(SongsDebug(RecentSongs()))
+		--left_text:settext(SongsDebug(RecentSongs()))
 		--EvaluatePredictions(PossibleSteps())
 		--MultipleTraining(PossibleSteps())
 
-		if auto_start then
+		if auto_start and incremental_history[#incremental_history] < 0.003 then
 			SetupNextGame(Configure())
 		end
 	end
