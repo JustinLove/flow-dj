@@ -318,6 +318,10 @@ local function CopyTable(from)
 	return to
 end
 
+if not FlowDJ.theta['c'] then
+	FlowDJ.theta = CopyTable(initial_theta)
+end
+
 local function AddFactors(steps)
 	for i,sel in ipairs(steps) do
 		local bpms = sel.song:GetDisplayBpms()
@@ -361,7 +365,10 @@ local function GradientDescent(steps, theta, cost_history)
 	local alpha = 0.1
 	local tick_start = GetTimeSinceStart()
 	local crazy = 0
-	while GetTimeSinceStart() - tick_start < 0.02 and crazy < 100 do
+	if #cost_history == 0 then
+		cost_history[1] = 1
+	end
+	while GetTimeSinceStart() - tick_start < 0.02 and #cost_history < 500 and crazy < 100 do
 		crazy = crazy + 1
 		local dtheta = {}
 		for key,value in pairs(theta) do
@@ -382,7 +389,6 @@ local function GradientDescent(steps, theta, cost_history)
 		end
 		cost_history[#cost_history+1] = ComputeCost(steps, theta)
 	end
-	lua.ReportScriptError(crazy)
 	return theta, cost_history
 end
 
@@ -621,6 +627,23 @@ local function SetupNextGame(selections)
 	end
 end
 
+local incremental_possible = PossibleSteps()
+AddFactors(incremental_possible)
+local incremental_scored = ScoredSteps(incremental_possible)
+local incremental_history = {}
+
+local function IncrementalUpdate()
+	GradientDescent(incremental_scored, FlowDJ.theta, incremental_history)
+	graph:Clear()
+	graph:AddPoint(0, 0, Color.Black)
+	GraphPredictions(incremental_scored, FlowDJ.theta, Color.White)
+	--GraphData(incremental_history)
+	right_text:settext(ThetaDebug(FlowDJ.theta) .. "\n" ..
+		incremental_history[#incremental_history] .. "\n" ..
+		#incremental_history)
+	right_text:zoom(0.30)
+end
+
 local frame = 0
 local function update()
 	if entering_song then
@@ -629,6 +652,7 @@ local function update()
 			--trans_new_screen("ScreenFlowDJBounce")
 		end
 	end
+	IncrementalUpdate()
 	frame = frame + 1
 	if frame == 2 then
 		--GraphSteps()
@@ -637,7 +661,7 @@ local function update()
 
 		right_text:settext(SelectionsDebug(selections))
 		left_text:settext(SongsDebug(RecentSongs()))
-		EvaluatePredictions(PossibleSteps())
+		--EvaluatePredictions(PossibleSteps())
 		--MultipleTraining(PossibleSteps())
 
 		if auto_start then
