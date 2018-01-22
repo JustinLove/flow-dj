@@ -366,9 +366,9 @@ local function GradientDescent(steps, theta, cost_history)
 	local tick_start = GetTimeSinceStart()
 	local crazy = 0
 	if #cost_history == 0 then
-		cost_history[1] = 1
+		cost_history[1] = ComputeCost(steps, theta)
 	end
-	while GetTimeSinceStart() - tick_start < 0.02 and #cost_history < 500 and crazy < 100 do
+	while GetTimeSinceStart() - tick_start < 0.02 and #cost_history < 5000 and crazy < 100 do
 		crazy = crazy + 1
 		local dtheta = {}
 		for key,value in pairs(theta) do
@@ -398,7 +398,7 @@ local function GraphPredictions(steps, theta, color)
 		for key,value in pairs(theta) do
 			prediction = prediction + value * sel.factors[key]
 		end
-		graph:AddPoint(sel.score, prediction, color)
+		graph:SetPoint(p, sel.score, prediction, color)
 	end
 end
 
@@ -634,9 +634,9 @@ local incremental_history = {}
 
 local function IncrementalUpdate()
 	GradientDescent(incremental_scored, FlowDJ.theta, incremental_history)
-	graph:Clear()
-	graph:AddPoint(0, 0, Color.Black)
-	GraphPredictions(incremental_scored, FlowDJ.theta, Color.White)
+	if #incremental_history % 10 == 0 then
+		GraphPredictions(incremental_scored, FlowDJ.theta, Color.White)
+	end
 	--GraphData(incremental_history)
 	right_text:settext(ThetaDebug(FlowDJ.theta) .. "\n" ..
 		incremental_history[#incremental_history] .. "\n" ..
@@ -656,6 +656,7 @@ local function update()
 	frame = frame + 1
 	if frame == 2 then
 		--GraphSteps()
+		GraphPredictions(incremental_scored, FlowDJ.theta, Color.White)
 
 		local selections = Configure()
 
@@ -723,6 +724,16 @@ return Def.ActorFrame{
 				local points = data:GetChild("point")
 				if points and #points > 0 then
 					points[#points]:xy(x, 1 - y):diffuse(color)
+				end
+			end
+
+			self.SetPoint = function(self, n, x, y, color)
+				local data = self:GetChild("data")
+				local points = data:GetChild("point")
+				if points and points[n] then
+					points[n]:xy(x, 1 - y):diffuse(color)
+				else
+					data:AddChildFromPath(THEME:GetPathG("", "point.lua"))
 				end
 			end
 
