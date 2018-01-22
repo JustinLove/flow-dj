@@ -8,14 +8,6 @@ local profile = PROFILEMAN:GetMachineProfile()
 local graph = false
 local left_text = false
 local right_text = false
-local timer_actor = false
-local function get_screen_time()
-	if timer_actor then
-		return timer_actor:GetSecsIntoEffect()
-	else
-		return 0
-	end
-end
 
 local entering_song = false
 
@@ -318,6 +310,14 @@ local poly = 2
 Polynomial(initial_theta, poly)
 --Cross(initial_theta)
 
+local function CopyTable(from)
+	local to = {}
+	for key,value in pairs(from) do
+		to[key] = value
+	end
+	return to
+end
+
 local function AddFactors(steps)
 	for i,sel in ipairs(steps) do
 		local bpms = sel.song:GetDisplayBpms()
@@ -357,14 +357,12 @@ local function ComputeCost(steps, theta)
 	return cost
 end
 
-local function GradientDescent(steps, init_theta)
-	local theta = {}
-	for key,value in pairs(init_theta) do
-		theta[key] = value
-	end
+local function GradientDescent(steps, theta, cost_history)
 	local alpha = 0.1
-	local cost_history = {}
-	for i = 1,100 do
+	local tick_start = GetTimeSinceStart()
+	local crazy = 0
+	while GetTimeSinceStart() - tick_start < 0.02 and crazy < 100 do
+		crazy = crazy + 1
 		local dtheta = {}
 		for key,value in pairs(theta) do
 			dtheta[key] = 0
@@ -382,8 +380,9 @@ local function GradientDescent(steps, init_theta)
 		for key,value in pairs(theta) do
 			theta[key] = theta[key] - alpha * (dtheta[key] / #steps)
 		end
-		cost_history[i] = ComputeCost(steps, theta)
+		cost_history[#cost_history+1] = ComputeCost(steps, theta)
 	end
+	lua.ReportScriptError(crazy)
 	return theta, cost_history
 end
 
@@ -444,7 +443,9 @@ end
 local function SamplePredictions(scored)
 	local training, test = TrainingData(scored)
 	lua.ReportScriptError(#training .. " " .. #test)
-	local theta,history = GradientDescent(training, initial_theta)
+	local theta = CopyTable(initial_theta)
+	local history = {}
+	GradientDescent(training, theta, history)
 	return history[#history], ComputeCost(test, theta)
 end
 
@@ -474,7 +475,9 @@ local function EvaluatePredictions(possible)
 	local scored = ScoredSteps(possible)
 	local training, test = TrainingData(scored)
 	lua.ReportScriptError(#training .. " " .. #test)
-	local theta,history = GradientDescent(training, initial_theta)
+	local theta = CopyTable(initial_theta)
+	local history = {}
+	GradientDescent(training, theta, history)
 	graph:Clear()
 	graph:AddPoint(0, 0, Color.Black)
 	GraphPredictions(training, theta, Color.Green)
@@ -491,7 +494,9 @@ end
 local function PredictScore(possible)
 	AddFactors(possible)
 	local scored = ScoredSteps(possible)
-	local theta,history = GradientDescent(scored, initial_theta)
+	local theta = CopyTable(initial_theta)
+	local history = {}
+	GradientDescent(scored, theta, history)
 	AddPredictions(possible, theta)
 end
 
@@ -610,7 +615,7 @@ local function SetupNextGame(selections)
 	if sel then
 		GAMESTATE:SetCurrentSong(sel.song)
 		GAMESTATE:SetCurrentSteps(pn, sel.steps)
-		entering_song = get_screen_time() + 1.5
+		entering_song = GetTimeSinceStart() + 1.5
 	else
 		trans_new_screen("ScreenTitleMenu")
 	end
@@ -619,7 +624,7 @@ end
 local frame = 0
 local function update()
 	if entering_song then
-		if get_screen_time() > entering_song then
+		if GetTimeSinceStart() > entering_song then
 			trans_new_screen("ScreenGameplay")
 			--trans_new_screen("ScreenFlowDJBounce")
 		end
@@ -711,12 +716,5 @@ return Def.ActorFrame{
 		Def.ActorFrame{
 			Name= "data", InitCommand= cmd(visible, true),
 		},
-	},
-	Def.Actor{
-		Name= "timer",
-		InitCommand= function(self)
-			self:effectperiod(2^16)
-			timer_actor= self
-		end,
 	},
 }
