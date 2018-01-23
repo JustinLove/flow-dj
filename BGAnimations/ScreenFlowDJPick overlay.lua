@@ -622,12 +622,23 @@ local function SetupNextGame(selections)
 end
 
 local incremental_history = {}
+local incremental_step = 1
+
+local function IncrementalGraphPredictions(steps, theta, color)
+	for i = 1,10 do
+		local prediction = 0
+		local sel = steps[incremental_step]
+		for key,value in pairs(theta) do
+			prediction = prediction + value * sel.factors[key]
+		end
+		graph:SetPoint(incremental_step, sel.score, prediction, color)
+		incremental_step = (incremental_step % #steps) + 1
+	end
+end
 
 local function IncrementalUpdate()
 	GradientDescent(scored_steps, FlowDJ.theta, incremental_history)
-	if #incremental_history % 10 == 0 then
-		GraphPredictions(scored_steps, FlowDJ.theta, Color.White)
-	end
+	IncrementalGraphPredictions(possible_steps, FlowDJ.theta, Color.White)
 end
 
 local frame = 0

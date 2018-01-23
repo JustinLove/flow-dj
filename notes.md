@@ -12,6 +12,7 @@ consensual has persistent mods
 
 - usable screens
   - song preview - score?
+  - player feedback?
 - config?
 - profiles?
   - what happens with no data?
