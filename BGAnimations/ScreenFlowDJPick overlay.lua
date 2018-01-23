@@ -6,6 +6,7 @@ local stepstype = GAMESTATE:GetCurrentStyle(pn):GetStepsType()
 local profile = PROFILEMAN:GetMachineProfile()
 
 local graph = false
+local center_text = false
 local left_text = false
 local right_text = false
 
@@ -19,6 +20,24 @@ FlowDJ.stage = GAMESTATE:GetCurrentStageIndex()
 if FlowDJ.stage == 0 then
 	FlowDJ.offset = math.random(0,math.pi)
 	FlowDJ.scale = math.random(1,3)
+end
+
+local function GraphPredictions(steps, theta, color)
+	for p,sel in ipairs(steps) do
+		local prediction = 0
+		for key,value in pairs(theta) do
+			prediction = prediction + value * sel.factors[key]
+		end
+		graph:SetPoint(p, sel.score, prediction, color)
+	end
+end
+
+local function PredictedScore(sel, theta)
+	local prediction = 0
+	for key,value in pairs(theta) do
+		prediction = prediction + value * sel.factors[key]
+	end
+	return prediction
 end
 
 local function SongDebug(song)
@@ -46,11 +65,30 @@ local function StepsDebug(steps)
 end
 
 local function SelectionDebug(sel)
+	local score = sel.score
+	if score == 0.0 then
+		score = PredictedScore(sel, FlowDJ.theta)
+	end
 	return string.format("%s m%d %0.1fnps %0.2f",
 		SongDebug(sel.song),
 		sel.meter,
 		sel.nps,
-		sel.score)
+		score)
+end
+
+local function DisplayNextSong(sel)
+	local score = sel.score
+	if score == 0.0 then
+		score = PredictedScore(sel, FlowDJ.theta)
+	end
+	return string.format("%s #%d\n%d-%d %0.1fnps\nm%d %0.2f",
+		sel.song:GetDisplayMainTitle(),
+		PROFILEMAN:GetSongNumTimesPlayed(sel.song, 'ProfileSlot_Machine'),
+		sel.song:GetDisplayBpms()[1],
+		sel.song:GetDisplayBpms()[2],
+		sel.nps,
+		sel.meter,
+		score)
 end
 
 local function SelectionsDebug(selections)
@@ -166,6 +204,7 @@ local function WeightByPlayCount(songs)
 		}
 	end
 	most = (most / 2) + 1
+	math.randomseed(GAMESTATE:GetGameSeed())
 	local total = 0
 	for i,item in ipairs(weighted) do
 		weighted[i].weight = math.random() * (weighted[i].count + 1) / (weighted[i].count + most)
@@ -392,26 +431,6 @@ local function GradientDescent(steps, theta, cost_history)
 	return theta, cost_history
 end
 
-local function GraphPredictions(steps, theta, color)
-	for p,sel in ipairs(steps) do
-		local prediction = 0
-		for key,value in pairs(theta) do
-			prediction = prediction + value * sel.factors[key]
-		end
-		graph:SetPoint(p, sel.score, prediction, color)
-	end
-end
-
-local function AddPredictions(steps, theta)
-	for p,sel in ipairs(steps) do
-		local prediction = 0
-		for key,value in pairs(theta) do
-			prediction = prediction + value * sel.factors[key]
-		end
-		sel.predicted_score = prediction
-	end
-end
-
 local function Scramble(list)
 	for i = 1,#list do
 		local j = math.random(#list)
@@ -526,12 +545,10 @@ local function PickByMeter(flow)
 	return selections
 end
 
-local function PickByScore(flow)
-	AddPredictions(possible_steps, FlowDJ.theta)
+local function PickByScore(flow, theta, range)
 	local selections = {}
 	local picked = {}
 	local recent = RecentSongs()
-	local range = 0.02
 	for i,song in ipairs(recent) do
 		picked[song:GetSongFilePath()] = true
 	end
@@ -542,7 +559,7 @@ local function PickByScore(flow)
 			local path = sel.song:GetSongFilePath()
 			local score = sel.score
 			if score == 0 then
-				score = sel.predicted_score
+				score = PredictedScore(sel, theta)
 			end
 			if low < score and score < high and not picked[path] then
 				selections[i] = sel
@@ -601,20 +618,20 @@ local function WiggleFlow(flow, scale)
 	return flow
 end
 
-local function Configure()
-	local flow = WiggleFlow(ManualFlow(0.85, 0.7), 0.05)
-	local selections = PickByScore(flow)
-	--local flow = WiggleFlow(ManualFlow(2, 7.7), 1)
-	--local selections = PickByMeter(flow)
-	GraphData(flow)
-	return selections
-end
-
 local function SetupNextGame(selections)
 	local sel = selections[FlowDJ.stage + 1]
 	if sel then
 		GAMESTATE:SetCurrentSong(sel.song)
 		GAMESTATE:SetCurrentSteps(pn, sel.steps)
+		center_text:settext(DisplayNextSong(sel))
+	else
+		trans_new_screen("ScreenTitleMenu")
+	end
+end
+
+local function StartNextGame(selections)
+	local sel = selections[FlowDJ.stage + 1]
+	if sel then
 		entering_song = GetTimeSinceStart() + 1.5
 	else
 		trans_new_screen("ScreenTitleMenu")
@@ -623,6 +640,9 @@ end
 
 local incremental_history = {}
 local incremental_step = 1
+local current_flow = WiggleFlow(ManualFlow(0.85, 0.7), 0.05)
+--local current_flow = WiggleFlow(ManualFlow(2, 7.7), 1)
+local selection_snapshot = {}
 
 local function IncrementalGraphPredictions(steps, theta, color)
 	for i = 1,10 do
@@ -638,7 +658,7 @@ end
 
 local function IncrementalUpdate()
 	GradientDescent(scored_steps, FlowDJ.theta, incremental_history)
-	IncrementalGraphPredictions(possible_steps, FlowDJ.theta, Color.White)
+	IncrementalGraphPredictions(scored_steps, FlowDJ.theta, Color.White)
 end
 
 local frame = 0
@@ -649,23 +669,30 @@ local function update()
 			--trans_new_screen("ScreenFlowDJBounce")
 		end
 	end
-	IncrementalUpdate()
-	left_text:settext(ThetaDebug(FlowDJ.theta) .. "\n" ..
-		incremental_history[#incremental_history] .. "\n" ..
-		#incremental_history)
-	left_text:zoom(0.30)
 	frame = frame + 1
 	if frame == 2 then
 		--GraphSteps()
-		local selections = Configure()
-
-		right_text:settext(SelectionsDebug(selections))
 		--left_text:settext(SongsDebug(RecentSongs()))
 		--EvaluatePredictions(PossibleSteps())
 		--MultipleTraining(PossibleSteps())
+		GraphData(current_flow)
+	end
+	if frame >= 2 then
+		IncrementalUpdate()
+		left_text:settext(ThetaDebug(FlowDJ.theta) .. "\n" ..
+			incremental_history[#incremental_history] .. "\n" ..
+			#incremental_history)
+		left_text:zoom(0.30)
 
-		if auto_start and incremental_history[#incremental_history] < 0.003 then
-			SetupNextGame(Configure())
+		if #selection_snapshot == 0 and incremental_history[#incremental_history] < 0.003 then
+			selection_snapshot = PickByScore(current_flow, FlowDJ.theta, 0.02)
+			--selection_snapshot = PickByMeter(flow)
+			right_text:settext(SelectionsDebug(selection_snapshot))
+			SetupNextGame(selection_snapshot)
+		end
+
+		if auto_start and not entering_song then
+			StartNextGame(selection_snapshot)
 		end
 	end
 end
@@ -674,8 +701,8 @@ local function input(event)
 	if WaitForStart(event) then
 		if entering_song then
 			trans_new_screen("ScreenPlayerOptions")
-		else
-			SetupNextGame(Configure())
+		elseif #selection_snapshot > 0 then
+			StartNextGame(selection_snapshot)
 		end
 	end
 end
@@ -750,5 +777,11 @@ return Def.ActorFrame{
 		Def.ActorFrame{
 			Name= "data", InitCommand= cmd(visible, true),
 		},
+	},
+	Def.BitmapText{
+		Name = "Center", Font = "Common Normal", InitCommand = function(self)
+			center_text = self
+			self:xy(_screen.cx, _screen.cy)
+		end
 	},
 }
