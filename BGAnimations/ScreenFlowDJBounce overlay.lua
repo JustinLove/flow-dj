@@ -5,6 +5,7 @@ FlowDJ.stage = FlowDJ.stage + 1
 local function input(event)
 	if WaitForStart(event) then
 		trans_new_screen("ScreenFlowDJPick")
+		SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 	end
 end
 

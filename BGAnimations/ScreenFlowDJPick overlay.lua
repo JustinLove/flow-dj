@@ -1,5 +1,7 @@
 local stages = 16
 local auto_start = false
+--local play_screen = "ScreenGameplay"
+local play_screen = "ScreenFlowDJBounce"
 
 local pn = GAMESTATE:GetEnabledPlayers()[1]
 local stepstype = GAMESTATE:GetCurrentStyle(pn):GetStepsType()
@@ -665,8 +667,7 @@ local frame = 0
 local function update()
 	if entering_song then
 		if GetTimeSinceStart() > entering_song then
-			trans_new_screen("ScreenGameplay")
-			--trans_new_screen("ScreenFlowDJBounce")
+			trans_new_screen(play_screen)
 		end
 	end
 	frame = frame + 1
@@ -698,12 +699,24 @@ local function update()
 end
 
 local function input(event)
-	if WaitForStart(event) then
+	local pn = event.PlayerNumber
+	if not pn then return end
+	local button = event.GameButton
+	if not button then return end
+	if event.type == "InputEventType_Release" then return end
+	if button == "Start" then
 		if entering_song then
 			trans_new_screen("ScreenPlayerOptions")
+			SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 		elseif #selection_snapshot > 0 then
 			StartNextGame(selection_snapshot)
+			SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 		end
+	elseif button == "Back" then
+		trans_new_screen("ScreenTitleMenu")
+		SOUND:PlayOnce(THEME:GetPathS("Common", "cancel"))
+	else
+		lua.ReportScriptError(button)
 	end
 end
 
