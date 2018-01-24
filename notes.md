@@ -11,7 +11,6 @@ https://dguzek.github.io/Lua-For-SM5/
 consensual has persistent mods
 
 - usable screens
-  - stage number
   - graph - score vs nps?
   - player feedback?
   - playing a song affects position in play count weighting

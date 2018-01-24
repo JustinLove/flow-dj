@@ -797,4 +797,10 @@ return Def.ActorFrame{
 			self:xy(_screen.cx, _screen.cy)
 		end
 	},
+	Def.BitmapText{
+		Name = "Stage", Font = "Common Normal", InitCommand = function(self)
+			self:xy(_screen.cx, 20)
+			self:settext(string.format("Stage %d", (STATSMAN:GetStagesPlayed() + 1)))
+		end
+	},
 }
