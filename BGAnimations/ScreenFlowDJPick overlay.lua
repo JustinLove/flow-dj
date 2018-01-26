@@ -1,7 +1,7 @@
 local stages = 16
 local auto_start = false
---local play_screen = "ScreenGameplay"
-local play_screen = "ScreenFlowDJBounce"
+local play_screen = "ScreenGameplay"
+--local play_screen = "ScreenFlowDJBounce"
 
 local pn = GAMESTATE:GetEnabledPlayers()[1]
 local stepstype = GAMESTATE:GetCurrentStyle(pn):GetStepsType()
@@ -661,7 +661,7 @@ end
 
 local function IncrementalUpdate()
 	GradientDescent(scored_steps, FlowDJ.theta, incremental_history)
-	--IncrementalGraphPredictions(scored_steps, FlowDJ.theta, Color.White)
+	IncrementalGraphPredictions(scored_steps, FlowDJ.theta, Color.White)
 end
 
 local frame = 0
