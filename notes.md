@@ -40,3 +40,23 @@ drunken uses a extra pick screen to do selection logic, probably needed for sele
 Button text at bottom of screen is HelpText in language files for that screen
 
 Some objects are not available at actor init, must wait until oncommand
+
+
+
+
+
+		Def.ActorFrame{
+			Name= "line frame", InitCommand= cmd(visible, true),
+			Def.ActorMultiVertex{
+				Name= "line", InitCommand = function(self)
+					graph_line = self
+					graph_line:SetDrawState({Mode="DrawMode_LineStrip"})
+					graph_line:SetLineWidth(2)
+					graph_line:SetVertices(i, {
+							{{sel.nps/10, 1-score, 0}, Alpha(Color.White, i/10)},
+						})
+					graph_line:SetNumVertices(#selections)
+				end,
+				OnCommand = cmd(diffuse, Color.White)
+			},
+		},

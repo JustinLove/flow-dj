@@ -8,6 +8,7 @@ local stepstype = GAMESTATE:GetCurrentStyle(pn):GetStepsType()
 local profile = PROFILEMAN:GetMachineProfile()
 
 local graph = false
+local graph_line = false
 local center_text = false
 local left_text = false
 local right_text = false
@@ -247,25 +248,6 @@ local function GraphSteps()
 		end
 	end
 	nps_text:settext(max_nps)
-end
-
-local function GraphScoreNps(steps, next, theta)
-	graph:Clear()
-	graph:AddPoint(0, 0, Color.Black)
-	for i,sel in ipairs(steps) do
-		local score = sel.score
-		if score == 0 then
-			score = PredictedScore(sel, theta)
-		end
-		graph:AddPoint(sel.nps/10, score, Color.Green)
-	end
-	local score = next.score
-	if score == 0 then
-		score = PredictedScore(next, theta)
-	end
-	graph:AddPoint(next.nps/10, score, Color.White)
-	graph:AddPoint(next.nps/10, score-0.02, Color.White)
-	graph:AddPoint(next.nps/10, score+0.02, Color.White)
 end
 
 local function GetScore(song, steps)
@@ -645,7 +627,6 @@ local function SetupNextGame(selections)
 		GAMESTATE:SetCurrentSong(sel.song)
 		GAMESTATE:SetCurrentSteps(pn, sel.steps)
 		center_text:settext(DisplayNextSong(sel))
-		GraphScoreNps(possible_steps, sel, FlowDJ.theta)
 	else
 		trans_new_screen("ScreenTitleMenu")
 	end
