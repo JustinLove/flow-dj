@@ -42,6 +42,22 @@ local function PredictedScore(sel, theta)
 	return prediction
 end
 
+local function AllScores(steps, theta)
+	local scores = {}
+	for p,sel in ipairs(steps) do
+		if sel.score == 0.0 then
+			local prediction = 0
+			for key,value in pairs(theta) do
+				prediction = prediction + value * sel.factors[key]
+			end
+			scores[p] = prediction
+		else
+			scores[p] = sel.score
+		end
+	end
+	return scores
+end
+
 local function SongDebug(song)
 	return string.format("%40s %d-%d #%d",
 		song:GetDisplayMainTitle(),
@@ -173,7 +189,15 @@ local function SortByPlayCount(songs)
 	return songs
 end
 
-local function GraphData(data)
+local function Project(collection, dimension)
+	local projection = {}
+	for i,item in ipairs(collection) do
+		projection[i] = item[dimension]
+	end
+	return projection
+end
+
+local function GraphData(graph, data)
 	graph:Clear()
 	graph:AddPoint(0, 0, Color.Black)
 	local max = 0
@@ -499,7 +523,7 @@ local function MultipleTraining(possible)
 	right_text:settext(
 		(total_training_cost / rounds) .. "\n" ..
 		(total_test_cost / rounds))
-	GraphData(training_history)
+	GraphData(graph, training_history)
 end
 
 local function EvaluatePredictions(possible)
@@ -514,7 +538,7 @@ local function EvaluatePredictions(possible)
 	graph:AddPoint(0, 0, Color.Black)
 	GraphPredictions(training, theta, Color.Green)
 	GraphPredictions(test, theta, Color.Yellow)
-	--GraphData(history)
+	--GraphData(graph, history)
 	right_text:settext(ThetaDebug(theta) .. "\n" ..
 		history[#history] .. "\n" ..
 		ComputeCost(test, theta))
@@ -673,12 +697,19 @@ local function update(self)
 	end
 	frame = frame + 1
 	if frame == 2 then
-		graph = self:GetParent():GetChild("graph")
+		screen = self:GetParent()
+		graph = screen:GetChild("graph")
 		--GraphSteps()
 		--left_text:settext(SongsDebug(RecentSongs()))
 		--EvaluatePredictions(PossibleSteps())
 		--MultipleTraining(PossibleSteps())
-		GraphData(current_flow)
+		GraphData(screen:GetChild("flow graph"), current_flow)
+		local scores = AllScores(possible_steps, FlowDJ.theta)
+		table.sort(scores)
+		GraphData(screen:GetChild("score graph"), scores)
+		local npss = Project(possible_steps, "nps")
+		table.sort(npss)
+		GraphData(screen:GetChild("nps graph"), npss)
 	end
 	if frame >= 2 then
 		IncrementalUpdate()
@@ -788,8 +819,9 @@ local t = Def.ActorFrame{
 		end
 	},
 	Graph("graph", 20, 20, math.min(SCREEN_WIDTH - 40, SCREEN_HEIGHT - 50)),
-	Graph("score", 20, SCREEN_HEIGHT - 200, 100),
-	Graph("nps", 140, SCREEN_HEIGHT - 200, 100),
+	Graph("score graph", 20, SCREEN_HEIGHT - 200, 100),
+	Graph("nps graph", 140, SCREEN_HEIGHT - 200, 100),
+	Graph("flow graph", 260, SCREEN_HEIGHT - 200, 100),
 	Def.BitmapText{
 		Name = "Center", Font = "Common Normal", InitCommand = function(self)
 			center_text = self
