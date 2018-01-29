@@ -24,6 +24,14 @@ if FlowDJ.stage == 0 then
 	FlowDJ.scale = math.random(1,3)
 end
 
+local function CopyTable(from)
+	local to = {}
+	for key,value in pairs(from) do
+		to[key] = value
+	end
+	return to
+end
+
 local function GraphPredictions(steps, theta, color)
 	for p,sel in ipairs(steps) do
 		local prediction = 0
@@ -42,20 +50,18 @@ local function PredictedScore(sel, theta)
 	return prediction
 end
 
-local function AllScores(steps, theta)
-	local scores = {}
+local function AssignScore(steps, theta)
 	for p,sel in ipairs(steps) do
 		if sel.score == 0.0 then
 			local prediction = 0
 			for key,value in pairs(theta) do
 				prediction = prediction + value * sel.factors[key]
 			end
-			scores[p] = prediction
+			sel.effective_score = prediction
 		else
-			scores[p] = sel.score
+			sel.effective_score = sel.score
 		end
 	end
-	return scores
 end
 
 local function SongDebug(song)
@@ -206,6 +212,28 @@ local function GraphData(graph, data)
 	end
 	for i,item in ipairs(data) do
 		graph:AddPoint(i/#data, item/max, Color.White)
+	end
+end
+
+local function GraphDimensionOfSelections(graph, data, dimension)
+	graph:Clear()
+	graph:AddPoint(0, 0, Color.Black)
+	local stage = FlowDJ.stage + 1
+	local sorted = CopyTable(data)
+	table.sort(sorted, function(a, b)
+		return a[dimension] < b[dimension]
+	end)
+	local max = sorted[#sorted][dimension]
+	for i,item in ipairs(sorted) do
+		local x = i/#sorted
+		local y = item[dimension]/max
+		local point = graph:AddPoint(x, y, Color.White)
+		if item.selected and point then
+			point:xy(x, 1 - y/2):setsize(0.005, y)
+			if item.stage == stage then
+				point:diffuse(Color.Green):setsize(0.03, y)
+			end
+		end
 	end
 end
 
@@ -376,14 +404,6 @@ local poly = 2
 Polynomial(initial_theta, poly)
 --Cross(initial_theta)
 
-local function CopyTable(from)
-	local to = {}
-	for key,value in pairs(from) do
-		to[key] = value
-	end
-	return to
-end
-
 if not FlowDJ.theta['c'] then
 	FlowDJ.theta = CopyTable(initial_theta)
 end
@@ -548,7 +568,6 @@ local function EvaluatePredictions(possible)
 end
 
 local function PickByMeter(flow)
-	local possible = PossibleSteps()
 	local selections = {}
 	local picked = {}
 	local recent = RecentSongs()
@@ -557,10 +576,12 @@ local function PickByMeter(flow)
 	end
 	for i,target in ipairs(flow) do
 		local meter = math.floor(target)
-		for j,sel in ipairs(possible) do
+		for j,sel in ipairs(possible_steps) do
 			local path = sel.song:GetSongFilePath()
 			if sel.meter == meter and not picked[path] then
 				selections[i] = sel
+				sel.selected = true
+				sel.stage = i
 				picked[path] = true
 				break
 			end
@@ -590,6 +611,8 @@ local function PickByScore(flow, theta, range)
 			end
 			if low < score and score < high and not picked[path] then
 				selections[i] = sel
+				sel.selected = true
+				sel.stage = i
 				picked[path] = true
 				break
 			end
@@ -719,12 +742,9 @@ local function update(self)
 
 			local screen = self:GetParent()
 			GraphData(screen:GetChild("flow graph"), current_flow)
-			local scores = AllScores(possible_steps, FlowDJ.theta)
-			table.sort(scores)
-			GraphData(screen:GetChild("score graph"), scores)
-			local npss = Project(possible_steps, "nps")
-			table.sort(npss)
-			GraphData(screen:GetChild("nps graph"), npss)
+			AssignScore(possible_steps, FlowDJ.theta)
+			GraphDimensionOfSelections(screen:GetChild("score graph"), possible_steps, "effective_score")
+			GraphDimensionOfSelections(screen:GetChild("nps graph"), possible_steps, "nps")
 		end
 
 		if auto_start and not entering_song then
@@ -767,6 +787,9 @@ local function Graph(name, x, y, scale)
 				local points = data:GetChild("point")
 				if points and #points > 0 then
 					points[#points]:xy(x, 1 - y):diffuse(color)
+					return points[#points]
+				else
+					return false
 				end
 			end
 
