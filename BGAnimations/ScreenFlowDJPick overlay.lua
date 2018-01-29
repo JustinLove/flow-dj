@@ -333,7 +333,7 @@ end
 local initial_theta = {
 	c = 0,
 	meter = 0,
-	nps = 0,
+	--nps = 0,
 	significant_timing_changes = 0,
 	min_bpm = 0,
 	max_bpm = 0,
@@ -394,7 +394,7 @@ local function AddFactors(steps)
 		sel.factors = {
 			c = 1,
 			meter = sel.meter,
-			nps = sel.nps,
+			--nps = sel.nps,
 			min_bpm = bpms[1] or 0,
 			max_bpm = bpms[2] or 120,
 		}
@@ -697,19 +697,12 @@ local function update(self)
 	end
 	frame = frame + 1
 	if frame == 2 then
-		screen = self:GetParent()
+		local screen = self:GetParent()
 		graph = screen:GetChild("graph")
 		--GraphSteps()
 		--left_text:settext(SongsDebug(RecentSongs()))
 		--EvaluatePredictions(PossibleSteps())
 		--MultipleTraining(PossibleSteps())
-		GraphData(screen:GetChild("flow graph"), current_flow)
-		local scores = AllScores(possible_steps, FlowDJ.theta)
-		table.sort(scores)
-		GraphData(screen:GetChild("score graph"), scores)
-		local npss = Project(possible_steps, "nps")
-		table.sort(npss)
-		GraphData(screen:GetChild("nps graph"), npss)
 	end
 	if frame >= 2 then
 		IncrementalUpdate()
@@ -723,6 +716,15 @@ local function update(self)
 			--selection_snapshot = PickByMeter(flow)
 			right_text:settext(SelectionsDebug(selection_snapshot))
 			SetupNextGame(selection_snapshot)
+
+			local screen = self:GetParent()
+			GraphData(screen:GetChild("flow graph"), current_flow)
+			local scores = AllScores(possible_steps, FlowDJ.theta)
+			table.sort(scores)
+			GraphData(screen:GetChild("score graph"), scores)
+			local npss = Project(possible_steps, "nps")
+			table.sort(npss)
+			GraphData(screen:GetChild("nps graph"), npss)
 		end
 
 		if auto_start and not entering_song then
