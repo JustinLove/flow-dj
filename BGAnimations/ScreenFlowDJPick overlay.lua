@@ -1,7 +1,7 @@
 local stages = 16
 local auto_start = false
---local play_screen = "ScreenGameplay"
-local play_screen = "ScreenFlowDJBounce"
+local play_screen = "ScreenGameplay"
+--local play_screen = "ScreenFlowDJBounce"
 
 local pn = GAMESTATE:GetEnabledPlayers()[1]
 local stepstype = GAMESTATE:GetCurrentStyle(pn):GetStepsType()
