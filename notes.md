@@ -40,6 +40,8 @@ drunken uses a extra pick screen to do selection logic, probably needed for sele
 Button text at bottom of screen is HelpText in language files for that screen
 
 Some objects are not available at actor init, must wait until oncommand
+Def.Actor\* does not return the actual actor, it is not available until provided in self later
+
 
 
 

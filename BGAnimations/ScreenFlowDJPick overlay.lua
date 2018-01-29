@@ -1,14 +1,13 @@
 local stages = 16
 local auto_start = false
-local play_screen = "ScreenGameplay"
---local play_screen = "ScreenFlowDJBounce"
+--local play_screen = "ScreenGameplay"
+local play_screen = "ScreenFlowDJBounce"
 
 local pn = GAMESTATE:GetEnabledPlayers()[1]
 local stepstype = GAMESTATE:GetCurrentStyle(pn):GetStepsType()
 local profile = PROFILEMAN:GetMachineProfile()
 
 local graph = false
-local graph_line = false
 local center_text = false
 local left_text = false
 local right_text = false
@@ -218,6 +217,7 @@ local function WeightByPlayCount(songs)
 	for i,item in ipairs(weighted) do
 		sorted[i] = weighted[i].song
 	end
+	math.randomseed(GetTimeSinceStart())
 	return sorted
 end
 
@@ -247,7 +247,7 @@ local function GraphSteps()
 			max_nps = math.max(max_nps, nps)
 		end
 	end
-	nps_text:settext(max_nps)
+	center_text:settext(max_nps)
 end
 
 local function GetScore(song, steps)
@@ -665,7 +665,7 @@ local function IncrementalUpdate()
 end
 
 local frame = 0
-local function update()
+local function update(self)
 	if entering_song then
 		if GetTimeSinceStart() > entering_song then
 			trans_new_screen(play_screen)
@@ -673,6 +673,7 @@ local function update()
 	end
 	frame = frame + 1
 	if frame == 2 then
+		graph = self:GetParent():GetChild("graph")
 		--GraphSteps()
 		--left_text:settext(SongsDebug(RecentSongs()))
 		--EvaluatePredictions(PossibleSteps())
@@ -721,41 +722,10 @@ local function input(event)
 	end
 end
 
-return Def.ActorFrame{
-	Def.ActorFrame{
-		Name = "Picker", OnCommand = function(self)
-			self:SetUpdateFunction(update)
-			SCREENMAN:GetTopScreen():AddInputCallback(input)
-		end,
-	},
-	Def.BitmapText{
-		Name = "Left", Font = "Common Normal", InitCommand = function(self)
-			left_text = self
-			self:maxwidth(SCREEN_HEIGHT)
-			self:zoom(0.5)
-			self:xy(_screen.cx - SCREEN_WIDTH/4, _screen.cy)
-		end
-	},
-	Def.BitmapText{
-		Name = "Right", Font = "Common Normal", InitCommand = function(self)
-			right_text = self
-			self:maxwidth(SCREEN_HEIGHT)
-			self:zoom(0.5)
-			self:xy(_screen.cx + SCREEN_WIDTH/4, _screen.cy)
-		end
-	},
-	Def.BitmapText{
-		Name = "NPS", Font = "Common Normal", InitCommand = function(self)
-			nps_text = self
-			self:maxwidth(SCREEN_HEIGHT)
-			self:xy(SCREEN_WIDTH - 50, SCREEN_HEIGHT - 50)
-		end
-	},
-	Def.ActorFrame{
-		Name = "graph", InitCommand = function(self)
-			graph = self
-			self:xy(20, 20)
-			local scale = math.min(SCREEN_WIDTH - 40, SCREEN_HEIGHT - 50)
+local function Graph(name, x, y, scale)
+	return Def.ActorFrame{
+		Name = name, InitCommand = function(self)
+			self:xy(x, y)
 			self:zoom(scale)
 
 			self.AddPoint = function(self, x, y, color)
@@ -791,7 +761,35 @@ return Def.ActorFrame{
 		Def.ActorFrame{
 			Name= "data", InitCommand= cmd(visible, true),
 		},
+	}
+end
+
+local t = Def.ActorFrame{
+	Def.ActorFrame{
+		Name = "Picker", OnCommand = function(self)
+			self:SetUpdateFunction(update)
+			SCREENMAN:GetTopScreen():AddInputCallback(input)
+		end,
 	},
+	Def.BitmapText{
+		Name = "Left", Font = "Common Normal", InitCommand = function(self)
+			left_text = self
+			self:maxwidth(SCREEN_HEIGHT)
+			self:zoom(0.5)
+			self:xy(_screen.cx - SCREEN_WIDTH/4, _screen.cy)
+		end
+	},
+	Def.BitmapText{
+		Name = "Right", Font = "Common Normal", InitCommand = function(self)
+			right_text = self
+			self:maxwidth(SCREEN_HEIGHT)
+			self:zoom(0.5)
+			self:xy(_screen.cx + SCREEN_WIDTH/4, _screen.cy)
+		end
+	},
+	Graph("graph", 20, 20, math.min(SCREEN_WIDTH - 40, SCREEN_HEIGHT - 50)),
+	Graph("score", 20, SCREEN_HEIGHT - 200, 100),
+	Graph("nps", 140, SCREEN_HEIGHT - 200, 100),
 	Def.BitmapText{
 		Name = "Center", Font = "Common Normal", InitCommand = function(self)
 			center_text = self
@@ -805,3 +803,5 @@ return Def.ActorFrame{
 		end
 	},
 }
+
+return t
