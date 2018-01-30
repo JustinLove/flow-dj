@@ -8,6 +8,7 @@ local stepstype = GAMESTATE:GetCurrentStyle(pn):GetStepsType()
 local profile = PROFILEMAN:GetMachineProfile()
 
 local graph = false
+local cost_quad = false
 local center_text = false
 local left_text = false
 local right_text = false
@@ -240,9 +241,9 @@ local function GraphDimensionOfSelections(graph, data, dimension)
 		local y = item[dimension]/max
 		local point = graph:AddPoint(x, y, Color.White)
 		if item.selected and point then
-			point:xy(x, 1 - y/2):setsize(0.005, y)
+			point:xy(x, 1 - y/2):setsize(0.005, y):diffuse(Alpha(Color.White, 0.5))
 			if item.stage == stage then
-				point:diffuse(Color.Green):setsize(0.03, y)
+				point:diffuse(Color.Green):setsize(0.01, y)
 			end
 		end
 	end
@@ -785,11 +786,13 @@ local function update(self)
 		--MultipleTraining(PossibleSteps())
 	end
 	if frame >= 2 then
+
 		IncrementalUpdate()
 		left_text:settext(ThetaDebug(FlowDJ.theta) .. "\n" ..
 			incremental_history[#incremental_history] .. "\n" ..
 			#incremental_history)
 		left_text:zoom(0.30)
+		cost_quad:setsize(SCREEN_WIDTH * incremental_history[#incremental_history] / 0.005, 10)
 
 		if #selection_snapshot == 0 and incremental_history[#incremental_history] < 0.003 then
 			selection_snapshot = PickByScore(current_flow, FlowDJ.theta, selection_range)
@@ -802,6 +805,7 @@ local function update(self)
 			AssignScore(possible_steps, FlowDJ.theta)
 			GraphDimensionOfSelections(screen:GetChild("score graph"), possible_steps, "effective_score")
 			GraphDimensionOfSelections(screen:GetChild("nps graph"), possible_steps, "nps")
+
 		end
 
 		if auto_start and not entering_song then
@@ -904,6 +908,12 @@ local t = Def.ActorFrame{
 	Graph("score graph", 20, SCREEN_HEIGHT - 200, 100),
 	Graph("nps graph", 140, SCREEN_HEIGHT - 200, 100),
 	Graph("flow graph", 260, SCREEN_HEIGHT - 200, 100),
+	Def.Quad{
+		Name= "cost", InitCommand = function(self)
+			cost_quad = self
+			self:xy(_screen.cx, 40)
+		end
+	},
 	Def.BitmapText{
 		Name = "Center", Font = "Common Normal", InitCommand = function(self)
 			center_text = self
