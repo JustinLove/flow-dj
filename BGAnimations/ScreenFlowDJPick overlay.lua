@@ -211,7 +211,7 @@ local function GraphData(graph, data)
 		max = math.max(max, item)
 	end
 	for i,item in ipairs(data) do
-		graph:AddPoint(i/#data, item/max, Color.White)
+		graph:AddPoint(i/(#data+1), item/max, Color.White)
 	end
 end
 
@@ -225,13 +225,47 @@ local function GraphDimensionOfSelections(graph, data, dimension)
 	end)
 	local max = sorted[#sorted][dimension]
 	for i,item in ipairs(sorted) do
-		local x = i/#sorted
+		local x = i/(#sorted+1)
 		local y = item[dimension]/max
 		local point = graph:AddPoint(x, y, Color.White)
 		if item.selected and point then
 			point:xy(x, 1 - y/2):setsize(0.005, y)
 			if item.stage == stage then
 				point:diffuse(Color.Green):setsize(0.03, y)
+			end
+		end
+	end
+end
+
+local function GraphFlow(graph, flow, selections, theta, range)
+	graph:Clear()
+	graph:AddPoint(0, 0, Color.Black)
+	local stage = FlowDJ.stage + 1
+	for i,item in ipairs(flow) do
+		local alpha = 0.5
+		if i == stage then
+			alpha = 1
+		end
+
+		local x = i/(#flow+1)
+		local flow_point = graph:AddPoint(x, item, Alpha(Color.White, alpha * 0.5))
+		if flow_point then
+			flow_point:setsize(0.03, range*2)
+		end
+
+		local sel = selections[i]
+
+		local color = Color.White
+		local y = PredictedScore(sel, theta)
+		local predict_point = graph:AddPoint(x, y, Alpha(Color.Yellow, alpha))
+		if predict_point then
+			predict_point:setsize(0.05, 0.01)
+		end
+
+		if sel.score ~= 0.0 then
+			local score_point = graph:AddPoint(x, sel.score, Alpha(Color.White, alpha))
+			if score_point then
+				score_point:setsize(0.05, 0.01)
 			end
 		end
 	end
@@ -692,6 +726,7 @@ local incremental_history = {}
 local incremental_step = 1
 local current_flow = WiggleFlow(ManualFlow(0.85, 0.7), 0.05)
 --local current_flow = WiggleFlow(ManualFlow(2, 7.7), 1)
+local selection_range = 0.03
 local selection_snapshot = {}
 
 local function IncrementalGraphPredictions(steps, theta, color)
@@ -735,13 +770,13 @@ local function update(self)
 		left_text:zoom(0.30)
 
 		if #selection_snapshot == 0 and incremental_history[#incremental_history] < 0.003 then
-			selection_snapshot = PickByScore(current_flow, FlowDJ.theta, 0.02)
+			selection_snapshot = PickByScore(current_flow, FlowDJ.theta, selection_range)
 			--selection_snapshot = PickByMeter(flow)
 			right_text:settext(SelectionsDebug(selection_snapshot))
 			SetupNextGame(selection_snapshot)
 
 			local screen = self:GetParent()
-			GraphData(screen:GetChild("flow graph"), current_flow)
+			GraphFlow(screen:GetChild("flow graph"), current_flow, selection_snapshot, FlowDJ.theta, selection_range)
 			AssignScore(possible_steps, FlowDJ.theta)
 			GraphDimensionOfSelections(screen:GetChild("score graph"), possible_steps, "effective_score")
 			GraphDimensionOfSelections(screen:GetChild("nps graph"), possible_steps, "nps")
