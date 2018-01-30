@@ -147,6 +147,17 @@ local function RecentSongs()
 	return recent
 end
 
+local function RecentSteps()
+	local recent = {}
+	for i = 1,STATSMAN:GetStagesPlayed() do
+		local stats = STATSMAN:GetPlayedStageStats(i)
+		local playerstats = stats:GetPlayerStageStats(pn)
+		local steps = playerstats:GetPlayedSteps()
+		recent[i] = steps[1]
+	end
+	return recent
+end
+
 local function Truncate(table, to)
 	local truncated = {}
 	local length = math.min(to, #table)
@@ -630,25 +641,35 @@ end
 local function PickByScore(flow, theta, range)
 	local selections = {}
 	local picked = {}
-	local recent = RecentSongs()
-	for i,song in ipairs(recent) do
+	local recent = RecentSteps()
+	for i,step in ipairs(recent) do
+		local song = SONGMAN:GetSongFromSteps(step)
 		picked[song:GetSongFilePath()] = true
-	end
-	for i,target in ipairs(flow) do
-		local low = target - range
-		local high = target + range
 		for j,sel in ipairs(possible_steps) do
-			local path = sel.song:GetSongFilePath()
-			local score = sel.score
-			if score == 0 then
-				score = PredictedScore(sel, theta)
-			end
-			if low < score and score < high and not picked[path] then
+			if sel.steps == step then
 				selections[i] = sel
 				sel.selected = true
 				sel.stage = i
-				picked[path] = true
-				break
+			end
+		end
+	end
+	for i,target in ipairs(flow) do
+		if not selections[i] then
+			local low = target - range
+			local high = target + range
+			for j,sel in ipairs(possible_steps) do
+				local path = sel.song:GetSongFilePath()
+				local score = sel.score
+				if score == 0 then
+					score = PredictedScore(sel, theta)
+				end
+				if low < score and score < high and not picked[path] then
+					selections[i] = sel
+					sel.selected = true
+					sel.stage = i
+					picked[path] = true
+					break
+				end
 			end
 		end
 		if not selections[i] then
@@ -759,6 +780,7 @@ local function update(self)
 		graph = screen:GetChild("graph")
 		--GraphSteps()
 		--left_text:settext(SongsDebug(RecentSongs()))
+		--left_text:settext(StepsDebug(RecentSteps()))
 		--EvaluatePredictions(PossibleSteps())
 		--MultipleTraining(PossibleSteps())
 	end
