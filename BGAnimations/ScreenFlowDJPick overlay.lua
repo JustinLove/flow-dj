@@ -243,7 +243,7 @@ local function GraphDimensionOfSelections(graph, data, dimension)
 		if item.selected and point then
 			point:xy(x, 1 - y/2):setsize(0.005, y):diffuse(Alpha(Color.White, 0.5))
 			if item.stage == stage then
-				point:diffuse(Color.Green):setsize(0.01, y)
+				point:diffuse(Color.Green):setsize(0.03, y)
 			end
 		end
 	end
@@ -800,11 +800,11 @@ local function update(self)
 			right_text:settext(SelectionsDebug(selection_snapshot))
 			SetupNextGame(selection_snapshot)
 
-			local screen = self:GetParent()
-			GraphFlow(screen:GetChild("flow graph"), current_flow, selection_snapshot, FlowDJ.theta, selection_range)
+			local graphs = self:GetParent():GetChild("graphs")
+			GraphFlow(graphs:GetChild("flow graph"), current_flow, selection_snapshot, FlowDJ.theta, selection_range)
 			AssignScore(possible_steps, FlowDJ.theta)
-			GraphDimensionOfSelections(screen:GetChild("score graph"), possible_steps, "effective_score")
-			GraphDimensionOfSelections(screen:GetChild("nps graph"), possible_steps, "nps")
+			GraphDimensionOfSelections(graphs:GetChild("score graph"), possible_steps, "effective_score")
+			GraphDimensionOfSelections(graphs:GetChild("nps graph"), possible_steps, "nps")
 
 		end
 
@@ -839,7 +839,7 @@ end
 local function Graph(name, x, y, scale)
 	return Def.ActorFrame{
 		Name = name, InitCommand = function(self)
-			self:xy(x, y)
+			self:xy(x - scale/2, y)
 			self:zoom(scale)
 
 			self.AddPoint = function(self, x, y, color)
@@ -944,10 +944,13 @@ local t = Def.ActorFrame{
 		end
 	},
 	--Graph("graph", 20, 20, math.min(SCREEN_WIDTH - 40, SCREEN_HEIGHT - 50)),
-	Graph("score graph", 20, SCREEN_HEIGHT - 200, 100),
-	Graph("nps graph", 140, SCREEN_HEIGHT - 200, 100),
-	Graph("flow graph", 260, SCREEN_HEIGHT - 200, 100),
-	Graph("graph", 380, SCREEN_HEIGHT - 200, 100),
+	Def.ActorFrame {
+		Name = "graphs", InitCommand = cmd(xy, SCREEN_WIDTH/2, SCREEN_HEIGHT - 200),
+		Graph("score graph", -120, 0, 100),
+		Graph("nps graph", 0, 0, 100),
+		Graph("flow graph", 120, 0, 100),
+	},
+	Graph("graph", _screen.cx - SCREEN_WIDTH/4 - 60, SCREEN_HEIGHT - 200, 100),
 	Factors(),
 	Def.Quad{
 		Name= "cost", InitCommand = function(self)
