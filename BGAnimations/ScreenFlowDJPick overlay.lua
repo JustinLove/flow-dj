@@ -106,14 +106,9 @@ local function DisplayNextSong(sel)
 	if score == 0.0 then
 		score = PredictedScore(sel, FlowDJ.theta)
 	end
-	return string.format("%s #%d\n%d-%d %0.1fnps\nm%d %0.2f",
+	return string.format("%s #%d",
 		sel.song:GetDisplayMainTitle(),
-		PROFILEMAN:GetSongNumTimesPlayed(sel.song, 'ProfileSlot_Machine'),
-		sel.song:GetDisplayBpms()[1],
-		sel.song:GetDisplayBpms()[2],
-		sel.nps,
-		sel.meter,
-		score)
+		PROFILEMAN:GetSongNumTimesPlayed(sel.song, 'ProfileSlot_Machine'))
 end
 
 local function SelectionsDebug(selections)
@@ -792,7 +787,8 @@ local function update(self)
 		--	incremental_history[#incremental_history] .. "\n" ..
 		--	#incremental_history)
 		--left_text:zoom(0.30)
-		cost_quad:setsize(SCREEN_WIDTH * incremental_history[#incremental_history] / 0.005, 10)
+		cost_quad:setsize(200 * incremental_history[#incremental_history] / 0.005, 10)
+		graph:SetLabel(string.format("avg cost %0.8f", incremental_history[#incremental_history]))
 
 		if #selection_snapshot == 0 and incremental_history[#incremental_history] < 0.003 then
 			selection_snapshot = PickByScore(current_flow, FlowDJ.theta, selection_range)
@@ -800,11 +796,22 @@ local function update(self)
 			right_text:settext(SelectionsDebug(selection_snapshot))
 			SetupNextGame(selection_snapshot)
 
+			local stage = FlowDJ.stage + 1
 			local graphs = self:GetParent():GetChild("graphs")
-			GraphFlow(graphs:GetChild("flow graph"), current_flow, selection_snapshot, FlowDJ.theta, selection_range)
+			local sel = selection_snapshot[stage]
+
+			local score_graph = graphs:GetChild("score graph")
 			AssignScore(possible_steps, FlowDJ.theta)
-			GraphDimensionOfSelections(graphs:GetChild("score graph"), possible_steps, "effective_score")
-			GraphDimensionOfSelections(graphs:GetChild("nps graph"), possible_steps, "nps")
+			GraphDimensionOfSelections(score_graph, possible_steps, "effective_score")
+			score_graph:SetLabel(string.format("%0.2f m%d", sel.effective_score, sel.meter))
+
+			local nps_graph = graphs:GetChild("nps graph")
+			GraphDimensionOfSelections(nps_graph, possible_steps, "nps")
+			nps_graph:SetLabel(string.format("%0.1f nps %d-%d bpm", sel.nps, sel.song:GetDisplayBpms()[1], sel.song:GetDisplayBpms()[2]))
+
+			local flow_graph = graphs:GetChild("flow graph")
+			GraphFlow(flow_graph, current_flow, selection_snapshot, FlowDJ.theta, selection_range)
+			flow_graph:SetLabel(string.format("Stage %d", stage))
 
 		end
 
@@ -864,6 +871,10 @@ local function Graph(name, x, y, scale)
 				end
 			end
 
+			self.SetLabel = function(self, text)
+				self:GetChild("label"):settext(text)
+			end
+
 			self.Clear = function(self)
 				self:GetChild("data"):RemoveAllChildren()
 			end
@@ -877,6 +888,13 @@ local function Graph(name, x, y, scale)
 		},
 		Def.ActorFrame{
 			Name= "data", InitCommand= cmd(visible, true),
+		},
+		Def.BitmapText{
+			Name = "label", Font = "Common Normal", InitCommand = function(self)
+				self:settext(name)
+				self:zoom(0.5/scale)
+				self:xy(0.5, 1.1)
+			end,
 		},
 	}
 end
@@ -940,7 +958,7 @@ local t = Def.ActorFrame{
 			right_text = self
 			self:maxwidth(SCREEN_HEIGHT)
 			self:zoom(0.5)
-			self:xy(_screen.cx + SCREEN_WIDTH/4, _screen.cy)
+			self:xy(_screen.cx + SCREEN_WIDTH/4 + 50, _screen.cy)
 		end
 	},
 	--Graph("graph", 20, 20, math.min(SCREEN_WIDTH - 40, SCREEN_HEIGHT - 50)),
@@ -955,13 +973,13 @@ local t = Def.ActorFrame{
 	Def.Quad{
 		Name= "cost", InitCommand = function(self)
 			cost_quad = self
-			self:xy(_screen.cx, 40)
+			self:xy(_screen.cx - SCREEN_WIDTH/4 - 60, SCREEN_HEIGHT - 80)
 		end
 	},
 	Def.BitmapText{
 		Name = "Center", Font = "Common Normal", InitCommand = function(self)
 			center_text = self
-			self:xy(_screen.cx, _screen.cy)
+			self:xy(_screen.cx, _screen.cy - 50)
 		end
 	},
 	Def.BitmapText{
