@@ -641,11 +641,12 @@ local function PickByScore(flow, theta, range)
 	for i,step in ipairs(recent) do
 		local song = SONGMAN:GetSongFromSteps(step)
 		picked[song:GetSongFilePath()] = true
+		local stage = (#recent-i)+1
 		for j,sel in ipairs(possible_steps) do
 			if sel.steps == step then
-				selections[i] = sel
+				selections[stage] = sel
 				sel.selected = true
-				sel.stage = i
+				sel.stage = stage
 			end
 		end
 	end
