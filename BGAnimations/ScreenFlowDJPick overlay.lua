@@ -788,10 +788,10 @@ local function update(self)
 	if frame >= 2 then
 
 		IncrementalUpdate()
-		left_text:settext(ThetaDebug(FlowDJ.theta) .. "\n" ..
-			incremental_history[#incremental_history] .. "\n" ..
-			#incremental_history)
-		left_text:zoom(0.30)
+		--left_text:settext(ThetaDebug(FlowDJ.theta) .. "\n" ..
+		--	incremental_history[#incremental_history] .. "\n" ..
+		--	#incremental_history)
+		--left_text:zoom(0.30)
 		cost_quad:setsize(SCREEN_WIDTH * incremental_history[#incremental_history] / 0.005, 10)
 
 		if #selection_snapshot == 0 and incremental_history[#incremental_history] < 0.003 then
@@ -881,6 +881,45 @@ local function Graph(name, x, y, scale)
 	}
 end
 
+local function Factors()
+	local names = {}
+	for key,value in pairs(initial_theta) do
+		table.insert(names, key)
+	end
+	table.sort(names)
+
+	local frame = Def.ActorFrame{
+		Name = "factors", InitCommand = function(self)
+			self:xy(_screen.cx - SCREEN_WIDTH/4, 60)
+			self:visible(true)
+		end,
+	}
+	for i,key in ipairs(names) do
+		frame[#frame+1] = Def.ActorFrame {
+			Name = key, InitCommand = function(self)
+					self:xy(0, i*5)
+					self:SetUpdateFunction(function(self)
+						local value = self:GetChild("value")
+						value:setsize(math.abs(FlowDJ.theta[key]) * 20, 3)
+						value:xy(FlowDJ.theta[key] * 20 / 2, 0)
+					end)
+				end,
+			Def.BitmapText{
+				Name = "label", Font = "Common Normal", InitCommand = function(self)
+					local zoom = 0.25
+					self:settext(key)
+					self:zoom(zoom)
+					self:xy(-20-self:GetWidth()*0.5*zoom, 0)
+				end,
+			},
+			Def.Quad{
+				Name= "value"
+			},
+		}
+	end
+	return frame
+end
+
 local t = Def.ActorFrame{
 	Def.ActorFrame{
 		Name = "Picker", OnCommand = function(self)
@@ -904,10 +943,12 @@ local t = Def.ActorFrame{
 			self:xy(_screen.cx + SCREEN_WIDTH/4, _screen.cy)
 		end
 	},
-	Graph("graph", 20, 20, math.min(SCREEN_WIDTH - 40, SCREEN_HEIGHT - 50)),
+	--Graph("graph", 20, 20, math.min(SCREEN_WIDTH - 40, SCREEN_HEIGHT - 50)),
 	Graph("score graph", 20, SCREEN_HEIGHT - 200, 100),
 	Graph("nps graph", 140, SCREEN_HEIGHT - 200, 100),
 	Graph("flow graph", 260, SCREEN_HEIGHT - 200, 100),
+	Graph("graph", 380, SCREEN_HEIGHT - 200, 100),
+	Factors(),
 	Def.Quad{
 		Name= "cost", InitCommand = function(self)
 			cost_quad = self
