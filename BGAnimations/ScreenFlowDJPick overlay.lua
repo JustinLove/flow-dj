@@ -817,7 +817,9 @@ local function update(self)
 		if #selection_snapshot == 0 and (incremental_history[#incremental_history] < 0.0015 or #incremental_history > 1000) then
 			selection_snapshot = PickByScore(current_flow, FlowDJ.theta, selection_range)
 			--selection_snapshot = PickByMeter(flow)
-			right_text:settext(SelectionsDebug(selection_snapshot))
+			--right_text:settext(SelectionsDebug(selection_snapshot))
+			local song_list = self:GetParent():GetChild("song list")
+			song_list:SetSelections(selection_snapshot)
 			SetupNextGame(selection_snapshot)
 
 			local stage = FlowDJ.stage + 1
@@ -985,6 +987,35 @@ local t = Def.ActorFrame{
 				cost_quad = self
 				self:xy(0, 160)
 			end
+		},
+	},
+	Def.ActorFrame{
+		Name = "song list", InitCommand = function(self)
+			self:xy(SCREEN_WIDTH - 100, _screen.cy)
+			self:zoom(0.5)
+
+			self.SetSelections = function(self, selections)
+				self:xy(SCREEN_WIDTH - 100, _screen.cy - #selections*5)
+
+				local list = self:GetChild("list")
+				local items = list:GetChild("song list item")
+				local length = 0
+				if items then
+					length = #items
+				end
+				for i = length,#selections do
+					list:AddChildFromPath(THEME:GetPathG("", "songlistitem.lua"))
+				end
+				items = list:GetChild("song list item")
+				for i,sel in ipairs(selections) do
+					if items and items[i] then
+						items[i]:SetSelection(sel, i)
+					end
+				end
+			end
+		end,
+		Def.ActorFrame{
+			Name= "list", InitCommand= cmd(visible, true),
 		},
 	},
 	Def.BitmapText{
