@@ -971,10 +971,10 @@ local t = Def.ActorFrame{
 	},
 	--Graph("graph", 20, 20, math.min(SCREEN_WIDTH - 40, SCREEN_HEIGHT - 50)),
 	Def.ActorFrame {
-		Name = "graphs", InitCommand = cmd(xy, SCREEN_WIDTH/2, SCREEN_HEIGHT - 200),
-		Graph("score graph", -120, 0, 100),
-		Graph("nps graph", 0, 0, 100),
-		Graph("flow graph", 120, 0, 100),
+		Name = "graphs", InitCommand = cmd(xy, SCREEN_WIDTH/2, SCREEN_HEIGHT - 250),
+		Graph("score graph", -170, 0, 150),
+		Graph("nps graph", 0, 0, 150),
+		Graph("flow graph", 170, 0, 150),
 	},
 	Def.ActorFrame {
 		Name = "model", InitCommand = cmd(xy, 80, _screen.cy),
