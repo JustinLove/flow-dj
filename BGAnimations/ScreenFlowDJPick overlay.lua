@@ -993,10 +993,10 @@ local t = Def.ActorFrame{
 	Def.ActorFrame{
 		Name = "song list", InitCommand = function(self)
 			self:xy(SCREEN_WIDTH - 100, _screen.cy)
-			self:zoom(0.4)
+			self:zoom(6 / stages)
 
 			self.SetSelections = function(self, selections)
-				self:xy(SCREEN_WIDTH - 200, 250 - #selections*12)
+				self:xy(SCREEN_WIDTH - 100, 40)
 
 				local list = self:GetChild("list")
 				local items = list:GetChild("song list item")
