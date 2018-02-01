@@ -819,6 +819,7 @@ local function update(self)
 			--selection_snapshot = PickByMeter(flow)
 			--right_text:settext(SelectionsDebug(selection_snapshot))
 			local song_list = self:GetParent():GetChild("song list")
+			AssignScore(possible_steps, FlowDJ.theta)
 			song_list:SetSelections(selection_snapshot)
 			SetupNextGame(selection_snapshot)
 
@@ -827,7 +828,7 @@ local function update(self)
 			local sel = selection_snapshot[stage]
 
 			local score_graph = graphs:GetChild("score graph")
-			AssignScore(possible_steps, FlowDJ.theta)
+			--AssignScore(possible_steps, FlowDJ.theta)
 			GraphDimensionOfSelections(score_graph, possible_steps, "effective_score")
 			score_graph:SetLabel(string.format("%0.2f m%d", sel.effective_score, sel.meter))
 
@@ -992,10 +993,10 @@ local t = Def.ActorFrame{
 	Def.ActorFrame{
 		Name = "song list", InitCommand = function(self)
 			self:xy(SCREEN_WIDTH - 100, _screen.cy)
-			self:zoom(0.5)
+			self:zoom(0.4)
 
 			self.SetSelections = function(self, selections)
-				self:xy(SCREEN_WIDTH - 100, _screen.cy - #selections*5)
+				self:xy(SCREEN_WIDTH - 200, 250 - #selections*12)
 
 				local list = self:GetChild("list")
 				local items = list:GetChild("song list item")
