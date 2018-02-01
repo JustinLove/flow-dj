@@ -236,9 +236,13 @@ local function GraphDimensionOfSelections(graph, data, dimension)
 		local y = item[dimension]/max
 		local point = graph:AddPoint(x, y, Color.White)
 		if item.selected and point then
-			point:xy(x, 1 - y/2):setsize(0.005, y):diffuse(Alpha(Color.White, 0.5))
+			point:xy(x, 1 - y/2):setsize(0.005, y):diffuse(Brightness(Color.White, 0.5))
 			if item.stage == stage then
-				point:diffuse(Color.Green):setsize(0.03, y)
+				point:glowshift()
+				point:effectcolor1(Brightness(Color.Green, 0.7))
+				point:effectcolor2(Brightness(Color.Green, 1))
+				point:effectperiod(2)
+				point:setsize(0.03, y)
 			end
 		end
 	end
@@ -255,24 +259,42 @@ local function GraphFlow(graph, flow, selections, theta, range)
 		end
 
 		local x = i/(#flow+1)
-		local flow_point = graph:AddPoint(x, item, Alpha(Color.White, alpha * 0.5))
+		local flow_point = graph:AddPoint(x, item, Brightness(Color.White, alpha * 0.5))
 		if flow_point then
 			flow_point:setsize(0.03, range*2)
+			if i == stage then
+				flow_point:glowshift()
+				flow_point:effectcolor1(Brightness(Color.White, 0.6))
+				flow_point:effectcolor2(Brightness(Color.White, 0.8))
+				flow_point:effectperiod(2)
+			end
 		end
 
 		local sel = selections[i]
 
 		local color = Color.White
 		local y = PredictedScore(sel, theta)
-		local predict_point = graph:AddPoint(x, y, Alpha(Color.Yellow, alpha))
+		local predict_point = graph:AddPoint(x, y, Brightness(Color.Blue, alpha))
 		if predict_point then
-			predict_point:setsize(0.05, 0.01)
+			predict_point:setsize(0.05, 0.02)
+			if i == stage then
+				predict_point:glowshift()
+				predict_point:effectcolor1(Brightness(Color.Blue, 0.8))
+				predict_point:effectcolor2(Brightness(Color.Blue, 1.0))
+				predict_point:effectperiod(2)
+			end
 		end
 
 		if sel.score ~= 0.0 then
-			local score_point = graph:AddPoint(x, sel.score, Alpha(Color.White, alpha))
+			local score_point = graph:AddPoint(x, sel.score, Brightness(Color.White, alpha))
 			if score_point then
-				score_point:setsize(0.05, 0.01)
+				score_point:setsize(0.05, 0.02)
+				if i == stage then
+					score_point:glowshift()
+					score_point:effectcolor1(Brightness(Color.White, 0.8))
+					score_point:effectcolor2(Brightness(Color.White, 1.0))
+					score_point:effectperiod(2)
+				end
 			end
 		end
 	end
@@ -780,6 +802,7 @@ local function update(self)
 		--left_text:settext(StepsDebug(RecentSteps()))
 		--EvaluatePredictions(PossibleSteps())
 		--MultipleTraining(PossibleSteps())
+		center_text:settext("Modeling score of unplayeed steps")
 	end
 	if frame >= 2 then
 
@@ -791,7 +814,7 @@ local function update(self)
 		cost_quad:setsize(200 * incremental_history[#incremental_history] / 0.005, 10)
 		graph:SetLabel(string.format("avg cost %0.8f", incremental_history[#incremental_history]))
 
-		if #selection_snapshot == 0 and incremental_history[#incremental_history] < 0.003 then
+		if #selection_snapshot == 0 and (incremental_history[#incremental_history] < 0.0015 or #incremental_history > 1000) then
 			selection_snapshot = PickByScore(current_flow, FlowDJ.theta, selection_range)
 			--selection_snapshot = PickByMeter(flow)
 			right_text:settext(SelectionsDebug(selection_snapshot))
