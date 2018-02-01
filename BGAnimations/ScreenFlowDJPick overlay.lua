@@ -796,7 +796,7 @@ local function update(self)
 	frame = frame + 1
 	if frame == 2 then
 		local screen = self:GetParent()
-		graph = screen:GetChild("graph")
+		graph = screen:GetChild("model"):GetChild("graph")
 		--GraphSteps()
 		--left_text:settext(SongsDebug(RecentSongs()))
 		--left_text:settext(StepsDebug(RecentSteps()))
@@ -923,7 +923,7 @@ local function Graph(name, x, y, scale)
 	}
 end
 
-local function Factors()
+local function Factors(x, y)
 	local names = {}
 	for key,value in pairs(initial_theta) do
 		table.insert(names, key)
@@ -932,7 +932,7 @@ local function Factors()
 
 	local frame = Def.ActorFrame{
 		Name = "factors", InitCommand = function(self)
-			self:xy(_screen.cx - SCREEN_WIDTH/4, 60)
+			self:xy(x, y)
 			self:visible(true)
 		end,
 	}
@@ -969,6 +969,30 @@ local t = Def.ActorFrame{
 			SCREENMAN:GetTopScreen():AddInputCallback(input)
 		end,
 	},
+	--Graph("graph", 20, 20, math.min(SCREEN_WIDTH - 40, SCREEN_HEIGHT - 50)),
+	Def.ActorFrame {
+		Name = "graphs", InitCommand = cmd(xy, SCREEN_WIDTH/2, SCREEN_HEIGHT - 200),
+		Graph("score graph", -120, 0, 100),
+		Graph("nps graph", 0, 0, 100),
+		Graph("flow graph", 120, 0, 100),
+	},
+	Def.ActorFrame {
+		Name = "model", InitCommand = cmd(xy, 80, _screen.cy),
+		Graph("graph", 0, 40, 100),
+		Factors(40, -150),
+		Def.Quad{
+			Name= "cost", InitCommand = function(self)
+				cost_quad = self
+				self:xy(0, 160)
+			end
+		},
+	},
+	Def.BitmapText{
+		Name = "Center", Font = "Common Normal", InitCommand = function(self)
+			center_text = self
+			self:xy(_screen.cx, _screen.cy - 50)
+		end
+	},
 	Def.BitmapText{
 		Name = "Left", Font = "Common Normal", InitCommand = function(self)
 			left_text = self
@@ -983,27 +1007,6 @@ local t = Def.ActorFrame{
 			self:maxwidth(SCREEN_HEIGHT)
 			self:zoom(0.5)
 			self:xy(_screen.cx + SCREEN_WIDTH/4 + 50, _screen.cy)
-		end
-	},
-	--Graph("graph", 20, 20, math.min(SCREEN_WIDTH - 40, SCREEN_HEIGHT - 50)),
-	Def.ActorFrame {
-		Name = "graphs", InitCommand = cmd(xy, SCREEN_WIDTH/2, SCREEN_HEIGHT - 200),
-		Graph("score graph", -120, 0, 100),
-		Graph("nps graph", 0, 0, 100),
-		Graph("flow graph", 120, 0, 100),
-	},
-	Graph("graph", _screen.cx - SCREEN_WIDTH/4 - 60, SCREEN_HEIGHT - 200, 100),
-	Factors(),
-	Def.Quad{
-		Name= "cost", InitCommand = function(self)
-			cost_quad = self
-			self:xy(_screen.cx - SCREEN_WIDTH/4 - 60, SCREEN_HEIGHT - 80)
-		end
-	},
-	Def.BitmapText{
-		Name = "Center", Font = "Common Normal", InitCommand = function(self)
-			center_text = self
-			self:xy(_screen.cx, _screen.cy - 50)
 		end
 	},
 	Def.BitmapText{
