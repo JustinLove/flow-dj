@@ -794,6 +794,7 @@ local frame = 0
 local function update(self)
 	if entering_song then
 		if GetTimeSinceStart() > entering_song then
+			entering_song = false
 			trans_new_screen(play_screen)
 		end
 	end
