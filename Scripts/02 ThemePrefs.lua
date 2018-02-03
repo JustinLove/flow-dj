@@ -2,13 +2,48 @@ local function OptionNameString(str)
 	return THEME:GetString('OptionNames',str)
 end
 
+local stage_choices = {}
+local stage_values = {}
+for i = 1,100 do
+	stage_choices[i] = ""..i
+	stage_values[i] = i
+end
+
+local score_choices = {}
+local score_values = {}
+for i = 1,101 do
+	score_choices[i] = ""..(i-1)
+	score_values[i] = i-1
+end
+
 local Prefs =
 {
 	NumberOfStages =
 	{
 		Default = 16,
-		Choices = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32},
-		Values = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32},
+		Choices = stage_choices,
+		Values = stage_values,
+		SelectType = "ShowOneInRow",
+	},
+	StartScore =
+	{
+		Default = 85,
+		Choices = score_choices,
+		Values = score_values,
+		SelectType = "ShowOneInRow",
+	},
+	MidScore =
+	{
+		Default = 70,
+		Choices = score_choices,
+		Values = score_values,
+		SelectType = "ShowOneInRow",
+	},
+	ScoreWiggle =
+	{
+		Default = 5,
+		Choices = score_choices,
+		Values = score_values,
 		SelectType = "ShowOneInRow",
 	},
 }

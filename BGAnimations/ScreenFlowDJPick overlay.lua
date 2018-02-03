@@ -1,4 +1,7 @@
 local stages = ThemePrefs.Get("NumberOfStages")
+local start_score = ThemePrefs.Get("StartScore")/100
+local mid_score = ThemePrefs.Get("MidScore")/100
+local score_wiggle = ThemePrefs.Get("ScoreWiggle")/100
 local maximum_cost = 0.0015
 local minimum_iteration = 1000
 local auto_start = false
@@ -770,7 +773,7 @@ end
 
 local incremental_history = {}
 local incremental_step = 1
-local current_flow = WiggleFlow(ManualFlow(0.85, 0.7), 0.05)
+local current_flow = WiggleFlow(ManualFlow(start_score, mid_score), score_wiggle)
 --local current_flow = WiggleFlow(ManualFlow(2, 7.7), 1)
 local selection_range = 0.03
 local selection_snapshot = {}
@@ -809,7 +812,7 @@ local function update(self)
 		--left_text:settext(StepsDebug(RecentSteps()))
 		--EvaluatePredictions(PossibleSteps())
 		--MultipleTraining(PossibleSteps())
-		center_text:settext("Modeling score of unplayeed steps")
+		center_text:settext("Modeling score of unplayed steps")
 	end
 	if frame >= 2 then
 
