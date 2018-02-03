@@ -5,6 +5,8 @@ local auto_start = false
 local play_screen = "ScreenGameplay"
 --local play_screen = "ScreenFlowDJBounce"
 
+local text_height = SCREEN_HEIGHT/48
+
 local pn = GAMESTATE:GetEnabledPlayers()[1]
 --local currentstyle = GAMESTATE:GetCurrentStyle(pn)
 --local stepstype = currentstyle:GetStepsType()
@@ -630,7 +632,7 @@ local function EvaluatePredictions(possible)
 		history[#history] .. "\n" ..
 		ComputeCost(test, theta))
 	lua.ReportScriptError(history[#history])
-	right_text:zoom(0.30)
+	right_text:zoom(0.03*text_height)
 	--right_text:settext(rec_print_table_to_str(CountRadarUsage(possible)))
 end
 
@@ -815,7 +817,7 @@ local function update(self)
 		--left_text:settext(ThetaDebug(FlowDJ.theta) .. "\n" ..
 		--	incremental_history[#incremental_history] .. "\n" ..
 		--	#incremental_history)
-		--left_text:zoom(0.30)
+		--left_text:zoom(0.03*text_height)
 		cost_quad:setsize(200 * incremental_history[#incremental_history] / 0.005, 10)
 		graph:SetLabel(string.format("avg cost %0.8f", incremental_history[#incremental_history]))
 
@@ -924,7 +926,7 @@ local function Graph(name, x, y, scale)
 		Def.BitmapText{
 			Name = "label", Font = "Common Normal", InitCommand = function(self)
 				self:settext(name)
-				self:zoom(0.5/scale)
+				self:zoom(0.05*text_height/scale)
 				self:xy(0.5, 1.1)
 			end,
 		},
@@ -979,29 +981,29 @@ local t = Def.ActorFrame{
 	},
 	--Graph("graph", 20, 20, math.min(SCREEN_WIDTH - 40, SCREEN_HEIGHT - 50)),
 	Def.ActorFrame {
-		Name = "graphs", InitCommand = cmd(xy, SCREEN_WIDTH/2, SCREEN_HEIGHT - 250),
-		Graph("score graph", -170, 0, 150),
-		Graph("nps graph", 0, 0, 150),
-		Graph("flow graph", 170, 0, 150),
+		Name = "graphs", InitCommand = cmd(xy, SCREEN_WIDTH/2, SCREEN_HEIGHT - 300),
+		Graph("score graph", -220, 0, 200),
+		Graph("nps graph", 0, 0, 200),
+		Graph("flow graph", 220, 0, 200),
 	},
 	Def.ActorFrame {
-		Name = "model", InitCommand = cmd(xy, 80, _screen.cy),
+		Name = "model", InitCommand = cmd(xy, 150, _screen.cy; zoom, SCREEN_HEIGHT/480),
 		Graph("graph", 0, 40, 100),
 		Factors(40, -150),
 		Def.Quad{
 			Name= "cost", InitCommand = function(self)
 				cost_quad = self
-				self:xy(0, 160)
+				self:xy(0, 170)
 			end
 		},
 	},
 	Def.ActorFrame{
 		Name = "song list", InitCommand = function(self)
 			self:xy(SCREEN_WIDTH - 100, _screen.cy)
-			self:zoom(6 / stages)
+			self:zoom(0.6 * text_height / stages)
 
 			self.SetSelections = function(self, selections)
-				self:xy(SCREEN_WIDTH - 100, 40)
+				self:xy(SCREEN_WIDTH - 150, 100)
 
 				local list = self:GetChild("list")
 				local items = list:GetChild("song list item")
@@ -1027,6 +1029,7 @@ local t = Def.ActorFrame{
 	Def.BitmapText{
 		Name = "Center", Font = "Common Normal", InitCommand = function(self)
 			center_text = self
+			self:zoom(0.2*text_height)
 			self:xy(_screen.cx, _screen.cy - 50)
 		end
 	},
@@ -1034,7 +1037,7 @@ local t = Def.ActorFrame{
 		Name = "Left", Font = "Common Normal", InitCommand = function(self)
 			left_text = self
 			self:maxwidth(SCREEN_HEIGHT)
-			self:zoom(0.5)
+			self:zoom(0.1*text_height)
 			self:xy(_screen.cx - SCREEN_WIDTH/4, _screen.cy)
 		end
 	},
@@ -1042,13 +1045,14 @@ local t = Def.ActorFrame{
 		Name = "Right", Font = "Common Normal", InitCommand = function(self)
 			right_text = self
 			self:maxwidth(SCREEN_HEIGHT)
-			self:zoom(0.5)
+			self:zoom(0.1*text_height)
 			self:xy(_screen.cx + SCREEN_WIDTH/4 + 50, _screen.cy)
 		end
 	},
 	Def.BitmapText{
 		Name = "Stage", Font = "Common Normal", InitCommand = function(self)
-			self:xy(_screen.cx, 20)
+			self:xy(_screen.cx, 40)
+			self:zoom(0.1*text_height)
 			self:settext(string.format("Stage %d", (STATSMAN:GetStagesPlayed() + 1)))
 		end
 	},
