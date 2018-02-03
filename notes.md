@@ -10,8 +10,7 @@ https://dguzek.github.io/Lua-For-SM5/
 
 consensual has persistent mods
 
-- usable screens
-  - player feedback?
+- player feedback?
 - config?
 - profiles?
   - what happens with no data?

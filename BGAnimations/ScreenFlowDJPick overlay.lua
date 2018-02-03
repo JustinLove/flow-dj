@@ -1,10 +1,14 @@
 local stages = 16
+local maximum_cost = 0.0015
+local minimum_iteration = 1000
 local auto_start = false
 local play_screen = "ScreenGameplay"
 --local play_screen = "ScreenFlowDJBounce"
 
 local pn = GAMESTATE:GetEnabledPlayers()[1]
-local stepstype = GAMESTATE:GetCurrentStyle(pn):GetStepsType()
+--local currentstyle = GAMESTATE:GetCurrentStyle(pn)
+--local stepstype = currentstyle:GetStepsType()
+local stepstype = 'StepsType_Dance_Single'
 local profile = PROFILEMAN:GetMachineProfile()
 
 local graph = false
@@ -814,7 +818,7 @@ local function update(self)
 		cost_quad:setsize(200 * incremental_history[#incremental_history] / 0.005, 10)
 		graph:SetLabel(string.format("avg cost %0.8f", incremental_history[#incremental_history]))
 
-		if #selection_snapshot == 0 and (incremental_history[#incremental_history] < 0.0015 or #incremental_history > 1000) then
+		if #selection_snapshot == 0 and (incremental_history[#incremental_history] < maximum_cost or #incremental_history > minimum_iteration) then
 			selection_snapshot = PickByScore(current_flow, FlowDJ.theta, selection_range)
 			--selection_snapshot = PickByMeter(flow)
 			--right_text:settext(SelectionsDebug(selection_snapshot))
