@@ -1,4 +1,4 @@
-local stages = 16
+local stages = ThemePrefs.Get("NumberOfStages")
 local maximum_cost = 0.0015
 local minimum_iteration = 1000
 local auto_start = false
@@ -1000,7 +1000,7 @@ local t = Def.ActorFrame{
 	Def.ActorFrame{
 		Name = "song list", InitCommand = function(self)
 			self:xy(SCREEN_WIDTH - 100, _screen.cy)
-			self:zoom(0.6 * text_height / stages)
+			self:zoom(math.min(0.6 * text_height / stages, 0.2*SCREEN_WIDTH/240))
 
 			self.SetSelections = function(self, selections)
 				self:xy(SCREEN_WIDTH - 150, 100)
@@ -1029,7 +1029,7 @@ local t = Def.ActorFrame{
 	Def.BitmapText{
 		Name = "Center", Font = "Common Normal", InitCommand = function(self)
 			center_text = self
-			self:zoom(0.2*text_height)
+			self:zoom(0.15*text_height)
 			self:xy(_screen.cx, _screen.cy - 50)
 		end
 	},
