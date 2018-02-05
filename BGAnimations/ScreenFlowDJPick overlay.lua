@@ -14,7 +14,8 @@ local pn = GAMESTATE:GetEnabledPlayers()[1]
 --local currentstyle = GAMESTATE:GetCurrentStyle(pn)
 --local stepstype = currentstyle:GetStepsType()
 local stepstype = 'StepsType_Dance_Single'
-local profile = PROFILEMAN:GetMachineProfile()
+--local profile = PROFILEMAN:GetMachineProfile()
+local profile = PROFILEMAN:GetProfile(pn)
 
 local graph = false
 local cost_quad = false
@@ -377,7 +378,8 @@ end
 local function GetScore(song, steps)
 	local high_score_list = profile:GetHighScoreListIfExists(song, steps)
 	if high_score_list then
-		local score = high_score_list:GetHighestScoreOfName("EVNT")
+		local scores = high_score_list:GetHighScores()
+		local score = scores[1]
 		if score then
 			return score:GetPercentDP()
 		end
@@ -476,7 +478,9 @@ local poly = 2
 Polynomial(initial_theta, poly)
 --Cross(initial_theta)
 
-if not FlowDJ.theta['c'] then
+-- ~= nan check
+if not FlowDJ.theta['c'] or FlowDJ.theta['c'] ~= FlowDJ.theta['c'] then
+	lua.ReportScriptError("reset theta")
 	FlowDJ.theta = CopyTable(initial_theta)
 end
 
@@ -506,6 +510,9 @@ local function AddFactors(steps)
 end
 
 local function ComputeCost(steps, theta)
+	if #steps < 1 then
+		return 0
+	end
 	local cost = 0
 	for p,sel in ipairs(steps) do
 		local prediction = 0
@@ -520,6 +527,10 @@ local function ComputeCost(steps, theta)
 end
 
 local function GradientDescent(steps, theta, cost_history)
+	if #steps < 1 then
+		cost_history[#cost_history+1] = 0
+		return theta, cost_history
+	end
 	local alpha = 0.1
 	local tick_start = GetTimeSinceStart()
 	local crazy = 0
@@ -639,13 +650,27 @@ local function EvaluatePredictions(possible)
 	--right_text:settext(rec_print_table_to_str(CountRadarUsage(possible)))
 end
 
-local function PickByMeter(flow)
+local function PickRecent()
 	local selections = {}
 	local picked = {}
-	local recent = RecentSongs()
-	for i,song in ipairs(recent) do
+	local recent = RecentSteps()
+	for i,step in ipairs(recent) do
+		local song = SONGMAN:GetSongFromSteps(step)
 		picked[song:GetSongFilePath()] = true
+		local stage = (#recent-i)+1
+		for j,sel in ipairs(possible_steps) do
+			if sel.steps == step then
+				selections[stage] = sel
+				sel.selected = true
+				sel.stage = stage
+			end
+		end
 	end
+	return selections, picked
+end
+
+local function PickByMeter(flow)
+	local selections, picked = PickRecent()
 	for i,target in ipairs(flow) do
 		local meter = math.floor(target)
 		for j,sel in ipairs(possible_steps) do
@@ -666,21 +691,7 @@ local function PickByMeter(flow)
 end
 
 local function PickByScore(flow, theta, range)
-	local selections = {}
-	local picked = {}
-	local recent = RecentSteps()
-	for i,step in ipairs(recent) do
-		local song = SONGMAN:GetSongFromSteps(step)
-		picked[song:GetSongFilePath()] = true
-		local stage = (#recent-i)+1
-		for j,sel in ipairs(possible_steps) do
-			if sel.steps == step then
-				selections[stage] = sel
-				sel.selected = true
-				sel.stage = stage
-			end
-		end
-	end
+	local selections, picked = PickRecent()
 	for i,target in ipairs(flow) do
 		if not selections[i] then
 			local low = target - range
@@ -702,6 +713,28 @@ local function PickByScore(flow, theta, range)
 		end
 		if not selections[i] then
 			lua.ReportScriptError("missing " .. target)
+		end
+	end
+	return selections
+end
+
+local function PickBootstrap(flow)
+	local selections, picked = PickRecent()
+	for i,target in ipairs(flow) do
+		if not selections[i] then
+			for j,sel in ipairs(possible_steps) do
+				local path = sel.song:GetSongFilePath()
+				if sel.meter == 3 and not picked[path] then
+					selections[i] = sel
+					sel.selected = true
+					sel.stage = i
+					picked[path] = true
+					break
+				end
+			end
+		end
+		if not selections[i] then
+			lua.ReportScriptError("missing " .. i)
 		end
 	end
 	return selections
@@ -779,6 +812,9 @@ local selection_range = 0.03
 local selection_snapshot = {}
 
 local function IncrementalGraphPredictions(steps, theta, color)
+	if #steps < 1 then
+		return
+	end
 	for i = 1,10 do
 		local prediction = 0
 		local sel = steps[incremental_step]
@@ -825,7 +861,11 @@ local function update(self)
 		graph:SetLabel(string.format("avg cost %0.8f", incremental_history[#incremental_history]))
 
 		if #selection_snapshot == 0 and (incremental_history[#incremental_history] < maximum_cost or #incremental_history > minimum_iteration) then
-			selection_snapshot = PickByScore(current_flow, FlowDJ.theta, selection_range)
+			if #scored_steps < 3 then
+				selection_snapshot = PickBootstrap(current_flow)
+			else
+				selection_snapshot = PickByScore(current_flow, FlowDJ.theta, selection_range)
+			end
 			--selection_snapshot = PickByMeter(flow)
 			--right_text:settext(SelectionsDebug(selection_snapshot))
 			local song_list = self:GetParent():GetChild("song list")
