@@ -10,13 +10,13 @@ https://dguzek.github.io/Lua-For-SM5/
 
 consensual has persistent mods
 
-- player feedback?
-- config?
 - profiles?
   - what happens with no data?
   - multiple players?
 - more selection factors ?
 - actual score reaction ?
+- player feedback?
+- More config?
 
 ## Solved
 
@@ -59,3 +59,31 @@ Def.Actor\* does not return the actual actor, it is not available until provided
 				OnCommand = cmd(diffuse, Color.White)
 			},
 		},
+
+
+
+
+local DetermineThemePath = function()
+	local theme = THEME:GetCurThemeName()
+	--lua.ReportScriptError(theme)
+
+	local themePath = {theme}
+
+	while theme ~= "_fallback" and theme ~= nil do
+		local metrics = IniFile.ReadFile("Themes/" .. theme .. "/metrics.ini")
+		--lua.ReportScriptError(rec_print_table_to_str(metrics))
+		if metrics and metrics.Global then
+			theme = metrics.Global.FallbackTheme
+			if theme then
+				themePath[#themePath+1] = theme
+			end
+		else
+			theme = nil
+		end
+	end
+
+	return themePath
+end
+
+--DetermineThemePath()
+
