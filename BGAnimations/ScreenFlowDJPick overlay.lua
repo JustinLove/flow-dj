@@ -172,9 +172,9 @@ local function FakeRecentSteps(pool)
 	for i = 1,FlowDJ.stage do
 		sel = pool[math.random(#pool)]
 		if sel.score == 0 then
-			sel.score = 1.0 - sel.meter * 0.03
+			sel.score = 1.0 - sel.meter * 0.05
 		end
-		recent[i] = sel.steps
+		recent[i] = sel
 	end
 	return recent
 end
@@ -671,7 +671,7 @@ local function EvaluatePredictions(possible)
 	--right_text:settext(rec_print_table_to_str(CountRadarUsage(possible)))
 end
 
-local function PickRecent()
+local function StatsPickRecent()
 	local selections = {}
 	local picked = {}
 	local recent
@@ -680,19 +680,47 @@ local function PickRecent()
 	else
 		recent = RecentSteps()
 	end
-	for i,step in ipairs(recent) do
+	local stages = STATSMAN:GetStagesPlayed()
+	for i = 1,stages do
+		local stats = STATSMAN:GetPlayedStageStats(i)
+		local playerstats = stats:GetPlayerStageStats(pn)
+		local step = playerstats:GetPlayedSteps()[1]
+		recent[i] = step
 		local song = SONGMAN:GetSongFromSteps(step)
 		picked[song:GetSongFilePath()] = true
-		local stage = (#recent-i)+1
+		local stage = (stages-i)+1
 		for j,sel in ipairs(possible_steps) do
 			if sel.steps == step then
 				selections[stage] = sel
 				sel.selected = true
+				sel.score = playerstats:GetPercentDancePoints()
 				sel.stage = stage
 			end
 		end
 	end
 	return selections, picked
+end
+
+local function FakePickRecent()
+	local selections = {}
+	local picked = {}
+	local recent = fake_recent_steps
+	for i,sel in ipairs(recent) do
+		picked[sel.song:GetSongFilePath()] = true
+		local stage = (#recent-i)+1
+		selections[stage] = sel
+		sel.selected = true
+		sel.stage = stage
+	end
+	return selections, picked
+end
+
+local function PickRecent()
+	if fake_data then
+		return FakePickRecent()
+	else
+		return StatsPickRecent()
+	end
 end
 
 local function PickByMeter(flow)
