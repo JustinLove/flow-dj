@@ -1,4 +1,4 @@
-local fake_data = true
+local fake_data = false
 local stages = ThemePrefs.Get("NumberOfStages")
 local start_score = ThemePrefs.Get("StartScore")/100
 local mid_score = ThemePrefs.Get("MidScore")/100
@@ -6,8 +6,8 @@ local score_wiggle = ThemePrefs.Get("ScoreWiggle")/100
 local maximum_cost = 0.0015
 local minimum_iteration = 1000
 local auto_start = false
---local play_screen = "ScreenGameplay"
-local play_screen = "ScreenFlowDJBounce"
+local play_screen = "ScreenGameplay"
+--local play_screen = "ScreenFlowDJBounce"
 
 local text_height = SCREEN_HEIGHT/48
 
@@ -595,6 +595,17 @@ local function ScoredSteps(possible)
 	return scored
 end
 
+local function WorstScore(selections)
+	local worst = 1.0
+	for i,sel in ipairs(selections) do
+		if sel.score ~= 0.0 and sel.score < worst then
+			worst = sel.score
+		end
+	end
+	lua.ReportScriptError("worst " .. worst)
+	return worst
+end
+
 local possible_steps = PossibleSteps()
 AddFactors(possible_steps)
 
@@ -744,10 +755,12 @@ local function PickByMeter(flow)
 	return selections
 end
 
-local function PickByScore(flow, theta, range)
+local function PickByScore(flow, theta, start_range)
 	local selections, picked = PickRecent()
 	for i,target in ipairs(flow) do
-		if not selections[i] then
+		local range = 0
+		while not selections[i] and range < 2.0 do
+			range = range + start_range
 			local low = target - range
 			local high = target + range
 			for j,sel in ipairs(possible_steps) do
@@ -915,7 +928,8 @@ local function update(self)
 		graph:SetLabel(string.format("avg cost %0.8f", incremental_history[#incremental_history]))
 
 		if #selection_snapshot == 0 and (incremental_history[#incremental_history] < maximum_cost or #incremental_history > minimum_iteration) then
-			if #scored_steps <= 8 then
+
+			if #scored_steps <= stages and WorstScore(scored_steps) > 0.6 then
 				selection_snapshot = PickBootstrap(current_flow)
 			else
 				selection_snapshot = PickByScore(current_flow, FlowDJ.theta, selection_range)
