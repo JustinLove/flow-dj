@@ -1,3 +1,4 @@
+local fake_data = true
 local stages = ThemePrefs.Get("NumberOfStages")
 local start_score = ThemePrefs.Get("StartScore")/100
 local mid_score = ThemePrefs.Get("MidScore")/100
@@ -5,8 +6,8 @@ local score_wiggle = ThemePrefs.Get("ScoreWiggle")/100
 local maximum_cost = 0.0015
 local minimum_iteration = 1000
 local auto_start = false
-local play_screen = "ScreenGameplay"
---local play_screen = "ScreenFlowDJBounce"
+--local play_screen = "ScreenGameplay"
+local play_screen = "ScreenFlowDJBounce"
 
 local text_height = SCREEN_HEIGHT/48
 
@@ -14,8 +15,8 @@ local pn = GAMESTATE:GetEnabledPlayers()[1]
 --local currentstyle = GAMESTATE:GetCurrentStyle(pn)
 --local stepstype = currentstyle:GetStepsType()
 local stepstype = 'StepsType_Dance_Single'
---local profile = PROFILEMAN:GetMachineProfile()
-local profile = PROFILEMAN:GetProfile(pn)
+local machine_profile = PROFILEMAN:GetMachineProfile()
+local player_profile = PROFILEMAN:GetProfile(pn)
 
 local graph = false
 local cost_quad = false
@@ -29,7 +30,9 @@ lua.ReportScriptError('----------------' .. math.random())
 
 FlowDJ.enabled = true
 
-FlowDJ.stage = GAMESTATE:GetCurrentStageIndex()
+if play_screen == "ScreenGameplay" then
+	FlowDJ.stage = GAMESTATE:GetCurrentStageIndex()
+end
 if FlowDJ.stage == 0 then
 	FlowDJ.offset = math.random(0,math.pi)
 	FlowDJ.scale = math.random(1,3)
@@ -160,6 +163,18 @@ local function RecentSteps()
 		local playerstats = stats:GetPlayerStageStats(pn)
 		local steps = playerstats:GetPlayedSteps()
 		recent[i] = steps[1]
+	end
+	return recent
+end
+
+local function FakeRecentSteps(pool)
+	local recent = {}
+	for i = 1,FlowDJ.stage do
+		sel = pool[math.random(#pool)]
+		if sel.score == 0 then
+			sel.score = 1.0 - sel.meter * 0.03
+		end
+		recent[i] = sel.steps
 	end
 	return recent
 end
@@ -357,7 +372,7 @@ local function GraphSteps()
 			--lua.ReportScriptError(steps:PredictMeter())
 			local rating = steps:GetMeter()
 			local nps = calc_nps(pn, song_length, steps)
-			local high_score_list = profile:GetHighScoreListIfExists(song, steps)
+			local high_score_list = machine_profile:GetHighScoreListIfExists(song, steps)
 			local color = Color.Black
 			if high_score_list then
 				color = Color.White
@@ -376,7 +391,7 @@ local function GraphSteps()
 end
 
 local function GetScore(song, steps)
-	local high_score_list = profile:GetHighScoreListIfExists(song, steps)
+	local high_score_list = player_profile:GetHighScoreListIfExists(song, steps)
 	if high_score_list then
 		local scores = high_score_list:GetHighScores()
 		local score = scores[1]
@@ -582,6 +597,12 @@ end
 
 local possible_steps = PossibleSteps()
 AddFactors(possible_steps)
+
+local fake_recent_steps = {}
+if fake_data then
+	fake_recent_steps = FakeRecentSteps(possible_steps)
+end
+
 local scored_steps = ScoredSteps(possible_steps)
 
 local function TrainingData(scored)
@@ -653,7 +674,12 @@ end
 local function PickRecent()
 	local selections = {}
 	local picked = {}
-	local recent = RecentSteps()
+	local recent
+	if fake_data then
+		recent = fake_recent_steps
+	else
+		recent = RecentSteps()
+	end
 	for i,step in ipairs(recent) do
 		local song = SONGMAN:GetSongFromSteps(step)
 		picked[song:GetSongFilePath()] = true
@@ -724,7 +750,7 @@ local function PickBootstrap(flow)
 		if not selections[i] then
 			for j,sel in ipairs(possible_steps) do
 				local path = sel.song:GetSongFilePath()
-				if sel.meter == 3 and not picked[path] then
+				if sel.meter == i and not picked[path] then
 					selections[i] = sel
 					sel.selected = true
 					sel.stage = i
@@ -861,7 +887,7 @@ local function update(self)
 		graph:SetLabel(string.format("avg cost %0.8f", incremental_history[#incremental_history]))
 
 		if #selection_snapshot == 0 and (incremental_history[#incremental_history] < maximum_cost or #incremental_history > minimum_iteration) then
-			if #scored_steps < 3 then
+			if #scored_steps <= 8 then
 				selection_snapshot = PickBootstrap(current_flow)
 			else
 				selection_snapshot = PickByScore(current_flow, FlowDJ.theta, selection_range)
