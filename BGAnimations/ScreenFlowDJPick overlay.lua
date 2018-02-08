@@ -5,7 +5,6 @@ local mid_score = ThemePrefs.Get("MidScore")/100
 local score_wiggle = ThemePrefs.Get("ScoreWiggle")/100
 local maximum_cost = 0.0015
 local minimum_iteration = 1000
-local auto_start = false
 local play_screen = "ScreenGameplay"
 --local play_screen = "ScreenFlowDJBounce"
 
@@ -16,8 +15,9 @@ local pn = GAMESTATE:GetEnabledPlayers()[1]
 --local stepstype = currentstyle:GetStepsType()
 local stepstype = 'StepsType_Dance_Single'
 local machine_profile = PROFILEMAN:GetMachineProfile()
-local player_profile = PROFILEMAN:GetProfile(pn)
+local player_profile = machine_profile--PROFILEMAN:GetProfile(pn)
 
+local top_frame = false
 local graph = false
 local cost_quad = false
 local center_text = false
@@ -423,6 +423,12 @@ local function PossibleSteps()
 	return possible
 end
 
+local function ResetSelected(selections)
+	for i,sel in ipairs(selections) do
+		sel.selected = false
+	end
+end
+
 local function NormalizeFactors(steps)
 	local range = {}
 	local avg = {}
@@ -720,7 +726,6 @@ local function FakePickRecent()
 		picked[sel.song:GetSongFilePath()] = true
 		local stage = (#recent-i)+1
 		selections[stage] = sel
-		sel.selected = true
 		sel.stage = stage
 	end
 	return selections, picked
@@ -785,9 +790,9 @@ local function PickByScore(flow, theta, start_range)
 	return selections
 end
 
-local function PickBootstrap(flow)
+local function PickBootstrap()
 	local selections, picked = PickRecent()
-	for i,target in ipairs(flow) do
+	for i = 1,stages do
 		if not selections[i] then
 			for j,sel in ipairs(possible_steps) do
 				local path = sel.song:GetSongFilePath()
@@ -898,6 +903,44 @@ local function IncrementalUpdate()
 	IncrementalGraphPredictions(scored_steps, FlowDJ.theta, Color.White)
 end
 
+local function PerformPick(frame)
+	ResetSelected(possible_steps)
+
+	if #scored_steps <= stages and WorstScore(scored_steps) > 0.6 then
+		selection_snapshot = PickBootstrap()
+	else
+		selection_snapshot = PickByScore(current_flow, FlowDJ.theta, selection_range)
+	end
+	--selection_snapshot = PickByMeter(flow)
+	--right_text:settext(SelectionsDebug(selection_snapshot))
+	local song_list = frame:GetChild("song list")
+	AssignScore(possible_steps, FlowDJ.theta)
+	song_list:SetSelections(selection_snapshot)
+	SetupNextGame(selection_snapshot)
+
+	local stage = FlowDJ.stage + 1
+	local graphs = frame:GetChild("graphs")
+	local sel = selection_snapshot[stage]
+
+	local score_graph = graphs:GetChild("score graph")
+	--AssignScore(possible_steps, FlowDJ.theta)
+	GraphDimensionOfSelections(score_graph, possible_steps, "effective_score")
+	score_graph:SetLabel(string.format("%0.2f m%d", sel.effective_score, sel.meter))
+
+	local nps_graph = graphs:GetChild("nps graph")
+	GraphDimensionOfSelections(nps_graph, possible_steps, "nps")
+	nps_graph:SetLabel(string.format("%0.1f nps %d-%d bpm", sel.nps, sel.song:GetDisplayBpms()[1], sel.song:GetDisplayBpms()[2]))
+
+	local flow_graph = graphs:GetChild("flow graph")
+	GraphFlow(flow_graph, current_flow, selection_snapshot, FlowDJ.theta, selection_range)
+	flow_graph:SetLabel(string.format("Stage %d", stage))
+end
+
+local function BumpFlow(flow, stage, by)
+	flow[stage] = flow[stage] - 0.02 * by
+	PerformPick(top_frame)
+end
+
 local frame = 0
 local function update(self)
 	if entering_song then
@@ -927,41 +970,10 @@ local function update(self)
 		cost_quad:setsize(200 * incremental_history[#incremental_history] / 0.005, 10)
 		graph:SetLabel(string.format("avg cost %0.8f", incremental_history[#incremental_history]))
 
-		if #selection_snapshot == 0 and (incremental_history[#incremental_history] < maximum_cost or #incremental_history > minimum_iteration) then
-
-			if #scored_steps <= stages and WorstScore(scored_steps) > 0.6 then
-				selection_snapshot = PickBootstrap(current_flow)
-			else
-				selection_snapshot = PickByScore(current_flow, FlowDJ.theta, selection_range)
-			end
-			--selection_snapshot = PickByMeter(flow)
-			--right_text:settext(SelectionsDebug(selection_snapshot))
-			local song_list = self:GetParent():GetChild("song list")
-			AssignScore(possible_steps, FlowDJ.theta)
-			song_list:SetSelections(selection_snapshot)
-			SetupNextGame(selection_snapshot)
-
-			local stage = FlowDJ.stage + 1
-			local graphs = self:GetParent():GetChild("graphs")
-			local sel = selection_snapshot[stage]
-
-			local score_graph = graphs:GetChild("score graph")
-			--AssignScore(possible_steps, FlowDJ.theta)
-			GraphDimensionOfSelections(score_graph, possible_steps, "effective_score")
-			score_graph:SetLabel(string.format("%0.2f m%d", sel.effective_score, sel.meter))
-
-			local nps_graph = graphs:GetChild("nps graph")
-			GraphDimensionOfSelections(nps_graph, possible_steps, "nps")
-			nps_graph:SetLabel(string.format("%0.1f nps %d-%d bpm", sel.nps, sel.song:GetDisplayBpms()[1], sel.song:GetDisplayBpms()[2]))
-
-			local flow_graph = graphs:GetChild("flow graph")
-			GraphFlow(flow_graph, current_flow, selection_snapshot, FlowDJ.theta, selection_range)
-			flow_graph:SetLabel(string.format("Stage %d", stage))
-
-		end
-
-		if auto_start and not entering_song then
-			StartNextGame(selection_snapshot)
+		if #selection_snapshot == 0
+			and (incremental_history[#incremental_history] < maximum_cost
+				or #incremental_history > minimum_iteration) then
+			PerformPick(self:GetParent())
 		end
 	end
 end
@@ -972,6 +984,7 @@ local function input(event)
 	local button = event.GameButton
 	if not button then return end
 	if event.type == "InputEventType_Release" then return end
+	--lua.ReportScriptError(rec_print_table_to_str(event))
 	if button == "Start" then
 		if entering_song then
 			trans_new_screen("ScreenPlayerOptions")
@@ -983,6 +996,10 @@ local function input(event)
 	elseif button == "Back" then
 		trans_new_screen("ScreenTitleMenu")
 		SOUND:PlayOnce(THEME:GetPathS("Common", "cancel"))
+	elseif button == "MenuUp" then
+		BumpFlow(current_flow, FlowDJ.stage + 1, -1)
+	elseif button == "MenuDown" then
+		BumpFlow(current_flow, FlowDJ.stage + 1, 1)
 	else
 		lua.ReportScriptError(button)
 	end
@@ -1084,6 +1101,9 @@ local function Factors(x, y)
 end
 
 local t = Def.ActorFrame{
+	OnCommand = function(self)
+		top_frame = self
+	end,
 	Def.ActorFrame{
 		Name = "Picker", OnCommand = function(self)
 			self:SetUpdateFunction(update)
