@@ -15,7 +15,6 @@ consensual has persistent mods
   - multiple players?
 - more selection factors ?
 - actual score reaction ?
-- player feedback?
 - More config?
 
 ## Solved

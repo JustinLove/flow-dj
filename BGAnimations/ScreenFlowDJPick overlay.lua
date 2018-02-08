@@ -15,7 +15,7 @@ local pn = GAMESTATE:GetEnabledPlayers()[1]
 --local stepstype = currentstyle:GetStepsType()
 local stepstype = 'StepsType_Dance_Single'
 local machine_profile = PROFILEMAN:GetMachineProfile()
-local player_profile = machine_profile--PROFILEMAN:GetProfile(pn)
+local player_profile = PROFILEMAN:GetProfile(pn)
 
 local top_frame = false
 local graph = false
@@ -793,10 +793,13 @@ end
 local function PickBootstrap()
 	local selections, picked = PickRecent()
 	for i = 1,stages do
-		if not selections[i] then
+		local range = 0
+		while not selections[i] and range < 10 do
+			local low = i - range
+			local high = i + range
 			for j,sel in ipairs(possible_steps) do
 				local path = sel.song:GetSongFilePath()
-				if sel.meter == i and not picked[path] then
+				if low <= sel.meter and sel.meter <= high and not picked[path] then
 					selections[i] = sel
 					sel.selected = true
 					sel.stage = i
@@ -804,6 +807,7 @@ local function PickBootstrap()
 					break
 				end
 			end
+			range = range + 1
 		end
 		if not selections[i] then
 			lua.ReportScriptError("missing " .. i)
