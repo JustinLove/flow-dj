@@ -12,7 +12,9 @@ consensual has persistent mods
 
 - profiles?
   - what happens with no data?
+    - help text for bootstrap mode
   - multiple players?
+    - prefs for multiple players?
 - more selection factors ?
 - actual score reaction ?
 - More config?

@@ -15,7 +15,7 @@ local pn = GAMESTATE:GetEnabledPlayers()[1]
 --local stepstype = currentstyle:GetStepsType()
 local stepstype = 'StepsType_Dance_Single'
 local machine_profile = PROFILEMAN:GetMachineProfile()
-local player_profile = PROFILEMAN:GetProfile(pn)
+local player_profile = machine_profile--PROFILEMAN:GetProfile(pn)
 
 local top_frame = false
 local graph = false
@@ -931,13 +931,11 @@ local function PerformPick(frame)
 	GraphDimensionOfSelections(score_graph, possible_steps, "effective_score")
 	score_graph:SetLabel(string.format("%0.2f m%d", sel.effective_score, sel.meter))
 
-	local nps_graph = graphs:GetChild("nps graph")
-	GraphDimensionOfSelections(nps_graph, possible_steps, "nps")
-	nps_graph:SetLabel(string.format("%0.1f nps %d-%d bpm", sel.nps, sel.song:GetDisplayBpms()[1], sel.song:GetDisplayBpms()[2]))
+	--nps_graph:SetLabel(string.format("%0.1f nps %d-%d bpm", sel.nps, sel.song:GetDisplayBpms()[1], sel.song:GetDisplayBpms()[2]))
 
-	local flow_graph = graphs:GetChild("flow graph")
-	GraphFlow(flow_graph, current_flow, selection_snapshot, FlowDJ.theta, selection_range)
-	flow_graph:SetLabel(string.format("Stage %d", stage))
+	--local flow_graph = graphs:GetChild("flow graph")
+	--GraphFlow(flow_graph, current_flow, selection_snapshot, FlowDJ.theta, selection_range)
+	--flow_graph:SetLabel(string.format("Stage %d", stage))
 end
 
 local function BumpFlow(flow, stage, by)
@@ -1116,13 +1114,12 @@ local t = Def.ActorFrame{
 	},
 	--Graph("graph", 20, 20, math.min(SCREEN_WIDTH - 40, SCREEN_HEIGHT - 50)),
 	Def.ActorFrame {
-		Name = "graphs", InitCommand = cmd(xy, SCREEN_WIDTH/2, SCREEN_HEIGHT - 300),
-		Graph("score graph", -220, 0, 200),
-		Graph("nps graph", 0, 0, 200),
-		Graph("flow graph", 220, 0, 200),
+		Name = "graphs", InitCommand = cmd(xy, SCREEN_WIDTH/2, SCREEN_HEIGHT - 500),
+		Graph("score graph", -220, 0, 400),
+		--Graph("flow graph", 220, 0, 400),
 	},
 	Def.ActorFrame {
-		Name = "model", InitCommand = cmd(xy, 150, _screen.cy; zoom, SCREEN_HEIGHT/480),
+		Name = "model", InitCommand = cmd(xy, 150, _screen.cy; zoom, SCREEN_HEIGHT/480; visible, false),
 		Graph("graph", 0, 40, 100),
 		Factors(40, -150),
 		Def.Quad{
@@ -1134,11 +1131,11 @@ local t = Def.ActorFrame{
 	},
 	Def.ActorFrame{
 		Name = "song list", InitCommand = function(self)
-			self:xy(SCREEN_WIDTH - 100, _screen.cy)
+			self:xy(SCREEN_WIDTH - 500, _screen.cy)
 			self:zoom(math.min(0.6 * text_height / stages, 0.2*SCREEN_WIDTH/240))
 
 			self.SetSelections = function(self, selections)
-				self:xy(SCREEN_WIDTH - 150, 100)
+				self:xy(SCREEN_WIDTH - 500, 100)
 
 				local list = self:GetChild("list")
 				local items = list:GetChild("song list item")
@@ -1152,7 +1149,8 @@ local t = Def.ActorFrame{
 				items = list:GetChild("song list item")
 				for i,sel in ipairs(selections) do
 					if items and items[i] then
-						items[i]:SetSelection(sel, i)
+						sel.predicted_score = PredictedScore(sel, FlowDJ.theta)
+						items[i]:SetSelection(sel, i, current_flow[i], selection_range)
 					end
 				end
 			end
@@ -1165,7 +1163,7 @@ local t = Def.ActorFrame{
 		Name = "Center", Font = "Common Normal", InitCommand = function(self)
 			center_text = self
 			self:zoom(0.15*text_height)
-			self:xy(_screen.cx, _screen.cy - 50)
+			self:xy(_screen.cx, 150)
 		end
 	},
 	Def.BitmapText{

@@ -1,21 +1,35 @@
 local spacing = 60
 local bar_height = 8
 local bar_width = 45
+local flow_height = 32
+local flow_width = 400
+local flow_mark = 8
+local text_width = (30 + bar_width + 40 + bar_width + 40 + bar_width)
 
 return Def.ActorFrame {
 	Name = "song list item", InitCommand = function(self)
-			self.SetSelection = function(self, sel, n)
+			self.SetSelection = function(self, sel, n, flow, range)
 				self:xy(0, n*spacing)
 
-				local x = 0
+				local x = flow_width
 				local y = -spacing * 0.2
 
 				local label = self:GetChild("label")
 				label:settext(sel.song:GetDisplayMainTitle())
-				label:xy(x, y)
+				label:xy(x + text_width/2, y)
 
-				x = - (30 + bar_width + 40 + bar_width + 40 + bar_width)/2
 				y = spacing * 0.2
+
+				x = x + 40
+				local score_text = self:GetChild("score text")
+				score_text:settextf("%2d", sel.effective_score * 100)
+				score_text:xy(x - score_text:GetWidth()*0.5, y)
+
+				x = x + 5 
+				local score_bar = self:GetChild("score bar")
+				score_bar:setsize(sel.effective_score * bar_width, bar_height)
+				score_bar:xy(x + sel.effective_score * bar_width / 2, y)
+				x = x + bar_width
 
 				x = x + 30
 				local meter_text = self:GetChild("meter text")
@@ -39,19 +53,33 @@ return Def.ActorFrame {
 				nps_bar:xy(x + sel.nps / 10 * bar_width / 2, y)
 				x = x + bar_width
 
-				x = x + 40
-				local score_text = self:GetChild("score text")
-				score_text:settextf("%2d", sel.effective_score * 100)
-				score_text:xy(x - score_text:GetWidth()*0.5, y)
+				local flow_backdrop = self:GetChild("flow backdrop")
+				flow_backdrop:setsize(flow_width, flow_height)
+				flow_backdrop:diffuserightedge(Alpha(Color.Black, 0.5))
+				flow_backdrop:diffuseleftedge(Alpha(Color.Black, 0.03))
 
-				x = x + 5 
-				local score_bar = self:GetChild("score bar")
-				score_bar:setsize(sel.effective_score * bar_width, bar_height)
-				score_bar:xy(x + sel.effective_score * bar_width / 2, y)
-				x = x + bar_width
+				local flow_range = self:GetChild("flow range")
+				flow_range:setsize(range * 2 * flow_width, flow_height)
+				flow_range:xy(flow * flow_width, 0)
+				flow_range:diffuse(Brightness(Color.White, 0.5))
+
+				local predicted_score = self:GetChild("predicted score")
+				predicted_score:setsize(flow_mark, flow_height)
+				predicted_score:xy(sel.predicted_score * flow_width, 0)
+				predicted_score:diffuse(Color.Blue)
+
+				if sel.score ~= 0 then
+					local actual_score = self:GetChild("actual score")
+					actual_score:setsize(flow_mark, flow_height)
+					actual_score:xy(sel.score * flow_width, 0)
+					actual_score:diffuse(Color.White)
+				end
 
 			end
 		end,
+	Def.Quad{
+		Name= "flow backdrop", InitCommand = cmd(setsize, 0, 0; xy, flow_width/2, 0),
+	},
 	Def.BitmapText{
 		Name = "label", Font = "Common Normal", InitCommand = function(self)
 		end,
@@ -76,5 +104,14 @@ return Def.ActorFrame {
 	},
 	Def.Quad{
 		Name= "score bar"
+	},
+	Def.Quad{
+		Name= "flow range"
+	},
+	Def.Quad{
+		Name= "actual score"
+	},
+	Def.Quad{
+		Name= "predicted score"
 	},
 }
