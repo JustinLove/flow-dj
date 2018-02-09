@@ -8,9 +8,13 @@ local text_width = (30 + bar_width + 40 + bar_width + 40 + bar_width)
 
 return Def.ActorFrame {
 	Name = "song list item", InitCommand = function(self)
-			self.SetSelection = function(self, sel, n, flow, range)
+			self.SetSelection = function(self, sel, n, flow, range, current)
 				self:xy(0, n*spacing)
 
+				local brightness = 0.5
+				if current then
+					brightness = 1
+				end
 				local x = flow_width
 				local y = -spacing * 0.2
 
@@ -61,18 +65,36 @@ return Def.ActorFrame {
 				local flow_range = self:GetChild("flow range")
 				flow_range:setsize(range * 2 * flow_width, flow_height)
 				flow_range:xy(flow * flow_width, 0)
-				flow_range:diffuse(Brightness(Color.White, 0.5))
+				flow_range:diffuse(Brightness(Color.White, 0.5 * brightness))
+				if current then
+					flow_range:glowshift()
+					flow_range:effectcolor1(Brightness(Color.White, 0.6))
+					flow_range:effectcolor2(Brightness(Color.White, 0.8))
+					flow_range:effectperiod(2)
+				end
 
 				local predicted_score = self:GetChild("predicted score")
 				predicted_score:setsize(flow_mark, flow_height)
 				predicted_score:xy(sel.predicted_score * flow_width, 0)
-				predicted_score:diffuse(Color.Blue)
+				predicted_score:diffuse(Brightness(Color.Blue, brightness))
+				if current then
+					predicted_score:glowshift()
+					predicted_score:effectcolor1(Brightness(Color.Blue, 0.8))
+					predicted_score:effectcolor2(Brightness(Color.Blue, 1.0))
+					predicted_score:effectperiod(2)
+				end
 
 				if sel.score ~= 0 then
 					local actual_score = self:GetChild("actual score")
 					actual_score:setsize(flow_mark, flow_height)
 					actual_score:xy(sel.score * flow_width, 0)
-					actual_score:diffuse(Color.White)
+					actual_score:diffuse(Brightness(Color.White, brightness))
+					if current then
+						actual_score:glowshift()
+						actual_score:effectcolor1(Brightness(Color.White, 0.8))
+						actual_score:effectcolor2(Brightness(Color.White, 1.0))
+						actual_score:effectperiod(2)
+					end
 				end
 
 			end

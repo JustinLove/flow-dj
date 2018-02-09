@@ -1150,7 +1150,7 @@ local t = Def.ActorFrame{
 				for i,sel in ipairs(selections) do
 					if items and items[i] then
 						sel.predicted_score = PredictedScore(sel, FlowDJ.theta)
-						items[i]:SetSelection(sel, i, current_flow[i], selection_range)
+						items[i]:SetSelection(sel, i, current_flow[i], selection_range, i == FlowDJ.stage+1)
 					end
 				end
 			end
