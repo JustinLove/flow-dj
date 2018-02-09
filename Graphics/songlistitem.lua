@@ -4,7 +4,8 @@ local bar_width = 45
 local flow_height = 48
 local flow_width = 600
 local flow_mark = 12
-local text_width = (30 + bar_width + 40 + bar_width + 40 + bar_width)
+local data_width = (30 + bar_width + 40 + bar_width)
+local text_width = 300
 
 return Def.ActorFrame {
 	Name = "song list item", InitCommand = function(self)
@@ -20,20 +21,9 @@ return Def.ActorFrame {
 
 				local label = self:GetChild("label")
 				label:settext(sel.song:GetDisplayMainTitle())
-				label:xy(x + text_width/2, y)
+				label:xy(x + 10 + label:GetWidth()*0.5, y)
 
 				y = spacing * 0.2
-
-				x = x + 40
-				local score_text = self:GetChild("score text")
-				score_text:settextf("%2d", sel.effective_score * 100)
-				score_text:xy(x - score_text:GetWidth()*0.5, y)
-
-				x = x + 5 
-				local score_bar = self:GetChild("score bar")
-				score_bar:setsize(sel.effective_score * bar_width, bar_height)
-				score_bar:xy(x + sel.effective_score * bar_width / 2, y)
-				x = x + bar_width
 
 				x = x + 30
 				local meter_text = self:GetChild("meter text")
@@ -97,13 +87,30 @@ return Def.ActorFrame {
 					end
 				end
 
+				local score_text = self:GetChild("score text")
+				score_text:settextf("%2d", sel.effective_score * 100)
+				score_text:xy(flow_width - 10 - score_text:GetWidth()*0.5, 0)
+
 			end
 		end,
 	Def.Quad{
 		Name= "flow backdrop", InitCommand = cmd(setsize, 0, 0; xy, flow_width/2, 0),
 	},
+	Def.Quad{
+		Name= "flow range"
+	},
+	Def.Quad{
+		Name= "actual score"
+	},
+	Def.Quad{
+		Name= "predicted score"
+	},
 	Def.BitmapText{
 		Name = "label", Font = "Common Normal", InitCommand = function(self)
+		end,
+	},
+	Def.BitmapText{
+		Name = "score text", Font = "Common Normal", InitCommand = function(self)
 		end,
 	},
 	Def.BitmapText{
@@ -119,21 +126,5 @@ return Def.ActorFrame {
 	},
 	Def.Quad{
 		Name= "nps bar"
-	},
-	Def.BitmapText{
-		Name = "score text", Font = "Common Normal", InitCommand = function(self)
-		end,
-	},
-	Def.Quad{
-		Name= "score bar"
-	},
-	Def.Quad{
-		Name= "flow range"
-	},
-	Def.Quad{
-		Name= "actual score"
-	},
-	Def.Quad{
-		Name= "predicted score"
 	},
 }
