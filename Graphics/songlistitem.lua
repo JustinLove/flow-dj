@@ -1,9 +1,9 @@
 local spacing = 60
 local bar_height = 8
 local bar_width = 45
-local flow_height = 32
-local flow_width = 400
-local flow_mark = 8
+local flow_height = 48
+local flow_width = 600
+local flow_mark = 12
 local text_width = (30 + bar_width + 40 + bar_width + 40 + bar_width)
 
 return Def.ActorFrame {

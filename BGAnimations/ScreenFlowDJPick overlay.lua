@@ -20,6 +20,7 @@ local player_profile = machine_profile--PROFILEMAN:GetProfile(pn)
 local top_frame = false
 local graph = false
 local cost_quad = false
+local song_text = false
 local center_text = false
 local left_text = false
 local right_text = false
@@ -865,7 +866,7 @@ local function SetupNextGame(selections)
 	if sel then
 		GAMESTATE:SetCurrentSong(sel.song)
 		GAMESTATE:SetCurrentSteps(pn, sel.steps)
-		center_text:settext(DisplayNextSong(sel))
+		song_text:settext(DisplayNextSong(sel))
 	else
 		trans_new_screen("ScreenTitleMenu")
 	end
@@ -960,7 +961,7 @@ local function update(self)
 		--left_text:settext(StepsDebug(RecentSteps()))
 		--EvaluatePredictions(PossibleSteps())
 		--MultipleTraining(PossibleSteps())
-		center_text:settext("Modeling score of unplayed steps")
+		song_text:settext("Modeling score of unplayed steps")
 	end
 	if frame >= 2 then
 
@@ -1135,7 +1136,7 @@ local t = Def.ActorFrame{
 			self:zoom(math.min(0.6 * text_height / stages, 0.2*SCREEN_WIDTH/240))
 
 			self.SetSelections = function(self, selections)
-				self:xy(SCREEN_WIDTH - 500, 100)
+				self:xy(_screen.cx, 100)
 
 				local list = self:GetChild("list")
 				local items = list:GetChild("song list item")
@@ -1160,10 +1161,17 @@ local t = Def.ActorFrame{
 		},
 	},
 	Def.BitmapText{
+		Name = "Song", Font = "Common Normal", InitCommand = function(self)
+			song_text = self
+			self:zoom(0.15*text_height)
+			self:xy(_screen.cx - 220, 150)
+		end
+	},
+	Def.BitmapText{
 		Name = "Center", Font = "Common Normal", InitCommand = function(self)
 			center_text = self
 			self:zoom(0.15*text_height)
-			self:xy(_screen.cx, 150)
+			self:xy(_screen.cx, _screen.cy)
 		end
 	},
 	Def.BitmapText{
