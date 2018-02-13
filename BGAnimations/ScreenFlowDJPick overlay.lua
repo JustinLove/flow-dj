@@ -1020,12 +1020,16 @@ local function input(event)
 		trans_new_screen("ScreenTitleMenu")
 		SOUND:PlayOnce(THEME:GetPathS("Common", "cancel"))
 	elseif button == "MenuRight" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
 		BumpFlow(current_flow, FlowDJ.stage + 1, -1)
 	elseif button == "MenuLeft" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
 		BumpFlow(current_flow, FlowDJ.stage + 1, 1)
 	elseif button == "MenuUp" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
 		SwitchView()
 	elseif button == "MenuDown" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
 		SwitchView()
 	else
 		lua.ReportScriptError(button)
