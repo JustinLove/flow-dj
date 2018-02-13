@@ -21,6 +21,8 @@ if player_profile:GetDisplayName() == "" then
 end
 
 local top_frame = false
+local flow_frame = false
+local model_frame = false
 local graph = false
 local cost_quad = false
 local song_text = false
@@ -933,7 +935,7 @@ end
 
 local function BumpFlow(flow, stage, by)
 	flow[stage] = flow[stage] - 0.02 * by
-	PerformPick(top_frame)
+	PerformPick(flow_frame)
 end
 
 local frame = 0
@@ -968,7 +970,7 @@ local function update(self)
 		if #selection_snapshot == 0
 			and (incremental_history[#incremental_history] < maximum_cost
 				or #incremental_history > minimum_iteration) then
-			PerformPick(self:GetParent())
+			PerformPick(flow_frame)
 		end
 	end
 end
@@ -1056,7 +1058,7 @@ local function Graph(name, x, y, scale)
 	}
 end
 
-local function Factors(x, y)
+local function ModelFactors(x, y, scale)
 	local names = {}
 	for key,value in pairs(initial_theta) do
 		table.insert(names, key)
@@ -1066,6 +1068,7 @@ local function Factors(x, y)
 	local frame = Def.ActorFrame{
 		Name = "factors", InitCommand = function(self)
 			self:xy(x, y)
+			self:zoom(scale)
 			self:visible(true)
 		end,
 	}
@@ -1107,57 +1110,68 @@ local t = Def.ActorFrame{
 	},
 	--Graph("graph", 20, 20, math.min(SCREEN_WIDTH - 40, SCREEN_HEIGHT - 50)),
 	Def.ActorFrame {
-		Name = "graphs", InitCommand = cmd(xy, SCREEN_WIDTH/2, SCREEN_HEIGHT - 500),
-		Graph("score graph", -220, 0, 400),
-		--Graph("flow graph", 220, 0, 400),
+		Name = "Flow Display", OnCommand = function(self)
+			flow_frame = self
+			self:visible(false)
+		end,
+		Def.ActorFrame {
+			Name = "graphs", InitCommand = cmd(xy, SCREEN_WIDTH/2, SCREEN_HEIGHT - 500),
+			Graph("score graph", -220, 0, 400),
+			--Graph("flow graph", 220, 0, 400),
+		},
+		Def.ActorFrame{
+			Name = "song list", InitCommand = function(self)
+				self:xy(SCREEN_WIDTH - 500, _screen.cy)
+				self:zoom(math.min(0.6 * text_height / stages, 0.2*SCREEN_WIDTH/240))
+
+				self.SetSelections = function(self, selections)
+					self:xy(_screen.cx, 100)
+
+					local list = self:GetChild("list")
+					local items = list:GetChild("song list item")
+					local length = 0
+					if items then
+						length = #items
+					end
+					for i = length,#selections do
+						list:AddChildFromPath(THEME:GetPathG("", "songlistitem.lua"))
+					end
+					items = list:GetChild("song list item")
+					for i,sel in ipairs(selections) do
+						if items and items[i] then
+							sel.predicted_score = PredictedScore(sel, FlowDJ.theta)
+							items[i]:SetSelection(sel, i, current_flow[i], selection_range, i == FlowDJ.stage+1)
+						end
+					end
+				end
+			end,
+			Def.ActorFrame{
+				Name= "list", InitCommand= cmd(visible, true),
+			},
+		},
+		Def.BitmapText{
+			Name = "Song", Font = "Common Normal", InitCommand = function(self)
+				song_text = self
+				self:zoom(0.15*text_height)
+				self:xy(_screen.cx - 220, 150)
+			end
+		},
 	},
 	Def.ActorFrame {
-		Name = "model", InitCommand = cmd(xy, 150, _screen.cy; zoom, SCREEN_HEIGHT/480; visible, true),
-		Graph("graph", 0, 40, 100),
-		Factors(40, -150),
+		Name = "model", InitCommand = function(self)
+			model_frame = self
+			self:xy(_screen.cx, _screen.cy)
+			self:zoom(1)
+			self:visible(true)
+		end,
+		Graph("graph", 200, -230, 450),
+		ModelFactors(-SCREEN_WIDTH/4 + 40, -SCREEN_HEIGHT/2+100, 3),
 		Def.Quad{
 			Name= "cost", InitCommand = function(self)
 				cost_quad = self
-				self:xy(0, 170)
+				self:xy(200, 290)
 			end
 		},
-	},
-	Def.ActorFrame{
-		Name = "song list", InitCommand = function(self)
-			self:xy(SCREEN_WIDTH - 500, _screen.cy)
-			self:zoom(math.min(0.6 * text_height / stages, 0.2*SCREEN_WIDTH/240))
-
-			self.SetSelections = function(self, selections)
-				self:xy(_screen.cx, 100)
-
-				local list = self:GetChild("list")
-				local items = list:GetChild("song list item")
-				local length = 0
-				if items then
-					length = #items
-				end
-				for i = length,#selections do
-					list:AddChildFromPath(THEME:GetPathG("", "songlistitem.lua"))
-				end
-				items = list:GetChild("song list item")
-				for i,sel in ipairs(selections) do
-					if items and items[i] then
-						sel.predicted_score = PredictedScore(sel, FlowDJ.theta)
-						items[i]:SetSelection(sel, i, current_flow[i], selection_range, i == FlowDJ.stage+1)
-					end
-				end
-			end
-		end,
-		Def.ActorFrame{
-			Name= "list", InitCommand= cmd(visible, true),
-		},
-	},
-	Def.BitmapText{
-		Name = "Song", Font = "Common Normal", InitCommand = function(self)
-			song_text = self
-			self:zoom(0.15*text_height)
-			self:xy(_screen.cx - 220, 150)
-		end
 	},
 	Def.BitmapText{
 		Name = "Center", Font = "Common Normal", InitCommand = function(self)
