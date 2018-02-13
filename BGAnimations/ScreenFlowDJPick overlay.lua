@@ -907,12 +907,13 @@ end
 
 local function SetView(view)
 	current_view = view
+	local time = 0.5
 	if view == "flow" then
-		flow_frame:visible(true)
-		model_frame:visible(false)
+		flow_frame:linear(time):xy(0, 0)
+		model_frame:linear(time):xy(_screen.cx, _screen.cy - SCREEN_HEIGHT)
 	else
-		flow_frame:visible(false)
-		model_frame:visible(true)
+		flow_frame:linear(time):xy(0, SCREEN_HEIGHT)
+		model_frame:linear(time):xy(_screen.cx, _screen.cy)
 	end
 end
 
@@ -1141,7 +1142,8 @@ local t = Def.ActorFrame{
 	Def.ActorFrame {
 		Name = "Flow Display", OnCommand = function(self)
 			flow_frame = self
-			self:visible(false)
+			self:xy(0, SCREEN_HEIGHT)
+			self:visible(true)
 		end,
 		Def.ActorFrame {
 			Name = "graphs", InitCommand = cmd(xy, SCREEN_WIDTH/2, SCREEN_HEIGHT - 500),
@@ -1190,7 +1192,6 @@ local t = Def.ActorFrame{
 		Name = "model", InitCommand = function(self)
 			model_frame = self
 			self:xy(_screen.cx, _screen.cy)
-			self:zoom(1)
 			self:visible(true)
 		end,
 		Graph("graph", 200, -230, 450),
