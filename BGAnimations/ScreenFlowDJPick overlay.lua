@@ -182,6 +182,25 @@ local function FakeRecentSteps(pool)
 	return recent
 end
 
+function play_sample_music(song)
+	local fade_time = 1
+	if song then
+		local song_dir= song:GetSongDir()
+		local songpath= song:GetMusicPath()
+		if song.GetPreviewMusicPath then
+			songpath= song:GetPreviewMusicPath()
+		end
+		local sample_start= song:GetSampleStart()
+		local sample_len= song:GetSampleLength()
+		SOUND:PlayMusicPart(
+			songpath, sample_start, sample_len, fade_time, fade_time, false, true)
+	end
+end
+
+function stop_music()
+	SOUND:PlayMusicPart("", 0, 0)
+end
+
 local function Truncate(table, to)
 	local truncated = {}
 	local length = math.min(to, #table)
@@ -864,7 +883,9 @@ local function SetupNextGame(selections)
 		GAMESTATE:SetCurrentSong(sel.song)
 		GAMESTATE:SetCurrentSteps(pn, sel.steps)
 		song_text:settext(DisplayNextSong(sel))
+		play_sample_music(sel.song)
 	else
+		stop_music()
 		trans_new_screen("ScreenTitleMenu")
 	end
 end
@@ -874,6 +895,7 @@ local function StartNextGame(selections)
 	if sel then
 		entering_song = GetTimeSinceStart() + 1.5
 	else
+		stop_music()
 		trans_new_screen("ScreenTitleMenu")
 	end
 end
@@ -968,6 +990,7 @@ local function update(self)
 	if entering_song then
 		if GetTimeSinceStart() > entering_song then
 			entering_song = false
+			stop_music()
 			trans_new_screen(play_screen)
 		end
 	end
@@ -1010,6 +1033,7 @@ local function input(event)
 	--lua.ReportScriptError(rec_print_table_to_str(event))
 	if button == "Start" then
 		if entering_song then
+			stop_music()
 			trans_new_screen("ScreenPlayerOptions")
 			SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 		elseif #selection_snapshot > 0 then
@@ -1017,6 +1041,7 @@ local function input(event)
 			SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 		end
 	elseif button == "Back" then
+		stop_music()
 		trans_new_screen("ScreenTitleMenu")
 		SOUND:PlayOnce(THEME:GetPathS("Common", "cancel"))
 	elseif button == "MenuRight" then
