@@ -30,6 +30,7 @@ local center_text = false
 local left_text = false
 local right_text = false
 
+local current_view = "model"
 local entering_song = false
 
 lua.ReportScriptError('----------------' .. math.random())
@@ -902,6 +903,25 @@ local function IncrementalUpdate()
 	IncrementalGraphPredictions(scored_steps, FlowDJ.theta, Color.White)
 end
 
+local function SetView(view)
+	current_view = view
+	if view == "flow" then
+		flow_frame:visible(true)
+		model_frame:visible(false)
+	else
+		flow_frame:visible(false)
+		model_frame:visible(true)
+	end
+end
+
+local function SwitchView()
+	if current_view == "flow" then
+		SetView("model")
+	else
+		SetView("flow")
+	end
+end
+
 local function PerformPick(frame)
 	ResetSelected(possible_steps)
 
@@ -931,6 +951,8 @@ local function PerformPick(frame)
 	--local flow_graph = graphs:GetChild("flow graph")
 	--GraphFlow(flow_graph, current_flow, selection_snapshot, FlowDJ.theta, selection_range)
 	--flow_graph:SetLabel(string.format("Stage %d", stage))
+
+	SetView("flow")
 end
 
 local function BumpFlow(flow, stage, by)
@@ -997,6 +1019,10 @@ local function input(event)
 		BumpFlow(current_flow, FlowDJ.stage + 1, -1)
 	elseif button == "MenuLeft" then
 		BumpFlow(current_flow, FlowDJ.stage + 1, 1)
+	elseif button == "MenuUp" then
+		SwitchView()
+	elseif button == "MenuDown" then
+		SwitchView()
 	else
 		lua.ReportScriptError(button)
 	end
