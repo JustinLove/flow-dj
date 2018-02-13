@@ -4,7 +4,9 @@ local start_score = ThemePrefs.Get("StartScore")/100
 local mid_score = ThemePrefs.Get("MidScore")/100
 local score_wiggle = ThemePrefs.Get("ScoreWiggle")/100
 local maximum_cost = 0.0015
+local minimum_iteration_per_stage = 200
 local minimum_iteration = 1000
+local maximum_iteration = 5000
 local play_screen = "ScreenGameplay"
 --local play_screen = "ScreenFlowDJBounce"
 
@@ -554,7 +556,7 @@ local function GradientDescent(steps, theta, cost_history)
 	if #cost_history == 0 then
 		cost_history[1] = ComputeCost(steps, theta)
 	end
-	while GetTimeSinceStart() - tick_start < 0.02 and #cost_history < 5000 and crazy < 100 do
+	while GetTimeSinceStart() - tick_start < 0.02 and #cost_history < maximum_iteration and crazy < 100 do
 		crazy = crazy + 1
 		local dtheta = {}
 		for key,value in pairs(theta) do
@@ -990,6 +992,7 @@ local function update(self)
 		graph:SetLabel(string.format("avg cost %0.8f", incremental_history[#incremental_history]))
 
 		if #selection_snapshot == 0
+			and #incremental_history > minimum_iteration_per_stage
 			and (incremental_history[#incremental_history] < maximum_cost
 				or #incremental_history > minimum_iteration) then
 			PerformPick(flow_frame)
