@@ -15,7 +15,10 @@ local pn = GAMESTATE:GetEnabledPlayers()[1]
 --local stepstype = currentstyle:GetStepsType()
 local stepstype = 'StepsType_Dance_Single'
 local machine_profile = PROFILEMAN:GetMachineProfile()
-local player_profile = machine_profile--PROFILEMAN:GetProfile(pn)
+local player_profile = PROFILEMAN:GetProfile(pn)
+if player_profile:GetDisplayName() == "" then
+	player_profile = machine_profile
+end
 
 local top_frame = false
 local graph = false
@@ -116,13 +119,7 @@ local function SelectionDebug(sel)
 end
 
 local function DisplayNextSong(sel)
-	local score = sel.score
-	if score == 0.0 then
-		score = PredictedScore(sel, FlowDJ.theta)
-	end
-	return string.format("%s #%d",
-		sel.song:GetDisplayMainTitle(),
-		PROFILEMAN:GetSongNumTimesPlayed(sel.song, 'ProfileSlot_Machine'))
+	return sel.song:GetDisplayMainTitle()
 end
 
 local function SelectionsDebug(selections)
@@ -221,11 +218,6 @@ local function RemoveUnwantedGroups(songs)
 		end
 	end
 	return filtered_songs
-end
-
-local function SortByPlayCount(songs)
-	table.sort(songs, function(a, b) return PROFILEMAN:GetSongNumTimesPlayed(a, 'ProfileSlot_Machine') < PROFILEMAN:GetSongNumTimesPlayed(b, 'ProfileSlot_Machine') end )
-	return songs
 end
 
 local function Project(collection, dimension)
@@ -999,9 +991,9 @@ local function input(event)
 	elseif button == "Back" then
 		trans_new_screen("ScreenTitleMenu")
 		SOUND:PlayOnce(THEME:GetPathS("Common", "cancel"))
-	elseif button == "MenuUp" then
+	elseif button == "MenuRight" then
 		BumpFlow(current_flow, FlowDJ.stage + 1, -1)
-	elseif button == "MenuDown" then
+	elseif button == "MenuLeft" then
 		BumpFlow(current_flow, FlowDJ.stage + 1, 1)
 	else
 		lua.ReportScriptError(button)
@@ -1120,7 +1112,7 @@ local t = Def.ActorFrame{
 		--Graph("flow graph", 220, 0, 400),
 	},
 	Def.ActorFrame {
-		Name = "model", InitCommand = cmd(xy, 150, _screen.cy; zoom, SCREEN_HEIGHT/480; visible, false),
+		Name = "model", InitCommand = cmd(xy, 150, _screen.cy; zoom, SCREEN_HEIGHT/480; visible, true),
 		Graph("graph", 0, 40, 100),
 		Factors(40, -150),
 		Def.Quad{
