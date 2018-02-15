@@ -9,7 +9,7 @@ local minimum_iteration = 1000
 local maximum_iteration = 5000
 local play_screen = "ScreenGameplay"
 --local play_screen = "ScreenFlowDJBounce"
-local sample_music = false
+local sample_music = true
 
 local text_height = SCREEN_HEIGHT/48
 

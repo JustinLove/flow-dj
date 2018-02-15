@@ -10,7 +10,8 @@ https://dguzek.github.io/Lua-For-SM5/
 
 consensual has persistent mods
 
-- song list off screen with small numbe of stages
+- actual/perdicted draw order
+- song list off screen with small number of stages
 - profiles?
   - what happens with no data?
     - help text for bootstrap mode
