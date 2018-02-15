@@ -1,3 +1,9 @@
+local function StagesRemaining()
+	local stage = GAMESTATE:GetCurrentStageIndex()
+	local stages = ThemePrefs.Get("NumberOfStages")
+	return stage < stages
+end
+
 function SelectMusicOrCourse()
 	lua.ReportScriptError("Running custom select next")
 	rec_print_table(envTable)
@@ -6,7 +12,11 @@ function SelectMusicOrCourse()
 	elseif GAMESTATE:IsCourseMode() then
 		return "ScreenSelectCourse"
 	elseif FlowDJ.enabled == true then
-		return "ScreenFlowDJPick"
+		if StagesRemaining() then
+			return "ScreenFlowDJPick"
+		else
+			return GameOverOrContinue()
+		end
 	else
 		return "ScreenSelectMusic"
 	end
@@ -14,10 +24,10 @@ end
 
 local BaseAfterGameplay = Branch.AfterGameplay
 Branch.AfterGameplay = function()
-	if FlowDJ.enabled == true then
+	if FlowDJ.enabled == true and StagesRemaining() then
 		return "ScreenFlowDJPick"
 	else
-		BaseAfterGameplay()
+		return BaseAfterGameplay()
 	end
 end
 
