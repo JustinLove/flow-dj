@@ -10,7 +10,6 @@ https://dguzek.github.io/Lua-For-SM5/
 
 consensual has persistent mods
 
-- combine results screen?
 - Briefly shows screen on exit, errors occur with no selection
 - profiles?
   - what happens with no data?

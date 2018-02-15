@@ -12,4 +12,13 @@ function SelectMusicOrCourse()
 	end
 end
 
+local BaseAfterGameplay = Branch.AfterGameplay
+Branch.AfterGameplay = function()
+	if FlowDJ.enabled == true then
+		return "ScreenFlowDJPick"
+	else
+		BaseAfterGameplay()
+	end
+end
+
 ModeIconColors["FlowDJ"] = color("#b4c3d2") -- steel
