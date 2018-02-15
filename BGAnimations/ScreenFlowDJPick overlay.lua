@@ -995,7 +995,11 @@ local function update(self)
 		if GetTimeSinceStart() > entering_song then
 			entering_song = false
 			stop_music()
-			trans_new_screen(play_screen)
+			if FlowDJ.stage == 0 then
+				trans_new_screen("ScreenPlayerOptions")
+			else
+				trans_new_screen(play_screen)
+			end
 		end
 	end
 	frame = frame + 1
