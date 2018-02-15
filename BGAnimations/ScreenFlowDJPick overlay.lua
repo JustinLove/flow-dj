@@ -9,6 +9,7 @@ local minimum_iteration = 1000
 local maximum_iteration = 5000
 local play_screen = "ScreenGameplay"
 --local play_screen = "ScreenFlowDJBounce"
+local sample_music = false
 
 local text_height = SCREEN_HEIGHT/48
 
@@ -28,6 +29,7 @@ local model_frame = false
 local graph = false
 local cost_quad = false
 local song_text = false
+local banner_sprite = false
 local center_text = false
 local left_text = false
 local right_text = false
@@ -184,7 +186,7 @@ end
 
 function play_sample_music(song)
 	local fade_time = 1
-	if song then
+	if song and sample_music then
 		local song_dir= song:GetSongDir()
 		local songpath= song:GetMusicPath()
 		if song.GetPreviewMusicPath then
@@ -883,6 +885,8 @@ local function SetupNextGame(selections)
 		GAMESTATE:SetCurrentSong(sel.song)
 		GAMESTATE:SetCurrentSteps(pn, sel.steps)
 		song_text:settext(DisplayNextSong(sel))
+		--lua.ReportScriptError("setting title " .. 
+		banner_sprite:playcommand("Set", sel)
 		play_sample_music(sel.song)
 	else
 		stop_music()
@@ -1176,7 +1180,7 @@ local t = Def.ActorFrame{
 		end,
 		Def.ActorFrame {
 			Name = "graphs", InitCommand = cmd(xy, SCREEN_WIDTH/2, SCREEN_HEIGHT - 500),
-			Graph("score graph", -220, 0, 400),
+			Graph("score graph", -220, 50, 350),
 			--Graph("flow graph", 220, 0, 400),
 		},
 		Def.ActorFrame{
@@ -1209,11 +1213,36 @@ local t = Def.ActorFrame{
 				Name= "list", InitCommand= cmd(visible, true),
 			},
 		},
+		Def.Sprite {
+			Name="Banner",
+			InitCommand = function(self)
+				banner_sprite = self
+				self:xy(_screen.cx - 220, 190)
+			end,
+			OnCommand= cmd(playcommand, "Set"),
+			CurrentSongChangedMessageCommand= cmd(playcommand, "Set"),
+			SetCommand= function(self, sel)
+				if sel and sel.song then
+					if sel.song:HasBanner()then
+						self:LoadBanner(sel.song:GetBannerPath())
+						self:visible(true)
+						scale_to_fit(self, 350, 150)
+						song_text:settext("")
+					else
+						self:visible(false)
+						song_text:settext(DisplayNextSong(sel))
+					end
+				else
+					self:visible(false)
+						song_text:settext("")
+				end
+			end
+		},
 		Def.BitmapText{
 			Name = "Song", Font = "Common Normal", InitCommand = function(self)
 				song_text = self
 				self:zoom(0.15*text_height)
-				self:xy(_screen.cx - 220, 150)
+				self:xy(_screen.cx - 220, 190)
 			end
 		},
 	},

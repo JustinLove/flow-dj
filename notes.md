@@ -10,7 +10,8 @@ https://dguzek.github.io/Lua-For-SM5/
 
 consensual has persistent mods
 
-- screen switch to data model
+- combine results screen?
+- always set options on first round
 - Briefly shows screen on exit, errors occur with no selection
 - profiles?
   - what happens with no data?
