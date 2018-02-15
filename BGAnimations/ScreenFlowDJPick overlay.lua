@@ -879,17 +879,25 @@ local function WiggleFlow(flow, scale)
 	return flow
 end
 
-local function SetupNextGame(selections)
+local function DisplaySelectionForCurrentStage(selections)
 	local sel = selections[FlowDJ.stage + 1]
 	if sel then
-		GAMESTATE:SetCurrentSong(sel.song)
-		GAMESTATE:SetCurrentSteps(pn, sel.steps)
 		song_text:settext(DisplayNextSong(sel))
-		--lua.ReportScriptError("setting title " .. 
 		banner_sprite:playcommand("Set", sel)
 		play_sample_music(sel.song)
 	else
 		stop_music()
+		trans_new_screen("ScreenTitleMenu")
+	end
+end
+
+local function SetupNextGame(selections)
+	local sel = selections[FlowDJ.stage + 1]
+	stop_music()
+	if sel then
+		GAMESTATE:SetCurrentSong(sel.song)
+		GAMESTATE:SetCurrentSteps(pn, sel.steps)
+	else
 		trans_new_screen("ScreenTitleMenu")
 	end
 end
@@ -964,7 +972,7 @@ local function PerformPick(frame)
 	local song_list = frame:GetChild("song list")
 	AssignScore(possible_steps, FlowDJ.theta)
 	song_list:SetSelections(selection_snapshot)
-	SetupNextGame(selection_snapshot)
+	DisplaySelectionForCurrentStage(selection_snapshot)
 
 	local stage = FlowDJ.stage + 1
 	local graphs = frame:GetChild("graphs")
@@ -995,6 +1003,7 @@ local function update(self)
 		if GetTimeSinceStart() > entering_song then
 			entering_song = false
 			stop_music()
+			SetupNextGame(selection_snapshot)
 			if FlowDJ.stage == 0 then
 				trans_new_screen("ScreenPlayerOptions")
 			else
@@ -1041,7 +1050,7 @@ local function input(event)
 	--lua.ReportScriptError(rec_print_table_to_str(event))
 	if button == "Start" then
 		if entering_song then
-			stop_music()
+			SetupNextGame(selection_snapshot)
 			trans_new_screen("ScreenPlayerOptions")
 			SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 		elseif #selection_snapshot > 0 then
