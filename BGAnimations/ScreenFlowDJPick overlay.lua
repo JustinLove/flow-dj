@@ -1071,8 +1071,13 @@ local function input(event)
 		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
 		SwitchView()
 	elseif button == "MenuDown" then
-		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
-		SwitchView()
+		if FlowDJ.stage > 0 then
+			stop_music()
+			trans_new_screen("ScreenEvaluationNormal")
+			SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
+		else
+			SOUND:PlayOnce(THEME:GetPathS("Common", "invalid"))
+		end
 	else
 		lua.ReportScriptError(button)
 	end
