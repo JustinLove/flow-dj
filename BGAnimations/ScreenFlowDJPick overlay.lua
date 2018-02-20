@@ -1204,7 +1204,7 @@ local t = Def.ActorFrame{
 		Def.ActorFrame{
 			Name = "song list", InitCommand = function(self)
 				self:xy(SCREEN_WIDTH - 500, _screen.cy)
-				self:zoom(math.min(0.6 * text_height / stages, 0.2*SCREEN_WIDTH/240))
+				self:zoom(math.min(0.6 * text_height / stages, 0.14*SCREEN_WIDTH/240))
 
 				self.SetSelections = function(self, selections)
 					self:xy(_screen.cx, 100)
