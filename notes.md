@@ -10,7 +10,6 @@ https://dguzek.github.io/Lua-For-SM5/
 
 consensual has persistent mods
 
-- theme pref updates
 - profiles?
   - what happens with no data?
     - help text for bootstrap mode
