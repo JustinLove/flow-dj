@@ -10,6 +10,7 @@ https://dguzek.github.io/Lua-For-SM5/
 
 consensual has persistent mods
 
+- make theme always to avoid selection integration, try with different themes?
 - profiles?
   - what happens with no data?
     - help text for bootstrap mode
