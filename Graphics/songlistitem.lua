@@ -100,10 +100,10 @@ return Def.ActorFrame {
 		Name= "flow range"
 	},
 	Def.Quad{
-		Name= "actual score"
+		Name= "predicted score"
 	},
 	Def.Quad{
-		Name= "predicted score"
+		Name= "actual score"
 	},
 	Def.BitmapText{
 		Name = "label", Font = "Common Normal", InitCommand = function(self)
