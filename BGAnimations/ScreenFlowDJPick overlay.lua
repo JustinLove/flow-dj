@@ -1197,45 +1197,15 @@ local t = Def.ActorFrame{
 			self:visible(true)
 		end,
 		Def.ActorFrame {
-			Name = "graphs", InitCommand = cmd(xy, SCREEN_WIDTH/2, SCREEN_HEIGHT - 500),
+			Name = "graphs", InitCommand = cmd(xy, 440, SCREEN_HEIGHT - 500),
 			Graph("score graph", -220, 50, 350),
 			--Graph("flow graph", 220, 0, 400),
-		},
-		Def.ActorFrame{
-			Name = "song list", InitCommand = function(self)
-				self:xy(SCREEN_WIDTH - 500, _screen.cy)
-				self:zoom(math.min(0.6 * text_height / stages, 0.14*SCREEN_WIDTH/240))
-
-				self.SetSelections = function(self, selections)
-					self:xy(_screen.cx, 100)
-
-					local list = self:GetChild("list")
-					local items = list:GetChild("song list item")
-					local length = 0
-					if items then
-						length = #items
-					end
-					for i = length,#selections do
-						list:AddChildFromPath(THEME:GetPathG("", "songlistitem.lua"))
-					end
-					items = list:GetChild("song list item")
-					for i,sel in ipairs(selections) do
-						if items and items[i] then
-							sel.predicted_score = PredictedScore(sel, FlowDJ.theta)
-							items[i]:SetSelection(sel, i, current_flow[i], selection_range, i == FlowDJ.stage+1)
-						end
-					end
-				end
-			end,
-			Def.ActorFrame{
-				Name= "list", InitCommand= cmd(visible, true),
-			},
 		},
 		Def.Sprite {
 			Name="Banner",
 			InitCommand = function(self)
 				banner_sprite = self
-				self:xy(_screen.cx - 220, 190)
+				self:xy(220, 190)
 			end,
 			OnCommand= cmd(playcommand, "Set"),
 			CurrentSongChangedMessageCommand= cmd(playcommand, "Set"),
@@ -1260,8 +1230,38 @@ local t = Def.ActorFrame{
 			Name = "Song", Font = "Common Normal", InitCommand = function(self)
 				song_text = self
 				self:zoom(0.15*text_height)
-				self:xy(_screen.cx - 220, 190)
+				self:xy(220, 190)
 			end
+		},
+		Def.ActorFrame{
+			Name = "song list", InitCommand = function(self)
+				self:xy(400, _screen.cy)
+				self:zoom(math.min(0.6 * text_height / stages, 0.14*SCREEN_WIDTH/240))
+
+				self.SetSelections = function(self, selections)
+					self:xy(400, 100)
+
+					local list = self:GetChild("list")
+					local items = list:GetChild("song list item")
+					local length = 0
+					if items then
+						length = #items
+					end
+					for i = length,#selections do
+						list:AddChildFromPath(THEME:GetPathG("", "songlistitem.lua"))
+					end
+					items = list:GetChild("song list item")
+					for i,sel in ipairs(selections) do
+						if items and items[i] then
+							sel.predicted_score = PredictedScore(sel, FlowDJ.theta)
+							items[i]:SetSelection(sel, i, current_flow[i], selection_range, i == FlowDJ.stage+1)
+						end
+					end
+				end
+			end,
+			Def.ActorFrame{
+				Name= "list", InitCommand= cmd(visible, true),
+			},
 		},
 	},
 	Def.ActorFrame {
