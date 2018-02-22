@@ -10,9 +10,11 @@ https://dguzek.github.io/Lua-For-SM5/
 
 consensual has persistent mods
 
-- consensual/master config options
+- create option updates within the pick screen instead of out-of-band
+- remove themeprefrows
+- move to consenual/master based `lua_config_system`
 - initial mods optional
-- make theme always to avoid selection integration, try with different themes?
+- try with different themes?
 - profiles?
   - what happens with no data?
     - help text for bootstrap mode

@@ -39,8 +39,6 @@ local entering_song = false
 
 lua.ReportScriptError('----------------' .. math.random())
 
-FlowDJ.enabled = true
-
 if play_screen == "ScreenGameplay" then
 	FlowDJ.stage = GAMESTATE:GetCurrentStageIndex()
 end

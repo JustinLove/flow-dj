@@ -11,24 +11,34 @@ function SelectMusicOrCourse()
 		return "ScreenNetSelectMusic"
 	elseif GAMESTATE:IsCourseMode() then
 		return "ScreenSelectCourse"
-	elseif FlowDJ.enabled == true then
+	else
 		if StagesRemaining() then
 			return "ScreenFlowDJPick"
 		else
 			return GameOverOrContinue()
 		end
-	else
-		return "ScreenSelectMusic"
 	end
 end
 
 local BaseAfterGameplay = Branch.AfterGameplay
 Branch.AfterGameplay = function()
-	if FlowDJ.enabled == true and StagesRemaining() then
+	if StagesRemaining() then
 		return "ScreenFlowDJPick"
 	else
 		return BaseAfterGameplay()
 	end
+end
+
+local BaseAfterSelectProfile = Branch.AfterSelectProfile
+Branch.AfterSelectProfile = function()
+	GAMESTATE:SetCurrentPlayMode('PlayMode_Regular')
+	return "ScreenFlowDJPick"
+end
+
+local BaseAfterProfileLoad = Branch.AfterProfileLoad
+Branch.AfterProfileLoad = function()
+	GAMESTATE:SetCurrentPlayMode('PlayMode_Regular')
+	return "ScreenFlowDJPick"
 end
 
 ModeIconColors["FlowDJ"] = color("#b4c3d2") -- steel
