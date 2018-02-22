@@ -9,7 +9,7 @@ local minimum_iteration = 1000
 local maximum_iteration = 5000
 local play_screen = "ScreenGameplay"
 --local play_screen = "ScreenFlowDJBounce"
-local sample_music = true
+local sample_music = false
 
 local text_height = SCREEN_HEIGHT/48
 
@@ -944,10 +944,10 @@ local function SetView(view)
 	local time = 0.5
 	if view == "flow" then
 		flow_frame:linear(time):xy(0, 0)
-		model_frame:linear(time):xy(_screen.cx, _screen.cy - SCREEN_HEIGHT)
+		model_frame:linear(time):xy(_screen.cx - 200, _screen.cy - SCREEN_HEIGHT)
 	else
 		flow_frame:linear(time):xy(0, SCREEN_HEIGHT)
-		model_frame:linear(time):xy(_screen.cx, _screen.cy)
+		model_frame:linear(time):xy(_screen.cx - 200, _screen.cy)
 	end
 end
 
@@ -1267,11 +1267,11 @@ local t = Def.ActorFrame{
 	Def.ActorFrame {
 		Name = "model", InitCommand = function(self)
 			model_frame = self
-			self:xy(_screen.cx, _screen.cy)
+			self:xy(_screen.cx - 200, _screen.cy)
 			self:visible(true)
 		end,
 		Graph("graph", 200, -230, 450),
-		ModelFactors(-SCREEN_WIDTH/4 + 40, -SCREEN_HEIGHT/2+100, 3),
+		ModelFactors(-100, -SCREEN_HEIGHT/2+100, 3),
 		Def.Quad{
 			Name= "cost", InitCommand = function(self)
 				cost_quad = self

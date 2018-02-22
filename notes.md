@@ -10,6 +10,9 @@ https://dguzek.github.io/Lua-For-SM5/
 
 consensual has persistent mods
 
+- camera blocks song list
+- consensual/master config options
+- initial mods optional
 - make theme always to avoid selection integration, try with different themes?
 - profiles?
   - what happens with no data?
