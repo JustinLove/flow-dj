@@ -1,14 +1,14 @@
 local fake_data = false
-local stages = ThemePrefs.Get("NumberOfStages")
-local start_score = ThemePrefs.Get("StartScore")/100
-local mid_score = ThemePrefs.Get("MidScore")/100
-local score_wiggle = ThemePrefs.Get("ScoreWiggle")/100
+local stages = FlowDJGetSetting("NumberOfStages")
+local start_score = FlowDJGetSetting("StartScore")/100
+local mid_score = FlowDJGetSetting("MidScore")/100
+local score_wiggle = FlowDJGetSetting("ScoreWiggle")/100
 local maximum_cost = 0.0015
 local minimum_iteration_per_stage = 200
 local minimum_iteration = 1000
 local maximum_iteration = 5000
-local play_screen = "ScreenGameplay"
---local play_screen = "ScreenFlowDJBounce"
+--local play_screen = "ScreenGameplay"
+local play_screen = "ScreenFlowDJBounce"
 local sample_music = false
 
 local text_height = SCREEN_HEIGHT/48
@@ -857,9 +857,13 @@ local function BezierFlow()
 	return flow
 end
 
+local function ManualFlowEdges()
+	return math.floor(stages / 5)
+end
+
 local function ManualFlow(start, middle)
 	local flow = {}
-	local edges = math.floor(stages / 5)
+	local edges = ManualFlowEdges()
 	for stage = 1,edges do
 		flow[stage] = start + (((stage-1) / edges) * (middle - start))
 		flow[stages+1-stage] = start + ((stage-1) / edges) * (middle - start)
@@ -991,7 +995,24 @@ local function PerformPick(frame)
 end
 
 local function BumpFlow(flow, stage, by)
-	flow[stage] = flow[stage] - 0.02 * by
+	local edges = ManualFlowEdges()
+	local end_distance = math.min(stage - 1, stages - stage)
+	local start_factor = 0
+	local mid_factor = 1
+	if end_distance < edges then
+		mid_factor = end_distance / edges
+	else
+		mid_factor = 1
+	end
+	start_factor = 1 - mid_factor
+
+	start_score = start_score - 0.02 * start_factor * by
+	mid_score = mid_score - 0.02 * mid_factor * by
+
+	FlowDJSetSetting("StartScore", math.floor(start_score * 100))
+	FlowDJSetSetting("MidScore", math.floor(mid_score * 100))
+
+	current_flow = WiggleFlow(ManualFlow(start_score, mid_score), score_wiggle)
 	PerformPick(flow_frame)
 end
 

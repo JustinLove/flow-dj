@@ -49,3 +49,6 @@ local Prefs =
 }
 
 ThemePrefs.InitAll(Prefs)
+
+FlowDJGetSetting = ThemePrefs.Get
+FlowDJSetSetting = ThemePrefs.Set
