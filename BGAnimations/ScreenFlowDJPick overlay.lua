@@ -883,6 +883,10 @@ local function WiggleFlow(flow, scale)
 	return flow
 end
 
+local function BuildFlow()
+	return WiggleFlow(ManualFlow(start_score, mid_score), score_wiggle)
+end
+
 local function DisplaySelectionForCurrentStage(selections)
 	local sel = selections[FlowDJ.stage + 1]
 	if sel then
@@ -918,7 +922,7 @@ end
 
 local incremental_history = {}
 local incremental_step = 1
-local current_flow = WiggleFlow(ManualFlow(start_score, mid_score), score_wiggle)
+local current_flow = BuildFlow()
 --local current_flow = WiggleFlow(ManualFlow(2, 7.7), 1)
 local selection_range = 0.03
 local selection_snapshot = {}
@@ -1015,7 +1019,7 @@ local function PerformPick(frame)
 	SetView("flow")
 end
 
-local function BumpFlow(flow, stage, by)
+local function BumpFlow(stage, by)
 	local edges = ManualFlowEdges()
 	local end_distance = math.min(stage - 1, stages - stage)
 	local start_factor = 0
@@ -1033,7 +1037,21 @@ local function BumpFlow(flow, stage, by)
 	FlowDJSetSetting("StartScore", math.floor(start_score * 100))
 	FlowDJSetSetting("MidScore", math.floor(mid_score * 100))
 
-	current_flow = WiggleFlow(ManualFlow(start_score, mid_score), score_wiggle)
+	current_flow = BuildFlow()
+	PerformPick(flow_frame)
+end
+
+local function BumpWiggle(by)
+	score_wiggle = score_wiggle + 0.01 * by
+	FlowDJSetSetting("ScoreWiggle", math.floor(score_wiggle * 100))
+	current_flow = BuildFlow()
+	PerformPick(flow_frame)
+end
+
+local function BumpStages(by)
+	stages = stages + by
+	FlowDJSetSetting("NumberOfStages", stages)
+	current_flow = BuildFlow()
 	PerformPick(flow_frame)
 end
 
@@ -1081,6 +1099,53 @@ local function update(self)
 	end
 end
 
+local function DefaultControls(button)
+	if button == "MenuRight" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
+		BumpFlow(FlowDJ.stage + 1, -1)
+		return true
+	elseif button == "MenuLeft" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
+		BumpFlow(FlowDJ.stage + 1, 1)
+		return true
+	elseif button == "MenuUp" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
+		SwitchView()
+		return true
+	elseif button == "MenuDown" then
+		if FlowDJ.stage > 0 then
+			stop_music()
+			trans_new_screen("ScreenEvaluationNormal")
+			SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
+		else
+			SOUND:PlayOnce(THEME:GetPathS("Common", "invalid"))
+		end
+		return true
+	end
+	return false
+end
+
+local function SettingsControls(button)
+	if button == "MenuRight" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
+		BumpWiggle(1)
+		return true
+	elseif button == "MenuLeft" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
+		BumpWiggle(-1)
+		return true
+	elseif button == "MenuUp" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
+		BumpStages(-1)
+		return true
+	elseif button == "MenuDown" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
+		BumpStages(1)
+		return true
+	end
+	return false
+end
+
 local function input(event)
 	local pn = event.PlayerNumber
 	if not pn then return end
@@ -1104,23 +1169,8 @@ local function input(event)
 	elseif button == "Select" then
 		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
 		SwitchControls()
-	elseif button == "MenuRight" then
-		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
-		BumpFlow(current_flow, FlowDJ.stage + 1, -1)
-	elseif button == "MenuLeft" then
-		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
-		BumpFlow(current_flow, FlowDJ.stage + 1, 1)
-	elseif button == "MenuUp" then
-		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
-		SwitchView()
-	elseif button == "MenuDown" then
-		if FlowDJ.stage > 0 then
-			stop_music()
-			trans_new_screen("ScreenEvaluationNormal")
-			SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
-		else
-			SOUND:PlayOnce(THEME:GetPathS("Common", "invalid"))
-		end
+	elseif current_controls == "default" and DefaultControls(button) then
+	elseif current_controls == "settings" and SettingsControls(button) then
 	else
 		lua.ReportScriptError(button)
 	end
