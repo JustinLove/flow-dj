@@ -30,11 +30,13 @@ local graph = false
 local cost_quad = false
 local song_text = false
 local banner_sprite = false
+local help_text = false
 local center_text = false
 local left_text = false
 local right_text = false
 
 local current_view = "model"
+local current_controls = "default"
 local entering_song = false
 
 lua.ReportScriptError('----------------' .. math.random())
@@ -961,6 +963,25 @@ local function SwitchView()
 	end
 end
 
+local function SetControls(controls)
+	current_controls = controls
+	if controls == "settings" then
+		help_text:GetChild("default help text"):visible(false)
+		help_text:GetChild("settings help text"):visible(true)
+	else
+		help_text:GetChild("default help text"):visible(true)
+		help_text:GetChild("settings help text"):visible(false)
+	end
+end
+
+local function SwitchControls()
+	if current_controls == "default" then
+		SetControls("settings")
+	else
+		SetControls("default")
+	end
+end
+
 local function PerformPick(frame)
 	ResetSelected(possible_steps)
 
@@ -1080,6 +1101,9 @@ local function input(event)
 		stop_music()
 		trans_new_screen("ScreenTitleMenu")
 		SOUND:PlayOnce(THEME:GetPathS("Common", "cancel"))
+	elseif button == "Select" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
+		SwitchControls()
 	elseif button == "MenuRight" then
 		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
 		BumpFlow(current_flow, FlowDJ.stage + 1, -1)
@@ -1296,6 +1320,19 @@ local t = Def.ActorFrame{
 				cost_quad = self
 				self:xy(200, 290)
 			end
+		},
+	},
+	Def.ActorFrame{
+		Name = "help text", InitCommand = function(self)
+			help_text = self
+			self:zoom(0.07*text_height)
+			self:xy(_screen.cx, SCREEN_HEIGHT - 30)
+		end,
+		Def.BitmapText{
+			Name = "default help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("DefaultHelpText"))
+		},
+		Def.BitmapText{
+			Name = "settings help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("SettingsHelpText"); visible, false)
 		},
 	},
 	Def.BitmapText{
