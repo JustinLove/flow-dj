@@ -10,6 +10,8 @@ https://dguzek.github.io/Lua-For-SM5/
 
 consensual has persistent mods
 
+- going over stage count
+- show numbers somewhere
 - remove themeprefrows
 - move to consenual/master based `lua_config_system`
 - initial mods optional
