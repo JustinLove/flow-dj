@@ -1332,6 +1332,7 @@ local t = Def.ActorFrame{
 				self:zoom(math.min(0.6 * text_height / stages, 0.14*SCREEN_WIDTH/240))
 
 				self.SetSelections = function(self, selections)
+					self:zoom(math.min(0.6 * text_height / stages, 0.14*SCREEN_WIDTH/240))
 					self:xy(400, 100)
 
 					local list = self:GetChild("list")
@@ -1349,6 +1350,9 @@ local t = Def.ActorFrame{
 							sel.predicted_score = PredictedScore(sel, FlowDJ.theta)
 							items[i]:SetSelection(sel, i, current_flow[i], selection_range, i == FlowDJ.stage+1)
 						end
+					end
+					for i = #selections,#items do
+						items[i]:visible(false)
 					end
 				end
 			end,

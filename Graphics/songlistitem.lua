@@ -11,6 +11,7 @@ return Def.ActorFrame {
 	Name = "song list item", InitCommand = function(self)
 			self.SetSelection = function(self, sel, n, flow, range, current)
 				self:xy(0, n*spacing)
+				self:visible(true)
 
 				local brightness = 0.5
 				if current then
