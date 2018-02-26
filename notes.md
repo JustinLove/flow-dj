@@ -10,7 +10,6 @@ https://dguzek.github.io/Lua-For-SM5/
 
 consensual has persistent mods
 
-- bounding stage count, others?
 - remove themeprefrows
 - move to consenual/master based `lua_config_system`
 - initial mods optional

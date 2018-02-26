@@ -1030,8 +1030,8 @@ local function BumpFlow(stage, by)
 	end
 	start_factor = 1 - mid_factor
 
-	start_score = start_score - 0.02 * start_factor * by
-	mid_score = mid_score - 0.02 * mid_factor * by
+	start_score = math.max(0.0, math.min(1.0, start_score - 0.02 * start_factor * by))
+	mid_score = math.max(0.0, math.min(1.0, mid_score - 0.02 * mid_factor * by))
 
 	FlowDJSetSetting("StartScore", math.floor(start_score * 100))
 	FlowDJSetSetting("MidScore", math.floor(mid_score * 100))
@@ -1041,14 +1041,14 @@ local function BumpFlow(stage, by)
 end
 
 local function BumpWiggle(by)
-	score_wiggle = score_wiggle + 0.01 * by
+	score_wiggle = math.max(0.0, math.min(0.5, score_wiggle + 0.01 * by))
 	FlowDJSetSetting("ScoreWiggle", math.floor(score_wiggle * 100))
 	current_flow = BuildFlow()
 	PerformPick(flow_frame)
 end
 
 local function BumpStages(by)
-	stages = stages + by
+	stages = math.max(1, math.min(100, stages + by))
 	FlowDJSetSetting("NumberOfStages", stages)
 	current_flow = BuildFlow()
 	PerformPick(flow_frame)
