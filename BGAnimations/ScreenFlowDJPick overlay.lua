@@ -1,4 +1,5 @@
 local fake_data = false
+FlowDJ.fake_play = true
 local stages = FlowDJGetSetting("NumberOfStages")
 local start_score = FlowDJGetSetting("StartScore")/100
 local mid_score = FlowDJGetSetting("MidScore")/100
@@ -7,9 +8,7 @@ local maximum_cost = 0.0015
 local minimum_iteration_per_stage = 200
 local minimum_iteration = 1000
 local maximum_iteration = 5000
-local play_screen = "ScreenGameplay"
---local play_screen = "ScreenFlowDJBounce"
-local sample_music = true
+local sample_music = false
 
 local text_height = SCREEN_HEIGHT/48
 
@@ -41,7 +40,7 @@ local entering_song = false
 
 lua.ReportScriptError('----------------' .. math.random())
 
-if play_screen == "ScreenGameplay" then
+if not FlowDJ.fake_play then
 	FlowDJ.stage = GAMESTATE:GetCurrentStageIndex()
 end
 if FlowDJ.stage == 0 then
@@ -1062,10 +1061,12 @@ local function update(self)
 			entering_song = false
 			stop_music()
 			SetupNextGame(selection_snapshot)
-			if FlowDJ.stage == 0 then
+			if FlowDJ.fake_play then
+				trans_new_screen("ScreenFlowDJBounce")
+			elseif FlowDJ.stage == 0 then
 				trans_new_screen("ScreenPlayerOptions")
 			else
-				trans_new_screen(play_screen)
+				trans_new_screen("ScreenGameplay")
 			end
 		end
 	end
@@ -1163,6 +1164,7 @@ local function input(event)
 			SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 		end
 	elseif button == "Back" then
+		FlowDJ.stage = 0
 		stop_music()
 		trans_new_screen("ScreenTitleMenu")
 		SOUND:PlayOnce(THEME:GetPathS("Common", "cancel"))
@@ -1341,6 +1343,7 @@ local t = Def.ActorFrame{
 					if items then
 						length = #items
 					end
+					-- adds one extra to try and force loading to complete before we fetch the list of children below when few selections
 					for i = length,#selections do
 						list:AddChildFromPath(THEME:GetPathG("", "songlistitem.lua"))
 					end
@@ -1351,7 +1354,7 @@ local t = Def.ActorFrame{
 							items[i]:SetSelection(sel, i, current_flow[i], selection_range, i == FlowDJ.stage+1)
 						end
 					end
-					for i = #selections,#items do
+					for i = #selections+1,#items do
 						items[i]:visible(false)
 					end
 				end

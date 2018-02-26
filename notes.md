@@ -10,11 +10,12 @@ https://dguzek.github.io/Lua-For-SM5/
 
 consensual has persistent mods
 
-- going over stage count
-- show numbers somewhere
+- bounding stage count, others?
 - remove themeprefrows
 - move to consenual/master based `lua_config_system`
 - initial mods optional
+- user toggle preview music
+- show numbers somewhere
 - improve UX for settings?
 - try with different themes?
 - profiles?

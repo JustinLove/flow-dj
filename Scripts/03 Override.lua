@@ -1,11 +1,12 @@
 local function StagesRemaining()
-	local stage = GAMESTATE:GetCurrentStageIndex()
-	local stages = ThemePrefs.Get("NumberOfStages")
-	return stage < stages
+	if not FlowDJ.fake_play then
+		FlowDJ.stage = GAMESTATE:GetCurrentStageIndex()
+	end
+	local stages = FlowDJGetSetting("NumberOfStages")
+	return FlowDJ.stage < stages
 end
 
 function SelectMusicOrCourse()
-	lua.ReportScriptError("Running custom select next")
 	rec_print_table(envTable)
 	if IsNetSMOnline() then
 		return "ScreenNetSelectMusic"
@@ -23,22 +24,33 @@ end
 local BaseAfterGameplay = Branch.AfterGameplay
 Branch.AfterGameplay = function()
 	if StagesRemaining() then
+		return "ScreenProfileSave"
+	else
+		return "ScreenProfileSaveSummary"
+	end
+end
+
+local BaseAfterProfileSave = Branch.AfterProfileSave
+Branch.AfterProfileSave = function()
+	if StagesRemaining() then
 		return "ScreenFlowDJPick"
 	else
-		return BaseAfterGameplay()
+		return "ScreenEvaluationSummary"
 	end
 end
 
 local BaseAfterSelectProfile = Branch.AfterSelectProfile
 Branch.AfterSelectProfile = function()
 	GAMESTATE:SetCurrentPlayMode('PlayMode_Regular')
-	return "ScreenFlowDJPick"
+	FlowDJ.stage = 0
+	return SelectMusicOrCourse()
 end
 
 local BaseAfterProfileLoad = Branch.AfterProfileLoad
 Branch.AfterProfileLoad = function()
 	GAMESTATE:SetCurrentPlayMode('PlayMode_Regular')
-	return "ScreenFlowDJPick"
+	FlowDJ.stage = 0
+	return SelectMusicOrCourse()
 end
 
 ModeIconColors["FlowDJ"] = color("#b4c3d2") -- steel

@@ -4,7 +4,7 @@ FlowDJ.stage = FlowDJ.stage + 1
 
 local function input(event)
 	if WaitForStart(event) then
-		trans_new_screen("ScreenFlowDJPick")
+		trans_new_screen(Branch.AfterGameplay())
 		SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 	end
 end
@@ -23,11 +23,10 @@ return Def.ActorFrame{
 		OnCommand=function(self)
 			local song = GAMESTATE:GetCurrentSong()
 			local steps = GAMESTATE:GetCurrentSteps(pn)
-			local stage = GAMESTATE:GetCurrentStageIndex()
 			self:settext(
 				song:GetMainTitle() .. "\n" ..
 				steps:GetMeter() .. "\n" ..
-				stage)
+				FlowDJ.stage)
 		end,
 	},
 }
