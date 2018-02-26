@@ -10,6 +10,7 @@ https://dguzek.github.io/Lua-For-SM5/
 
 consensual has persistent mods
 
+- check evaluation screen on last
 - remove themeprefrows
 - move to consenual/master based `lua_config_system`
 - initial mods optional
