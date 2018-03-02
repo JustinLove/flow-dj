@@ -1,6 +1,5 @@
 ## Todo
 
-- move to consenual/master based `lua_config_system`
 - initial mods optional
 - user toggle preview music
 - show numbers somewhere
@@ -19,7 +18,7 @@
 
 ctrl+F2 to reload scripts
 F3 - debug overlay
-SCREENMAN:SystemMessage("")
+SCREENMAN:SystemMessage("") - transient, top of screen
 Trace("")
 lua.ReportScriptError("")
 rec_print_table()

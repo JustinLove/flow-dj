@@ -1,5 +1,5 @@
 local fake_data = false
-FlowDJ.fake_play = false
+FlowDJ.fake_play = true
 local stages = FlowDJGetSetting("NumberOfStages")
 local start_score = FlowDJGetSetting("StartScore")/100
 local mid_score = FlowDJGetSetting("MidScore")/100
@@ -1160,12 +1160,14 @@ local function input(event)
 			trans_new_screen("ScreenPlayerOptions")
 			SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 		elseif #selection_snapshot > 0 then
+			flowdj_config:save()
 			StartNextGame(selection_snapshot)
 			SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 		end
 	elseif button == "Back" then
 		FlowDJ.stage = 0
 		stop_music()
+		flowdj_config:save()
 		trans_new_screen("ScreenTitleMenu")
 		SOUND:PlayOnce(THEME:GetPathS("Common", "cancel"))
 	elseif button == "Select" then
