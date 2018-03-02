@@ -1,14 +1,4 @@
-
-ctrl+F2 to reload scripts
-F3 - debug overlay
-SCREENMAN:SystemMessage("")
-Trace("")
-lua.ReportScriptError("")
-rec_print_table()
-
-https://dguzek.github.io/Lua-For-SM5/
-
-consensual has persistent mods
+## Todo
 
 - remove themeprefrows
 - move to consenual/master based `lua_config_system`
@@ -25,6 +15,20 @@ consensual has persistent mods
 - more selection factors ?
 - actual score reaction ?
 - More config?
+
+## General
+
+ctrl+F2 to reload scripts
+F3 - debug overlay
+SCREENMAN:SystemMessage("")
+Trace("")
+lua.ReportScriptError("")
+rec_print_table()
+
+https://dguzek.github.io/Lua-For-SM5/
+
+consensual has persistent mods
+
 
 ## Solved
 
