@@ -1,6 +1,5 @@
 ## Todo
 
-- remove themeprefrows
 - move to consenual/master based `lua_config_system`
 - initial mods optional
 - user toggle preview music
