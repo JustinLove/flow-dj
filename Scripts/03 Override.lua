@@ -26,7 +26,7 @@ Branch.AfterGameplay = function()
 	if StagesRemaining() then
 		return "ScreenProfileSave"
 	else
-		return "ScreenProfileSaveSummary"
+		return Branch.EvaluationScreen()
 	end
 end
 
