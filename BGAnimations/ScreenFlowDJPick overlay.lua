@@ -5,11 +5,11 @@ local start_score = FlowDJGetSetting("StartScore")/100
 local mid_score = FlowDJGetSetting("MidScore")/100
 local score_wiggle = FlowDJGetSetting("ScoreWiggle")/100
 local player_options = FlowDJGetSetting("PlayerOptions")
+local sample_music = FlowDJGetSetting("SampleMusic")
 local maximum_cost = 0.0015
 local minimum_iteration_per_stage = 200
 local minimum_iteration = 1000
 local maximum_iteration = 5000
-local sample_music = false
 
 local text_height = SCREEN_HEIGHT/48
 
@@ -975,18 +975,26 @@ end
 
 local function SetControls(controls)
 	current_controls = controls
-	if controls == "settings" then
+	if controls == "settings1" then
 		help_text:GetChild("default help text"):visible(false)
-		help_text:GetChild("settings help text"):visible(true)
+		help_text:GetChild("settings1 help text"):visible(true)
+		help_text:GetChild("settings2 help text"):visible(false)
+	elseif controls == "settings2" then
+		help_text:GetChild("default help text"):visible(false)
+		help_text:GetChild("settings1 help text"):visible(false)
+		help_text:GetChild("settings2 help text"):visible(true)
 	else
 		help_text:GetChild("default help text"):visible(true)
-		help_text:GetChild("settings help text"):visible(false)
+		help_text:GetChild("settings1 help text"):visible(false)
+		help_text:GetChild("settings2 help text"):visible(false)
 	end
 end
 
 local function SwitchControls()
 	if current_controls == "default" then
-		SetControls("settings")
+		SetControls("settings1")
+	elseif current_controls == "settings1" then
+		SetControls("settings2")
 	else
 		SetControls("default")
 	end
@@ -1061,6 +1069,19 @@ local function BumpStages(by)
 	PerformPick(flow_frame)
 end
 
+local function ToggleSampleMusic()
+	sample_music = not sample_music
+	FlowDJSetSetting("SampleMusic", sample_music)
+	if sample_music then
+		local sel = selection_snapshot[FlowDJ.stage + 1]
+		if sel then
+			play_sample_music(sel.song)
+		end
+	else
+		stop_music()
+	end
+end
+
 local frame = 0
 local function update(self)
 	if entering_song then
@@ -1131,7 +1152,7 @@ local function DefaultControls(button)
 	return false
 end
 
-local function SettingsControls(button)
+local function Settings1Controls(button)
 	if button == "MenuRight" then
 		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
 		BumpWiggle(1)
@@ -1147,6 +1168,14 @@ local function SettingsControls(button)
 	elseif button == "MenuDown" then
 		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
 		BumpStages(1)
+		return true
+	end
+	return false
+end
+
+local function Settings2Controls(button)
+	if button == "MenuLeft" then
+		ToggleSampleMusic()
 		return true
 	end
 	return false
@@ -1179,7 +1208,8 @@ local function input(event)
 		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
 		SwitchControls()
 	elseif current_controls == "default" and DefaultControls(button) then
-	elseif current_controls == "settings" and SettingsControls(button) then
+	elseif current_controls == "settings1" and Settings1Controls(button) then
+	elseif current_controls == "settings2" and Settings2Controls(button) then
 	else
 		lua.ReportScriptError(button)
 	end
@@ -1396,7 +1426,10 @@ local t = Def.ActorFrame{
 			Name = "default help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("DefaultHelpText"))
 		},
 		Def.BitmapText{
-			Name = "settings help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("SettingsHelpText"); visible, false)
+			Name = "settings1 help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("Settings1HelpText"); visible, false)
+		},
+		Def.BitmapText{
+			Name = "settings2 help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("Settings2HelpText"); visible, false)
 		},
 	},
 	Def.BitmapText{

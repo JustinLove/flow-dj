@@ -1,6 +1,5 @@
 ## Todo
 
-- user toggle preview music
 - show numbers somewhere
 - improve UX for settings?
 - make branches behave better when stacked

@@ -4,6 +4,7 @@ local flowdj_default_config = {
 	MidScore = 70,
 	ScoreWiggle = 5,
 	PlayerOptions = "C250,FailOff,Overhead",
+	SampleMusic = false,
 }
 
 flowdj_config = create_lua_config {
