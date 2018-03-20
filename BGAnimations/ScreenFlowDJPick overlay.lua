@@ -1,5 +1,5 @@
 local fake_data = false
-FlowDJ.fake_play = true
+FlowDJ.fake_play = false
 local stages = FlowDJGetSetting("NumberOfStages")
 local start_score = FlowDJGetSetting("StartScore")/100
 local mid_score = FlowDJGetSetting("MidScore")/100
