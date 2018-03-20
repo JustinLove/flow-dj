@@ -1,6 +1,5 @@
 ## Todo
 
-- initial mods optional
 - user toggle preview music
 - show numbers somewhere
 - improve UX for settings?

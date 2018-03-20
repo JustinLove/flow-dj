@@ -30,7 +30,7 @@ function LoadProfileCustom(profile, dir, pn)
 end
 local PreviousSaveProfileCustom = SaveProfileCustom
 function SaveProfileCustom(profile, dir, pn)
-	lua.ReportScriptError("SaveProfileCustom")
+	--lua.ReportScriptError("SaveProfileCustom")
 	for i, callback in ipairs(profile_save_callbacks) do
 		callback(profile, dir, pn)
 	end

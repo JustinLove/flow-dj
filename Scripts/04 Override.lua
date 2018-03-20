@@ -23,6 +23,7 @@ end
 
 local BaseAfterGameplay = Branch.AfterGameplay
 Branch.AfterGameplay = function()
+	CapturePlayerOptions()
 	if StagesRemaining() then
 		return "ScreenProfileSave"
 	else
