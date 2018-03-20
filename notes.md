@@ -1,6 +1,5 @@
 ## Todo
 
-- handle decrease number of songs past current stage
 - song info at right
 - initial mods optional
 - user toggle preview music

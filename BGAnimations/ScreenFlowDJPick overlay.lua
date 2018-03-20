@@ -1,5 +1,5 @@
 local fake_data = false
-FlowDJ.fake_play = false
+FlowDJ.fake_play = true
 local stages = FlowDJGetSetting("NumberOfStages")
 local start_score = FlowDJGetSetting("StartScore")/100
 local mid_score = FlowDJGetSetting("MidScore")/100
@@ -8,7 +8,7 @@ local maximum_cost = 0.0015
 local minimum_iteration_per_stage = 200
 local minimum_iteration = 1000
 local maximum_iteration = 5000
-local sample_music = true
+local sample_music = false
 
 local text_height = SCREEN_HEIGHT/48
 
@@ -1048,7 +1048,7 @@ local function BumpWiggle(by)
 end
 
 local function BumpStages(by)
-	stages = math.max(1, math.min(100, stages + by))
+	stages = math.max(FlowDJ.stage + 1, math.min(100, stages + by))
 	FlowDJSetSetting("NumberOfStages", stages)
 	current_flow = BuildFlow()
 	PerformPick(flow_frame)
