@@ -30,6 +30,7 @@ local graph = false
 local cost_quad = false
 local song_text = false
 local banner_sprite = false
+local stages_text = false
 local help_text = false
 local center_text = false
 local left_text = false
@@ -1067,6 +1068,7 @@ local function BumpStages(by)
 	FlowDJSetSetting("NumberOfStages", stages)
 	current_flow = BuildFlow()
 	PerformPick(flow_frame)
+	stages_text:settext(string.format("%d Stages", stages))
 end
 
 local function ToggleSampleMusic()
@@ -1460,6 +1462,14 @@ local t = Def.ActorFrame{
 			self:xy(_screen.cx, 40)
 			self:zoom(0.1*text_height)
 			self:settext(string.format("Stage %d", (STATSMAN:GetStagesPlayed() + 1)))
+		end
+	},
+	Def.BitmapText{
+		Name = "Total Stages", Font = "Common Normal", InitCommand = function(self)
+			self:xy(_screen.cx, 70)
+			self:zoom(0.05*text_height)
+			self:settext(string.format("%d Stages", stages))
+			stages_text = self
 		end
 	},
 }
