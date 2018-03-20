@@ -31,6 +31,7 @@ local cost_quad = false
 local song_text = false
 local banner_sprite = false
 local stages_text = false
+local settings_text = false
 local help_text = false
 local center_text = false
 local left_text = false
@@ -1052,6 +1053,8 @@ local function BumpFlow(stage, by)
 	FlowDJSetSetting("StartScore", math.floor(start_score * 100))
 	FlowDJSetSetting("MidScore", math.floor(mid_score * 100))
 
+	settings_text:settext(string.format("low: %d\nmid: %d", start_score * 100, mid_score * 100))
+
 	current_flow = BuildFlow()
 	PerformPick(flow_frame)
 end
@@ -1059,6 +1062,7 @@ end
 local function BumpWiggle(by)
 	score_wiggle = math.max(0.0, math.min(0.5, score_wiggle + 0.01 * by))
 	FlowDJSetSetting("ScoreWiggle", math.floor(score_wiggle * 100))
+	settings_text:settext(string.format("wiggle: %d", score_wiggle * 100))
 	current_flow = BuildFlow()
 	PerformPick(flow_frame)
 end
@@ -1400,6 +1404,13 @@ local t = Def.ActorFrame{
 			end,
 			Def.ActorFrame{
 				Name= "list", InitCommand= cmd(visible, true),
+			},
+			Def.BitmapText{
+				Name = "setting line", Font = "Common Normal", InitCommand = function(self)
+					self:xy(150, 500)
+					self:zoom(0.1*text_height)
+					settings_text = self
+				end
 			},
 		},
 	},

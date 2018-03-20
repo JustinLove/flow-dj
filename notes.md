@@ -1,6 +1,5 @@
 ## Todo
 
-- show numbers somewhere
 - improve UX for settings?
 - make branches behave better when stacked
 - separate saved settings to separate stackable theme
