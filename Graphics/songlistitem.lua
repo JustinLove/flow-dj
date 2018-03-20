@@ -20,12 +20,6 @@ return Def.ActorFrame {
 				local x = flow_width
 				local y = -spacing * 0.2
 
-				local label = self:GetChild("label")
-				label:settext(sel.song:GetDisplayMainTitle())
-				label:xy(x + 10 + label:GetWidth()*0.5, y)
-
-				y = spacing * 0.2
-
 				x = x + 30
 				local meter_text = self:GetChild("meter text")
 				meter_text:settext(sel.meter)
@@ -37,7 +31,21 @@ return Def.ActorFrame {
 				meter_bar:xy(x + sel.meter / 15 * bar_width / 2, y)
 				x = x + bar_width
 
-				x = x + 40
+				x = flow_width + 80
+				local title = self:GetChild("title")
+				title:settext(sel.song:GetDisplayFullTitle())
+				title:xy(x + 10 + title:GetWidth()*0.5, y)
+
+				x = flow_width + 500
+
+				local group = self:GetChild("group")
+				group:settext(sel.song:GetGroupName())
+				group:xy(x + 10 + group:GetWidth()*0.5, y)
+
+				x = flow_width
+				y = spacing * 0.2
+
+				x = x + 55
 				local nps_text = self:GetChild("nps text")
 				nps_text:settextf("%0.1f", sel.nps)
 				nps_text:xy(x - nps_text:GetWidth()*0.5, y)
@@ -47,6 +55,17 @@ return Def.ActorFrame {
 				nps_bar:setsize(sel.nps / 10 * bar_width, bar_height)
 				nps_bar:xy(x + sel.nps / 10 * bar_width / 2, y)
 				x = x + bar_width
+
+				x = flow_width + 90
+				local artist = self:GetChild("artist")
+				artist:settext(sel.song:GetDisplayArtist())
+				artist:xy(x + 10 + artist:GetWidth()*0.5, y)
+
+				x = flow_width + 510
+
+				local author = self:GetChild("step author")
+				author:settext(sel.steps:GetAuthorCredit())
+				author:xy(x + 10 + author:GetWidth()*0.5, y)
 
 				local flow_backdrop = self:GetChild("flow backdrop")
 				flow_backdrop:setsize(flow_width, flow_height)
@@ -107,7 +126,19 @@ return Def.ActorFrame {
 		Name= "actual score"
 	},
 	Def.BitmapText{
-		Name = "label", Font = "Common Normal", InitCommand = function(self)
+		Name = "title", Font = "Common Normal", InitCommand = function(self)
+		end,
+	},
+	Def.BitmapText{
+		Name = "artist", Font = "Common Normal", InitCommand = function(self)
+		end,
+	},
+	Def.BitmapText{
+		Name = "group", Font = "Common Normal", InitCommand = function(self)
+		end,
+	},
+	Def.BitmapText{
+		Name = "step author", Font = "Common Normal", InitCommand = function(self)
 		end,
 	},
 	Def.BitmapText{

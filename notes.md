@@ -1,6 +1,5 @@
 ## Todo
 
-- song info at right
 - initial mods optional
 - user toggle preview music
 - show numbers somewhere
