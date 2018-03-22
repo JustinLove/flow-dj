@@ -81,6 +81,15 @@ return Def.ActorFrame {
 					flow_range:effectcolor1(Brightness(Color.White, 0.6))
 					flow_range:effectcolor2(Brightness(Color.White, 0.8))
 					flow_range:effectperiod(2)
+
+					local left_arrow = self:GetChild("left arrow")
+					left_arrow:xy((flow - range * 2) * flow_width, 0)
+					left_arrow:visible(true)
+					left_arrow:settext("&MENULEFT;")
+					local right_arrow = self:GetChild("right arrow")
+					right_arrow:xy((flow + range * 2) * flow_width, 0)
+					right_arrow:visible(true)
+					right_arrow:settext("&MENURIGHT;")
 				end
 
 				local predicted_score = self:GetChild("predicted score")
@@ -119,6 +128,12 @@ return Def.ActorFrame {
 	Def.Quad{
 		Name= "flow range"
 	},
+	Def.BitmapText{
+		Name = "left arrow", Font = "Common Normal", cmd(visible, true),
+	},
+	Def.BitmapText{
+		Name = "right arrow", Font = "Common Normal", cmd(visible, true),
+	},
 	Def.Quad{
 		Name= "predicted score"
 	},
@@ -126,35 +141,28 @@ return Def.ActorFrame {
 		Name= "actual score"
 	},
 	Def.BitmapText{
-		Name = "title", Font = "Common Normal", InitCommand = function(self)
-		end,
+		Name = "title", Font = "Common Normal"
 	},
 	Def.BitmapText{
-		Name = "artist", Font = "Common Normal", InitCommand = function(self)
-		end,
+		Name = "artist", Font = "Common Normal"
 	},
 	Def.BitmapText{
-		Name = "group", Font = "Common Normal", InitCommand = function(self)
-		end,
+		Name = "group", Font = "Common Normal"
 	},
 	Def.BitmapText{
-		Name = "step author", Font = "Common Normal", InitCommand = function(self)
-		end,
+		Name = "step author", Font = "Common Normal"
 	},
 	Def.BitmapText{
-		Name = "score text", Font = "Common Normal", InitCommand = function(self)
-		end,
+		Name = "score text", Font = "Common Normal"
 	},
 	Def.BitmapText{
-		Name = "meter text", Font = "Common Normal", InitCommand = function(self)
-		end,
+		Name = "meter text", Font = "Common Normal"
 	},
 	Def.Quad{
 		Name= "meter bar"
 	},
 	Def.BitmapText{
-		Name = "nps text", Font = "Common Normal", InitCommand = function(self)
-		end,
+		Name = "nps text", Font = "Common Normal"
 	},
 	Def.Quad{
 		Name= "nps bar"

@@ -1,6 +1,7 @@
 ## Todo
 
 - improve UX for settings?
+- song info labels
 - make branches behave better when stacked
 - separate saved settings to separate stackable theme
 - try with different themes?
