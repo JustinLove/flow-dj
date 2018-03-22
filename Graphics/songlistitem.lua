@@ -117,11 +117,9 @@ return Def.ActorFrame {
 				local left_arrow = self:GetChild("left arrow")
 				left_arrow:xy((flow - range * 2) * flow_width, 0)
 				left_arrow:visible(true)
-				left_arrow:settext("&MENULEFT;")
 				local right_arrow = self:GetChild("right arrow")
 				right_arrow:xy((flow + range * 2) * flow_width, 0)
 				right_arrow:visible(true)
-				right_arrow:settext("&MENURIGHT;")
 			end
 
 			self.DifficultyArrowsOff = function(self)
@@ -138,10 +136,10 @@ return Def.ActorFrame {
 		Name= "flow range"
 	},
 	Def.BitmapText{
-		Name = "left arrow", Font = "Common Normal", cmd(visible, true),
+		Name = "left arrow", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENULEFT;"),
 	},
 	Def.BitmapText{
-		Name = "right arrow", Font = "Common Normal", cmd(visible, true),
+		Name = "right arrow", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENURIGHT;"),
 	},
 	Def.Quad{
 		Name= "predicted score"
