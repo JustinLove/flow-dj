@@ -1398,6 +1398,7 @@ local t = Def.ActorFrame{
 							sel.predicted_score = PredictedScore(sel, FlowDJ.theta)
 							local current = (i == FlowDJ.stage+1)
 							items[i]:SetSelection(sel, i, current_flow[i], selection_range, current)
+							items[i]:StagesArrowsOff()
 							if current then
 								if current_controls == "default" then
 
@@ -1407,6 +1408,9 @@ local t = Def.ActorFrame{
 								end
 							end
 						end
+					end
+					if current_controls == "settings1" then
+						items[#selections]:StagesArrowsOn()
 					end
 					for i = #selections+1,#items do
 						items[i]:visible(false)

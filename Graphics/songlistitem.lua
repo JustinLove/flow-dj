@@ -128,9 +128,32 @@ return Def.ActorFrame {
 				local right_arrow = self:GetChild("right arrow")
 				right_arrow:visible(false)
 			end
+
+			self.StagesArrowsOn = function(self)
+				local up_arrow = self:GetChild("up arrow")
+				up_arrow:xy(flow_width, -spacing)
+				up_arrow:visible(true)
+				local down_arrow = self:GetChild("down arrow")
+				down_arrow:xy(flow_width, spacing)
+				down_arrow:visible(true)
+			end
+
+			self.StagesArrowsOff = function(self)
+				local up_arrow = self:GetChild("up arrow")
+				up_arrow:visible(false)
+				local down_arrow = self:GetChild("down arrow")
+				down_arrow:visible(false)
+			end
+
 		end,
 	Def.Quad{
 		Name= "flow backdrop", InitCommand = cmd(setsize, 0, 0; xy, flow_width/2, 0),
+	},
+	Def.BitmapText{
+		Name = "up arrow", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENUUP;"; zoom, 2),
+	},
+	Def.BitmapText{
+		Name = "down arrow", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENUDOWN;"; zoom, 2),
 	},
 	Def.Quad{
 		Name= "flow range"
