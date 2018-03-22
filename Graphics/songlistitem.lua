@@ -81,15 +81,6 @@ return Def.ActorFrame {
 					flow_range:effectcolor1(Brightness(Color.White, 0.6))
 					flow_range:effectcolor2(Brightness(Color.White, 0.8))
 					flow_range:effectperiod(2)
-
-					local left_arrow = self:GetChild("left arrow")
-					left_arrow:xy((flow - range * 2) * flow_width, 0)
-					left_arrow:visible(true)
-					left_arrow:settext("&MENULEFT;")
-					local right_arrow = self:GetChild("right arrow")
-					right_arrow:xy((flow + range * 2) * flow_width, 0)
-					right_arrow:visible(true)
-					right_arrow:settext("&MENURIGHT;")
 				end
 
 				local predicted_score = self:GetChild("predicted score")
@@ -120,6 +111,24 @@ return Def.ActorFrame {
 				score_text:settextf("%2d", sel.effective_score * 100)
 				score_text:xy(flow_width - 10 - score_text:GetWidth()*0.5, 0)
 
+			end
+
+			self.DifficultyArrowsOn = function(self, flow, range)
+				local left_arrow = self:GetChild("left arrow")
+				left_arrow:xy((flow - range * 2) * flow_width, 0)
+				left_arrow:visible(true)
+				left_arrow:settext("&MENULEFT;")
+				local right_arrow = self:GetChild("right arrow")
+				right_arrow:xy((flow + range * 2) * flow_width, 0)
+				right_arrow:visible(true)
+				right_arrow:settext("&MENURIGHT;")
+			end
+
+			self.DifficultyArrowsOff = function(self)
+				local left_arrow = self:GetChild("left arrow")
+				left_arrow:visible(false)
+				local right_arrow = self:GetChild("right arrow")
+				right_arrow:visible(false)
 			end
 		end,
 	Def.Quad{

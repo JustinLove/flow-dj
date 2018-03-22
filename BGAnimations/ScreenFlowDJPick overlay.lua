@@ -990,6 +990,8 @@ local function SetControls(controls)
 		help_text:GetChild("settings1 help text"):visible(false)
 		help_text:GetChild("settings2 help text"):visible(false)
 	end
+	local song_list = flow_frame:GetChild("song list")
+	song_list:SetSelections(selection_snapshot)
 end
 
 local function SwitchControls()
@@ -1394,7 +1396,16 @@ local t = Def.ActorFrame{
 					for i,sel in ipairs(selections) do
 						if items and items[i] then
 							sel.predicted_score = PredictedScore(sel, FlowDJ.theta)
-							items[i]:SetSelection(sel, i, current_flow[i], selection_range, i == FlowDJ.stage+1)
+							local current = (i == FlowDJ.stage+1)
+							items[i]:SetSelection(sel, i, current_flow[i], selection_range, current)
+							if current then
+								if current_controls == "default" then
+
+									items[i]:DifficultyArrowsOn(current_flow[i], selection_range)
+								else
+									items[i]:DifficultyArrowsOff()
+								end
+							end
 						end
 					end
 					for i = #selections+1,#items do
