@@ -12,6 +12,9 @@ local minimum_iteration = 1000
 local maximum_iteration = 5000
 
 local text_height = SCREEN_HEIGHT/48
+local function SongListScale()
+	return math.min(0.6 * text_height / stages, 0.12*SCREEN_WIDTH/240)
+end
 
 local pn = GAMESTATE:GetEnabledPlayers()[1]
 --local currentstyle = GAMESTATE:GetCurrentStyle(pn)
@@ -1381,11 +1384,11 @@ local t = Def.ActorFrame{
 		Def.ActorFrame{
 			Name = "song list", InitCommand = function(self)
 				self:xy(400, _screen.cy)
-				self:zoom(math.min(0.6 * text_height / stages, 0.14*SCREEN_WIDTH/240))
+				self:zoom(SongListScale())
 
 				self.SetSelections = function(self, selections)
 					song_list_overlay:PlaceWiggle(FlowDJ.stage)
-					self:zoom(math.min(0.6 * text_height / stages, 0.14*SCREEN_WIDTH/240))
+					self:zoom(SongListScale())
 					self:xy(400, 100)
 
 					local list = self:GetChild("list")
@@ -1446,7 +1449,7 @@ local t = Def.ActorFrame{
 					wiggle_right:visible(false)
 				end
 				self.PlaceWiggle = function(self, stage)
-					local scale = math.min(0.6 * text_height / stages, 0.14*SCREEN_WIDTH/240)
+					local scale = SongListScale()
 					local manual = ManualFlow(start_score, mid_score)
 					local base = manual[stage+1]
 
