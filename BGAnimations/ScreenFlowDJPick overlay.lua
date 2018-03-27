@@ -871,15 +871,25 @@ local function ManualFlowEdges()
 	return math.floor(stages / 5)
 end
 
+local function ManualFlowWeights(stage, edges)
+	local end_distance = math.min(stage - 1, stages - stage)
+	local start_factor = 0
+	local mid_factor = 1
+	if end_distance < edges then
+		mid_factor = end_distance / edges
+	else
+		mid_factor = 1
+	end
+	start_factor = 1 - mid_factor
+	return start_factor,mid_factor
+end
+
 local function ManualFlow(start, middle)
 	local flow = {}
 	local edges = ManualFlowEdges()
-	for stage = 1,edges do
-		flow[stage] = start + (((stage-1) / edges) * (middle - start))
-		flow[stages+1-stage] = start + ((stage-1) / edges) * (middle - start)
-	end
-	for stage = edges+1,stages-edges do
-		flow[stage] = middle
+	for stage = 1,stages do
+		local start_factor,mid_factor = ManualFlowWeights(stage, edges)
+		flow[stage] = start * start_factor + middle * mid_factor
 	end
 	return flow
 end
@@ -1038,16 +1048,7 @@ local function PerformPick(frame)
 end
 
 local function BumpFlow(stage, by)
-	local edges = ManualFlowEdges()
-	local end_distance = math.min(stage - 1, stages - stage)
-	local start_factor = 0
-	local mid_factor = 1
-	if end_distance < edges then
-		mid_factor = end_distance / edges
-	else
-		mid_factor = 1
-	end
-	start_factor = 1 - mid_factor
+	local start_factor,mid_factor = ManualFlowWeights(stage, ManualFlowEdges())
 
 	start_score = math.max(0.0, math.min(1.0, start_score - 0.02 * start_factor * by))
 	mid_score = math.max(0.0, math.min(1.0, mid_score - 0.02 * mid_factor * by))
