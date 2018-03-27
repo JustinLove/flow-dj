@@ -4,7 +4,6 @@ local stages = FlowDJGetSetting("NumberOfStages")
 local start_score = FlowDJGetSetting("StartScore")/100
 local mid_score = FlowDJGetSetting("MidScore")/100
 local score_wiggle = FlowDJGetSetting("ScoreWiggle")/100
-local player_options = FlowDJGetSetting("PlayerOptions")
 local sample_music = FlowDJGetSetting("SampleMusic")
 local maximum_cost = 0.0015
 local minimum_iteration_per_stage = 200
@@ -48,10 +47,7 @@ local entering_song = false
 lua.ReportScriptError('----------------' .. math.random())
 
 local player_state = GAMESTATE:GetPlayerState(pn)
-player_state:SetPlayerOptions("ModsLevel_Current", player_options)
-player_state:SetPlayerOptions("ModsLevel_Song", player_options)
-player_state:SetPlayerOptions("ModsLevel_Stage", player_options)
-player_state:SetPlayerOptions("ModsLevel_Preferred", player_options)
+local player_options = player_state:GetPlayerOptionsString("ModsLevel_Current")
 
 if not FlowDJ.fake_play then
 	FlowDJ.stage = GAMESTATE:GetCurrentStageIndex()
