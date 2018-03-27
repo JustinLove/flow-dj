@@ -6,12 +6,12 @@ local function StagesRemaining()
 	return FlowDJ.stage < stages
 end
 
+local BaseSelectMusicOrCourse = SelectMusicOrCourse
 function SelectMusicOrCourse()
-	rec_print_table(envTable)
 	if IsNetSMOnline() then
-		return "ScreenNetSelectMusic"
+		return BaseSelectMusicOrCourse()
 	elseif GAMESTATE:IsCourseMode() then
-		return "ScreenSelectCourse"
+		return BaseSelectMusicOrCourse()
 	else
 		if StagesRemaining() then
 			return "ScreenFlowDJPick"

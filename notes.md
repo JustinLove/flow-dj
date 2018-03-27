@@ -1,6 +1,5 @@
 ## Todo
 
-- make branches behave better when stacked
 - separate saved settings to separate stackable theme
 - bug? current song selecting by estimated rather than acutal
 - try with different themes?
