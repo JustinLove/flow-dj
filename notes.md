@@ -1,6 +1,5 @@
 ## Todo
 
-- separate saved settings to separate stackable theme
 - bug? current song selecting by estimated rather than acutal
 - try with different themes?
 - profiles?

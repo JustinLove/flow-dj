@@ -23,7 +23,6 @@ end
 
 local BaseAfterGameplay = Branch.AfterGameplay
 Branch.AfterGameplay = function()
-	CapturePlayerOptions()
 	if StagesRemaining() then
 		return "ScreenProfileSave"
 	else
@@ -49,7 +48,6 @@ end
 
 local BaseAfterProfileLoad = Branch.AfterProfileLoad
 Branch.AfterProfileLoad = function()
-	SetPlayerOptions()
 	GAMESTATE:SetCurrentPlayMode('PlayMode_Regular')
 	FlowDJ.stage = 0
 	return SelectMusicOrCourse()
