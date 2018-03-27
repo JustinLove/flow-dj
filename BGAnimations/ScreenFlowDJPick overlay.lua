@@ -1558,6 +1558,13 @@ local t = Def.ActorFrame{
 			stages_text = self
 		end
 	},
+	Def.BitmapText{
+		Name = "Player Options", Font = "Common Normal", InitCommand = function(self)
+			self:xy(300, 50)
+			self:zoom(0.05*text_height)
+			self:settext(player_options)
+		end
+	},
 }
 
 return t

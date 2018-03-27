@@ -1,11 +1,9 @@
 ## Todo
 
-- show options string on pick screen
-- current song selecting by estimated rather than acutal
-- song info labels
 - song info offscreen at higher zoom
 - make branches behave better when stacked
 - separate saved settings to separate stackable theme
+- bug? current song selecting by estimated rather than acutal
 - try with different themes?
 - profiles?
   - what happens with no data?
