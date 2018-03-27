@@ -1,6 +1,5 @@
 ## Todo
 
-- improve UX for settings?
 - show options string on pick screen
 - current song selecting by estimated rather than acutal
 - song info labels

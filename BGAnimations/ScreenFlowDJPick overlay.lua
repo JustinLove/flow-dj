@@ -32,6 +32,7 @@ local song_text = false
 local banner_sprite = false
 local stages_text = false
 local settings_text = false
+local song_list_overlay = false
 local help_text = false
 local center_text = false
 local left_text = false
@@ -991,14 +992,17 @@ local function SetControls(controls)
 		help_text:GetChild("default help text"):visible(false)
 		help_text:GetChild("settings1 help text"):visible(true)
 		help_text:GetChild("settings2 help text"):visible(false)
+		song_list_overlay:SetWiggleOn()
 	elseif controls == "settings2" then
 		help_text:GetChild("default help text"):visible(false)
 		help_text:GetChild("settings1 help text"):visible(false)
 		help_text:GetChild("settings2 help text"):visible(true)
+		song_list_overlay:SetWiggleOff()
 	else
 		help_text:GetChild("default help text"):visible(true)
 		help_text:GetChild("settings1 help text"):visible(false)
 		help_text:GetChild("settings2 help text"):visible(false)
+		song_list_overlay:SetWiggleOff()
 	end
 	local song_list = flow_frame:GetChild("song list")
 	song_list:SetSelections(selection_snapshot)
@@ -1380,6 +1384,7 @@ local t = Def.ActorFrame{
 				self:zoom(math.min(0.6 * text_height / stages, 0.14*SCREEN_WIDTH/240))
 
 				self.SetSelections = function(self, selections)
+					song_list_overlay:PlaceWiggle(FlowDJ.stage)
 					self:zoom(math.min(0.6 * text_height / stages, 0.14*SCREEN_WIDTH/240))
 					self:xy(400, 100)
 
@@ -1421,12 +1426,66 @@ local t = Def.ActorFrame{
 			Def.ActorFrame{
 				Name= "list", InitCommand= cmd(visible, true),
 			},
+		},
+		Def.ActorFrame{
+			Name= "song list overlays", InitCommand = function(self)
+				song_list_overlay = self
+				self:visible(true)
+				self:xy(400, _screen.cy + 25)
+
+				self.SetWiggleOn = function(self, stage)
+					wiggle_left = self:GetChild("wiggle left")
+					wiggle_left:visible(true)
+					wiggle_right = self:GetChild("wiggle right")
+					wiggle_right:visible(true)
+				end
+				self.SetWiggleOff = function(self)
+					wiggle_left = self:GetChild("wiggle left")
+					wiggle_left:visible(false)
+					wiggle_right = self:GetChild("wiggle right")
+					wiggle_right:visible(false)
+				end
+				self.PlaceWiggle = function(self, stage)
+					local scale = math.min(0.6 * text_height / stages, 0.14*SCREEN_WIDTH/240)
+					local manual = ManualFlow(start_score, mid_score)
+					local base = manual[stage+1]
+
+					wiggle_left = self:GetChild("wiggle left")
+					wiggle_left:xy(scale * 600 * (base - score_wiggle),0)
+					wiggle_right = self:GetChild("wiggle right")
+					wiggle_right:xy(scale * 600 * (base + score_wiggle),0)
+				end
+			end,
 			Def.BitmapText{
 				Name = "setting line", Font = "Common Normal", InitCommand = function(self)
-					self:xy(150, 500)
-					self:zoom(0.1*text_height)
+					self:xy(50, 0)
+					self:zoom(0.05*text_height)
 					settings_text = self
 				end
+			},
+			Def.ActorFrame{
+				Name= "wiggle left", InitCommand = cmd(visible, false),
+				Def.Quad{
+					Name= "wiggle left line", InitCommand = function(self)
+						self:setsize(2, 0.75*SCREEN_HEIGHT)
+						self:diffusealpha(0.5)
+					end
+				},
+			},
+			Def.ActorFrame{
+				Name= "wiggle right", InitCommand= cmd(visible, false),
+				Def.Quad{
+					Name= "wiggle right line", InitCommand = function(self)
+						self:setsize(2, 0.75*SCREEN_HEIGHT)
+						self:diffusealpha(0.5)
+					end
+				},
+				Def.BitmapText{
+					Name = "left arrow", Font = "Common Normal", InitCommand = cmd(visible, true; xy, -20, 0; settext, "&MENULEFT;"),
+				},
+				Def.BitmapText{
+					Name = "right arrow", Font = "Common Normal", InitCommand = cmd(visible, true; xy, 20, 0; settext, "&MENURIGHT;"),
+				},
 			},
 		},
 	},
