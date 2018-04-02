@@ -1,5 +1,6 @@
 ## Todo
 
+- song selection
 - bug? current song selecting by estimated rather than acutal
 - try with different themes?
 - profiles?

@@ -120,7 +120,7 @@ local lua_config_mt= {
 			end
 			if not prof_dir or prof_dir == "" then
 				Trace("Could not fetch profile dir to " .. reason .. " for " .. tostring(slot) .. ".  " .. checked)
-				if PREFSMAN:GetPreference("WarnOnNoProfile") then
+				if not PREFSMAN:PreferenceExists("WarnOnNoProfile") or PREFSMAN:GetPreference("WarnOnNoProfile") then
 					SCREENMAN:SystemMessage(THEME:GetString("Common", "NoProfileWarning"):format(ToEnumShortString(slot)))
 				end
 				return
