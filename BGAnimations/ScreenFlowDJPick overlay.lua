@@ -1374,7 +1374,7 @@ local t = Def.ActorFrame{
 			Name = "Song", Font = "Common Normal", InitCommand = function(self)
 				song_text = self
 				self:zoom(0.15*text_height)
-				self:xy(220, 190)
+				self:xy(SCREEN_WIDTH * 0.22, SCREEN_HEIGHT * 0.26)
 			end
 		},
 		Def.ActorFrame{
@@ -1430,7 +1430,7 @@ local t = Def.ActorFrame{
 			Name= "song list overlays", InitCommand = function(self)
 				song_list_overlay = self
 				self:visible(true)
-				self:xy(400, _screen.cy + 25)
+				self:xy(SCREEN_WIDTH * 0.4, SCREEN_HEIGHT * 0.53)
 
 				self.SetWiggleOn = function(self, stage)
 					wiggle_left = self:GetChild("wiggle left")
@@ -1457,7 +1457,7 @@ local t = Def.ActorFrame{
 			end,
 			Def.BitmapText{
 				Name = "setting line", Font = "Common Normal", InitCommand = function(self)
-					self:xy(50, 0)
+					self:xy(SCREEN_WIDTH * 0.05, 0)
 					self:zoom(0.05*text_height)
 					settings_text = self
 				end
