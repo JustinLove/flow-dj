@@ -1379,13 +1379,13 @@ local t = Def.ActorFrame{
 		},
 		Def.ActorFrame{
 			Name = "song list", InitCommand = function(self)
-				self:xy(400, _screen.cy)
+				self:xy(SCREEN_WIDTH * 0.4, _screen.cy)
 				self:zoom(SongListScale())
 
 				self.SetSelections = function(self, selections)
 					song_list_overlay:PlaceWiggle(FlowDJ.stage)
 					self:zoom(SongListScale())
-					self:xy(400, 100)
+					self:xy(SCREEN_WIDTH * 0.4, SCREEN_HEIGHT * 0.14)
 
 					local list = self:GetChild("list")
 					local items = list:GetChild("song list item")
@@ -1491,15 +1491,15 @@ local t = Def.ActorFrame{
 	Def.ActorFrame {
 		Name = "model", InitCommand = function(self)
 			model_frame = self
-			self:xy(_screen.cx - 200, _screen.cy)
+			self:xy(_screen.cx - SCREEN_WIDTH * 0.2, _screen.cy)
 			self:visible(true)
 		end,
-		Graph("graph", 200, -230, 450),
-		ModelFactors(-100, -SCREEN_HEIGHT/2+100, 3),
+		Graph("graph", SCREEN_WIDTH * 0.2, SCREEN_HEIGHT * -0.32, SCREEN_HEIGHT * 0.62),
+		ModelFactors(SCREEN_WIDTH * -0.1, SCREEN_HEIGHT*-0.36, SCREEN_HEIGHT * 0.004),
 		Def.Quad{
 			Name= "cost", InitCommand = function(self)
 				cost_quad = self
-				self:xy(200, 290)
+				self:xy(SCREEN_WIDTH * 0.2, SCREEN_HEIGHT * 0.4)
 			end
 		},
 	},
