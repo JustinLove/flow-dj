@@ -1,5 +1,9 @@
 ## Todo
 
+Simply love
+- broke eval screens
+- no song timer countdown
+
 - song selection
 - bug? current song selecting by estimated rather than acutal
 - try with different themes?
