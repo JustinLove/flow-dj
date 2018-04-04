@@ -69,8 +69,13 @@ return Def.ActorFrame {
 
 				local flow_backdrop = self:GetChild("flow backdrop")
 				flow_backdrop:setsize(flow_width, flow_height)
-				flow_backdrop:diffuserightedge(Alpha(Color.Black, 0.5))
-				flow_backdrop:diffuseleftedge(Alpha(Color.Black, 0.03))
+				if SL then
+					flow_backdrop:diffuserightedge(Alpha(Color.White, 0.4))
+					flow_backdrop:diffuseleftedge(Alpha(Color.White, 0.03))
+				else
+					flow_backdrop:diffuserightedge(Alpha(Color.Black, 0.5))
+					flow_backdrop:diffuseleftedge(Alpha(Color.Black, 0.03))
+				end
 
 				local flow_range = self:GetChild("flow range")
 				flow_range:setsize(range * 2 * flow_width, flow_height)
