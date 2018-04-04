@@ -53,4 +53,12 @@ Branch.AfterProfileLoad = function()
 	return SelectMusicOrCourse()
 end
 
+local BaseAfterScreenSelectColor = Branch.AfterScreenSelectColor
+Branch.AfterScreenSelectColor = function()
+	GAMESTATE:SetCurrentPlayMode('PlayMode_Regular')
+	FlowDJ.stage = 0
+	BaseAfterScreenSelectColor()
+	return "ScreenFlowDJPick"
+end
+
 ModeIconColors["FlowDJ"] = color("#b4c3d2") -- steel

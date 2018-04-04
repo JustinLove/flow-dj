@@ -157,3 +157,12 @@ function load_config_lua(fname)
 	file:destroy()
 	return ret
 end
+
+-- from default
+if not scale_to_fit then
+	function scale_to_fit(actor, width, height)
+		local xscale= width / actor:GetWidth()
+		local yscale= height / actor:GetHeight()
+		actor:zoom(math.min(xscale, yscale))
+	end
+end
