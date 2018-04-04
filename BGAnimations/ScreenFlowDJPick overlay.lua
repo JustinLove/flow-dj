@@ -1341,15 +1341,15 @@ local t = Def.ActorFrame{
 			self:visible(true)
 		end,
 		Def.ActorFrame {
-			Name = "graphs", InitCommand = cmd(xy, 440, SCREEN_HEIGHT - 500),
-			Graph("score graph", -220, 50, 350),
+			Name = "graphs", InitCommand = cmd(xy, SCREEN_WIDTH * 0.44, SCREEN_HEIGHT * 0.3),
+			Graph("score graph", SCREEN_WIDTH * -0.22, SCREEN_HEIGHT * 0.07, SCREEN_HEIGHT * 0.5),
 			--Graph("flow graph", 220, 0, 400),
 		},
 		Def.Sprite {
 			Name="Banner",
 			InitCommand = function(self)
 				banner_sprite = self
-				self:xy(220, 190)
+				self:xy(SCREEN_WIDTH * 0.22, SCREEN_HEIGHT * 0.26)
 			end,
 			OnCommand= cmd(playcommand, "Set"),
 			CurrentSongChangedMessageCommand= cmd(playcommand, "Set"),
@@ -1358,7 +1358,7 @@ local t = Def.ActorFrame{
 					if sel.song:HasBanner()then
 						self:LoadBanner(sel.song:GetBannerPath())
 						self:visible(true)
-						scale_to_fit(self, 350, 150)
+						scale_to_fit(self, SCREEN_HEIGHT * 0.5, SCREEN_HEIGHT * 0.2)
 						song_text:settext("")
 					else
 						self:visible(false)
