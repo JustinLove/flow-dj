@@ -361,6 +361,11 @@ local function GraphWeight(weighted)
 end
 
 local function WeightByPlayCount(songs)
+	local manual = {}
+	for i,item in ipairs(FlowDJ.manual_songs) do
+		manual[item] = i
+	end
+
 	local weighted = {}
 	local most = 0
 	for i,song in ipairs(songs) do
@@ -369,25 +374,28 @@ local function WeightByPlayCount(songs)
 		weighted[i] = {
 			song = song,
 			title = song:GetDisplayMainTitle(),
-			count = count
+			count = count,
+			manual = manual[song:GetMusicPath()],
 		}
 	end
 	most = (most / 2) + 1
 
-	local manual = {}
-	for i,item in ipairs(FlowDJ.manual_songs) do
-		manual[item] = i/100000
-	end
-
 	math.randomseed(GAMESTATE:GetGameSeed())
 	for i,item in ipairs(weighted) do
-		weighted[i].weight = manual[item.song:GetMusicPath()]
-		if weighted[i].weight == nil then
-			weighted[i].weight = math.random() * (weighted[i].count + 1) / (weighted[i].count + most)
-		end
+		weighted[i].weight = math.random() * (weighted[i].count + 1) / (weighted[i].count + most)
 	end
 
-	table.sort(weighted, function(a, b) return a.weight < b.weight end )
+	table.sort(weighted, function(a, b)
+		if a.manual and b.manual then
+			return a.manual < b.manual
+		elseif a.manual then
+			return true
+		elseif b.manual then
+			return false
+		else
+			return a.weight < b.weight
+		end
+	end )
 
 	--GraphWeight(weighted)
 	local sorted = {}
