@@ -21,6 +21,13 @@ function SelectMusicOrCourse()
 	end
 end
 
+local BasePlayerOptions = Branch.PlayerOptions
+Branch.PlayerOptions = function()
+	song = GAMESTATE:GetCurrentSong()
+	table.insert(FlowDJ.manual_songs, song:GetMusicPath())
+	return "ScreenFlowDJPick"
+end
+
 local BaseAfterGameplay = Branch.AfterGameplay
 Branch.AfterGameplay = function()
 	if StagesRemaining() then

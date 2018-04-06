@@ -4,4 +4,5 @@ FlowDJ = {
 	scale = math.random(1,3),
 	theta = {},
 	fake_play = false,
+	manual_songs = {},
 }

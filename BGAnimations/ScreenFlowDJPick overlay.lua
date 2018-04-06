@@ -373,12 +373,22 @@ local function WeightByPlayCount(songs)
 		}
 	end
 	most = (most / 2) + 1
-	math.randomseed(GAMESTATE:GetGameSeed())
-	local total = 0
-	for i,item in ipairs(weighted) do
-		weighted[i].weight = math.random() * (weighted[i].count + 1) / (weighted[i].count + most)
+
+	local manual = {}
+	for i,item in ipairs(FlowDJ.manual_songs) do
+		manual[item] = i/100000
 	end
+
+	math.randomseed(GAMESTATE:GetGameSeed())
+	for i,item in ipairs(weighted) do
+		weighted[i].weight = manual[item.song:GetMusicPath()]
+		if weighted[i].weight == nil then
+			weighted[i].weight = math.random() * (weighted[i].count + 1) / (weighted[i].count + most)
+		end
+	end
+
 	table.sort(weighted, function(a, b) return a.weight < b.weight end )
+
 	--GraphWeight(weighted)
 	local sorted = {}
 	for i,item in ipairs(weighted) do
@@ -1149,7 +1159,8 @@ local function DefaultControls(button)
 		return true
 	elseif button == "MenuUp" then
 		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
-		SwitchView()
+		--SwitchView()
+		trans_new_screen("ScreenSelectMusic")
 		return true
 	elseif button == "MenuDown" then
 		if FlowDJ.stage > 0 then
