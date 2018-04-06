@@ -1,10 +1,8 @@
 ## Todo
 
-Simply love
-- broke eval screens
-- no song timer countdown
-
-- song selection
+- back from select music should exit to title
+- include/exclue
+- post song list
 - bug? current song selecting by estimated rather than acutal
 - try with different themes?
 - profiles?
@@ -15,6 +13,10 @@ Simply love
 - more selection factors ?
 - actual score reaction ?
 - More config?
+
+Simply love
+- broke eval screens
+- no song timer countdown
 
 ## General
 
