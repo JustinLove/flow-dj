@@ -1159,7 +1159,6 @@ local function DefaultControls(button)
 		return true
 	elseif button == "MenuUp" then
 		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
-		--SwitchView()
 		trans_new_screen("ScreenSelectMusic")
 		return true
 	elseif button == "MenuDown" then
@@ -1199,6 +1198,10 @@ end
 local function Settings2Controls(button)
 	if button == "MenuLeft" then
 		ToggleSampleMusic()
+		return true
+	elseif button == "MenuUp" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
+		SwitchView()
 		return true
 	end
 	return false
