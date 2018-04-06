@@ -50,6 +50,7 @@ local BaseAfterSelectProfile = Branch.AfterSelectProfile
 Branch.AfterSelectProfile = function()
 	GAMESTATE:SetCurrentPlayMode('PlayMode_Regular')
 	FlowDJ.stage = 0
+	FlowDJ.manual_songs = {}
 	return SelectMusicOrCourse()
 end
 
@@ -57,6 +58,7 @@ local BaseAfterProfileLoad = Branch.AfterProfileLoad
 Branch.AfterProfileLoad = function()
 	GAMESTATE:SetCurrentPlayMode('PlayMode_Regular')
 	FlowDJ.stage = 0
+	FlowDJ.manual_songs = {}
 	return SelectMusicOrCourse()
 end
 
@@ -64,6 +66,7 @@ local BaseAfterScreenSelectColor = Branch.AfterScreenSelectColor
 Branch.AfterScreenSelectColor = function()
 	GAMESTATE:SetCurrentPlayMode('PlayMode_Regular')
 	FlowDJ.stage = 0
+	FlowDJ.manual_songs = {}
 	BaseAfterScreenSelectColor()
 	return "ScreenFlowDJPick"
 end
