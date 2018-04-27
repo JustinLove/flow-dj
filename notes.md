@@ -1,9 +1,7 @@
 ## Todo
 
-- back from select music should exit to title
-- include/exclue
-- post song list
-- bug? current song selecting by estimated rather than acutal
+- back from select music should not exit to title
+- include/exclude
 - try with different themes?
 - profiles?
   - what happens with no data?
