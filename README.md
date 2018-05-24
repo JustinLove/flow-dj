@@ -16,7 +16,7 @@ Most limits up for discussion if there is sufficient interest. This is built aro
 - Stacks on `default` theme only, unlikely to work on all other themes.
 - Development started on Stepmania 5.0, and is now on Stepmania 5.1. It should still work with 5.0 and the old default (now legacy) theme, but I'm not running it regularly.
 - No means to filter songs. There is currently a hard-coded exclusion of a song group named `Muted` (which I use for songs muted by Twitch)
-- Score estimation assumes a single player set the high scores. However you can still request songs based on any target score, even if you wont't get that score yourself.
+- Score estimation assumes a single player set the high scores. However you can still request songs based on any target score, even if you won't get that score yourself.
 - I play in event mode, and have not tested other modes.
 - I play FailOff; providing scores, even bad ones, will help improve the model for estimating scores.
 - Runs for a set (but easily configurable) number of songs.
@@ -45,7 +45,7 @@ The select music screen is effectively replaced with a screen that performs the 
 #### Controls
 
 - START starts the song.
-- BACK exists to the title screen.
+- BACK exits to the title screen.
 - SELECT Cycles control modes for the arrow buttons. A short help line is shown on the bottom of the screen, long description follows:
 
 #### Default Controls
@@ -66,7 +66,7 @@ The select music screen is effectively replaced with a screen that performs the 
 
 ### Model Screen
 
-The model is a linear regression the basic stats and groove-radar values available about each set of steps.
+The model is a linear regression over the basic stats and groove-radar values available about each set of steps.
 
 The left side shows the relative size of the weights for each factor.
 
@@ -79,3 +79,4 @@ The model for estimating scores relies on high scores. If there are no scores on
 ## Credits
 
 The code was made with reference both to Stepmania code, and the Consensual theme in particular. It incorporates pieces of code from both upstream Stepmania (MIT) and Consensual (BSD 3-Clause), especially around saving settings.
+The remainder of the original work is Apache License 2.0.
