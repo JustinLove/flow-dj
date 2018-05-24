@@ -80,3 +80,9 @@ The model for estimating scores relies on high scores. If there are no scores on
 
 The code was made with reference both to Stepmania code, and the Consensual theme in particular. It incorporates pieces of code from both upstream Stepmania (MIT) and Consensual (BSD 3-Clause), especially around saving settings.
 The remainder of the original work is Apache License 2.0.
+
+## Contact
+
+- [@wondible](https://twitter.com/wondible)
+- [flow-dj on Github](https://github.com/JustinLove/flow-dj)
+- Gameplay and development sometimes at [wondible on Twitch](https://twitch.tv/wondible)
