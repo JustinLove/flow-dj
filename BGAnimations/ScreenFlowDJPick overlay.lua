@@ -919,6 +919,15 @@ local function WiggleFlow(flow, scale)
 	return flow
 end
 
+local function WigglePath(flow)
+	local out = {}
+	local scale = 100
+	for i=1,#flow*scale do
+		out[i] = math.sin(FlowDJ.scale*i/scale + FlowDJ.offset)+1
+	end
+	return out
+end
+
 local function BuildFlow()
 	return WiggleFlow(ManualFlow(start_score, mid_score), score_wiggle)
 end
@@ -1058,6 +1067,10 @@ local function PerformPick(frame)
 	--AssignScore(possible_steps, FlowDJ.theta)
 	GraphDimensionOfSelections(score_graph, possible_steps, "effective_score")
 	score_graph:SetLabel(string.format("%0.2f m%d", sel.effective_score, sel.meter))
+
+	--local curve_graph = song_list_overlay:GetChild("curve graph")
+	--curve_graph:baserotationz(90)
+	--GraphData(curve_graph, WigglePath(current_flow))
 
 	--nps_graph:SetLabel(string.format("%0.1f nps %d-%d bpm", sel.nps, sel.song:GetDisplayBpms()[1], sel.song:GetDisplayBpms()[2]))
 
@@ -1511,6 +1524,7 @@ local t = Def.ActorFrame{
 					Name = "right arrow", Font = "Common Normal", InitCommand = cmd(visible, true; xy, 20, 0; settext, "&MENURIGHT;"),
 				},
 			},
+			--Graph("curve graph", 900*SongListScale(), -0.5*0.75*SCREEN_HEIGHT, 0.75*SCREEN_HEIGHT),
 		},
 	},
 	Def.ActorFrame {
