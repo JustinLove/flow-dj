@@ -1541,6 +1541,12 @@ local t = Def.ActorFrame{
 				self:xy(SCREEN_WIDTH * 0.2, SCREEN_HEIGHT * 0.4)
 			end
 		},
+		Def.BitmapText{
+			Name = "model x axis label", Font = "Common Normal", InitCommand = cmd(visible, true; xy, SCREEN_WIDTH * 0.2, SCREEN_HEIGHT * 0.32; settext, "actual score"),
+		},
+		Def.BitmapText{
+			Name = "model y axis label", Font = "Common Normal", InitCommand = cmd(visible, true; xy, SCREEN_WIDTH * 0.015, 0; rotationz, 270; settext, "estimated score"),
+		},
 	},
 	Def.ActorFrame{
 		Name = "help text", InitCommand = function(self)
