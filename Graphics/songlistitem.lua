@@ -17,6 +17,7 @@ return Def.ActorFrame {
 				if current then
 					brightness = 1
 				end
+
 				local x = flow_width
 				local y = -spacing * 0.2
 
@@ -30,17 +31,6 @@ return Def.ActorFrame {
 				meter_bar:setsize(sel.meter / 15 * bar_width, bar_height)
 				meter_bar:xy(x + sel.meter / 15 * bar_width / 2, y)
 				x = x + bar_width
-
-				x = flow_width + 80
-				local title = self:GetChild("title")
-				title:settext(sel.song:GetDisplayFullTitle())
-				title:xy(x + 10 + title:GetWidth()*0.5, y)
-
-				x = flow_width + 500
-
-				local group = self:GetChild("group")
-				group:settext(sel.song:GetGroupName())
-				group:xy(x + 10 + group:GetWidth()*0.5, y)
 
 				x = flow_width
 				y = spacing * 0.2
@@ -56,25 +46,48 @@ return Def.ActorFrame {
 				nps_bar:xy(x + sel.nps / 10 * bar_width / 2, y)
 				x = x + bar_width
 
-				x = flow_width + 90
+				x = 0
+				y = -spacing * 0.2
+				local title = self:GetChild("title")
+				title:settext(sel.song:GetDisplayFullTitle())
+				title:xy(x + 10 + title:GetWidth()*0.5, y)
+
+				x = 10
+				y = spacing * 0.2
 				local artist = self:GetChild("artist")
 				artist:settext(sel.song:GetDisplayArtist())
 				artist:xy(x + 10 + artist:GetWidth()*0.5, y)
 
-				x = flow_width + 510
+				x = -50
+				y = -spacing * 0.2
+				local group = self:GetChild("group")
+				group:settext(sel.song:GetGroupName())
+				group:xy(x + 10 - group:GetWidth()*0.5, y)
 
+				x = -60
+				y = spacing * 0.2
 				local author = self:GetChild("step author")
 				author:settext(sel.steps:GetAuthorCredit())
-				author:xy(x + 10 + author:GetWidth()*0.5, y)
+				author:xy(x + 10 - author:GetWidth()*0.5, y)
 
 				local flow_backdrop = self:GetChild("flow backdrop")
 				flow_backdrop:setsize(flow_width, flow_height)
 				if SL then
 					flow_backdrop:diffuserightedge(Alpha(Color.White, 0.4))
-					flow_backdrop:diffuseleftedge(Alpha(Color.White, 0.03))
+					flow_backdrop:diffuseleftedge(Alpha(Color.White, 0.1))
 				else
 					flow_backdrop:diffuserightedge(Alpha(Color.Black, 0.5))
-					flow_backdrop:diffuseleftedge(Alpha(Color.Black, 0.03))
+					flow_backdrop:diffuseleftedge(Alpha(Color.Black, 0.1))
+				end
+
+				local group_backdrop = self:GetChild("group backdrop")
+				group_backdrop:setsize(flow_width, flow_height)
+				if SL then
+					group_backdrop:diffuserightedge(Alpha(Color.Black, 0.4))
+					group_backdrop:diffuseleftedge(Alpha(Color.Black, 0.00))
+				else
+					group_backdrop:diffuserightedge(Alpha(Color.Black, 0.5))
+					group_backdrop:diffuseleftedge(Alpha(Color.Black, 0.00))
 				end
 
 				local flow_range = self:GetChild("flow range")
@@ -153,6 +166,9 @@ return Def.ActorFrame {
 		end,
 	Def.Quad{
 		Name= "flow backdrop", InitCommand = cmd(setsize, 0, 0; xy, flow_width/2, 0),
+	},
+	Def.Quad{
+		Name= "group backdrop", InitCommand = cmd(setsize, 0, 0; xy, -flow_width/2 - 30, 0),
 	},
 	Def.BitmapText{
 		Name = "up arrow", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENUUP;"; zoom, 2),

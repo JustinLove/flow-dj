@@ -1346,7 +1346,7 @@ local function ModelFactors(x, y, scale)
 end
 
 local banner_column = SCREEN_WIDTH * 0.78
-local song_list_column = SCREEN_WIDTH * 0.08
+local song_list_column = SCREEN_WIDTH * 0.3
 
 local t = Def.ActorFrame{
 	OnCommand = function(self)
