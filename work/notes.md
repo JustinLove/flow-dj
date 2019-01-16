@@ -1,5 +1,6 @@
 ## Todo
 
+- draw curve to evaulate if scale is right
 - reinforce rows on center/right
 - rethink/remove distribution graph
 - back from select music should not exit to title

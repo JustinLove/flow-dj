@@ -1345,6 +1345,9 @@ local function ModelFactors(x, y, scale)
 	return frame
 end
 
+local banner_column = SCREEN_WIDTH * 0.78
+local song_list_column = SCREEN_WIDTH * 0.08
+
 local t = Def.ActorFrame{
 	OnCommand = function(self)
 		top_frame = self
@@ -1363,15 +1366,15 @@ local t = Def.ActorFrame{
 			self:visible(true)
 		end,
 		Def.ActorFrame {
-			Name = "graphs", InitCommand = cmd(xy, SCREEN_WIDTH * 0.44, SCREEN_HEIGHT * 0.3),
-			Graph("score graph", SCREEN_WIDTH * -0.22, SCREEN_HEIGHT * 0.07, SCREEN_HEIGHT * 0.5),
+			Name = "graphs", InitCommand = cmd(xy, banner_column, SCREEN_HEIGHT * 0.3),
+			Graph("score graph", 0, SCREEN_HEIGHT * 0.07, SCREEN_HEIGHT * 0.5),
 			--Graph("flow graph", 220, 0, 400),
 		},
 		Def.Sprite {
 			Name="Banner",
 			InitCommand = function(self)
 				banner_sprite = self
-				self:xy(SCREEN_WIDTH * 0.22, SCREEN_HEIGHT * 0.26)
+				self:xy(banner_column, SCREEN_HEIGHT * 0.26)
 			end,
 			OnCommand= cmd(playcommand, "Set"),
 			CurrentSongChangedMessageCommand= cmd(playcommand, "Set"),
@@ -1396,18 +1399,18 @@ local t = Def.ActorFrame{
 			Name = "Song", Font = "Common Normal", InitCommand = function(self)
 				song_text = self
 				self:zoom(0.15*text_height)
-				self:xy(SCREEN_WIDTH * 0.22, SCREEN_HEIGHT * 0.26)
+				self:xy(banner_column, SCREEN_HEIGHT * 0.26)
 			end
 		},
 		Def.ActorFrame{
 			Name = "song list", InitCommand = function(self)
-				self:xy(SCREEN_WIDTH * 0.4, _screen.cy)
+				self:xy(song_list_column, _screen.cy)
 				self:zoom(SongListScale())
 
 				self.SetSelections = function(self, selections)
 					song_list_overlay:PlaceWiggle(FlowDJ.stage)
 					self:zoom(SongListScale())
-					self:xy(SCREEN_WIDTH * 0.4, SCREEN_HEIGHT * 0.14)
+					self:xy(song_list_column, SCREEN_HEIGHT * 0.14)
 
 					local list = self:GetChild("list")
 					local items = list:GetChild("song list item")
@@ -1452,7 +1455,7 @@ local t = Def.ActorFrame{
 			Name= "song list overlays", InitCommand = function(self)
 				song_list_overlay = self
 				self:visible(true)
-				self:xy(SCREEN_WIDTH * 0.4, SCREEN_HEIGHT * 0.53)
+				self:xy(song_list_column, SCREEN_HEIGHT * 0.53)
 
 				self.SetWiggleOn = function(self, stage)
 					wiggle_left = self:GetChild("wiggle left")
