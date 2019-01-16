@@ -1,5 +1,7 @@
 ## Todo
 
+- reinforce rows on center/right
+- rethink/remove distribution graph
 - back from select music should not exit to title
 - include/exclude
 - try with different themes?

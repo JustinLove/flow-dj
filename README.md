@@ -1,12 +1,19 @@
 # Flow DJ
 
-A Stepmania 5 theme mod which replaces music selection with an auto song picker.
+A Stepmania 5 theme mod which replaces music selection with an auto song picker. Stop stressing over which song and level to pick, and *just play*.
 
 ## Features
 
-- Selects steps by player score, with warm-up/cool-down and random variations.
-- Estimates scores for unplayed steps.
+- Selects steps by player score with some variation in target score.
 - Prefers songs by inverse play count to maximize variety.
+
+## The Whys
+
+The problem for me was I tended to run through songs in the same order every time. Since I usually to do a kind of warm up/warm down, this also meant I would play the same songs on lower and higher levels in each group. I found the random options to be inconvenient to use and/or restrictive. I tried drunken-shame, but found the challenge adjustment stayed too easy for my taste.
+
+This module picks songs by score independently of fixed orders to mix up the easy/hard ones, and tries to introduce some variation within a session, both for warm up/down, and for difficulty spikes and relaxes. Beyond that it prefers least played songs for variety, with some random noise to prevent it from cycling the same order over and over.
+
+If you use Flow-DJ, you don't have to think about which song to play. Once you find score ranges that work for you, you usually don't have to think about what level to play, though you can tweak the settings as needed. (My range seems to be 60s-80s.) Unlike drunken shame, it pauses between every song, which works for me to monitor how things are going and take a drink.
 
 ## Limits
 
@@ -66,7 +73,7 @@ The select music screen is effectively replaced with a screen that performs the 
 
 ### Model Screen
 
-The model is a linear regression over the basic stats and groove-radar values available about each set of steps.
+The model for estimating scores of unplayed steps is a linear regression over the basic stats and groove-radar values available about each set of steps.
 
 The left side shows the relative size of the weights for each factor.
 
