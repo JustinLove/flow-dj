@@ -939,6 +939,21 @@ local function ManualFlow(start, middle)
 	return flow
 end
 
+local function ArcWeight(stage, a)
+	local x = stage/stages
+	return (x ^ (a-1)) * (1 - (x ^ a)) * (2.1 + (a - 1.5) * 0.5)
+end
+
+local function ArcFlow(a, start, middle)
+	local flow = {}
+	for stage = 1,stages do
+		local factor = ArcWeight(stage, a)
+		flow[stage] = start * (1-factor) + middle * factor
+	end
+	return flow
+end
+
+
 local function WiggleFlow(flow, scale)
 	for i,target in ipairs(flow) do
 		flow[i] = target + (math.sin(FlowDJ.scale*i + FlowDJ.offset) * scale[i])
@@ -955,8 +970,21 @@ local function WigglePath(flow)
 	return out
 end
 
+local function FlowPath(flow, a)
+	local out = {}
+	local scale = 100
+	local x
+	for i=1,#flow*scale do
+		x = i/(#flow*scale)
+		out[i] = (x ^ (a-1)) * (1 - (x ^ a))
+	end
+	return out
+end
+
+
 local function BuildFlow()
-	return WiggleFlow(ManualFlow(start_score, mid_score), ManualFlow(score_wiggle * 0.5, score_wiggle))
+	return WiggleFlow(ManualFlow(1.5, 3.5), ManualFlow(0.2, 0.8))
+	--return WiggleFlow(ManualFlow(start_score, mid_score), ManualFlow(score_wiggle * 0.5, score_wiggle))
 end
 
 local function DisplaySelectionForCurrentStage(selections)
@@ -994,8 +1022,9 @@ end
 
 local incremental_history = {}
 local incremental_step = 1
---local current_flow = BuildFlow()
-local current_flow = WiggleFlow(ManualFlow(1.5, 3.5), ManualFlow(0.2, 0.8))
+local current_flow = BuildFlow()
+--local current_flow = WiggleFlow(ManualFlow(1.5, 3.5), ManualFlow(0.2, 0.8))
+--local current_flow = WiggleFlow(ArcFlow(3, 1.5, 3.5), ManualFlow(0.2, 0.8))
 --local current_flow = WiggleFlow(ManualFlow(2, 7.7), ManualFlow(1, 1))
 local selection_range = 0.03
 local selection_snapshot = {}
@@ -1100,6 +1129,7 @@ local function PerformPick(frame)
 	--local curve_graph = song_list_overlay:GetChild("curve graph")
 	--curve_graph:baserotationz(90)
 	--GraphData(curve_graph, WigglePath(current_flow))
+	--GraphData(curve_graph, FlowPath(current_flow, 3))
 
 	--nps_graph:SetLabel(string.format("%0.1f nps %d-%d bpm", sel.nps, sel.song:GetDisplayBpms()[1], sel.song:GetDisplayBpms()[2]))
 
