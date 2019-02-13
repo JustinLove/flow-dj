@@ -1,5 +1,9 @@
 ## Todo
 
+- testing nps based selection
+- special case for occasional extremes?
+- curve improvements - many curves pick the same 2-3 levels repeatedly
+
 - rethink/remove distribution graph
 - include/exclude
 - try with different themes?

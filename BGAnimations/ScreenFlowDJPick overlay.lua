@@ -941,7 +941,7 @@ end
 
 local function WiggleFlow(flow, scale)
 	for i,target in ipairs(flow) do
-		flow[i] = target + (math.sin(FlowDJ.scale*i + FlowDJ.offset) * scale)
+		flow[i] = target + (math.sin(FlowDJ.scale*i + FlowDJ.offset) * scale[i])
 	end
 	return flow
 end
@@ -956,7 +956,7 @@ local function WigglePath(flow)
 end
 
 local function BuildFlow()
-	return WiggleFlow(ManualFlow(start_score, mid_score), score_wiggle)
+	return WiggleFlow(ManualFlow(start_score, mid_score), ManualFlow(score_wiggle * 0.5, score_wiggle))
 end
 
 local function DisplaySelectionForCurrentStage(selections)
@@ -995,8 +995,8 @@ end
 local incremental_history = {}
 local incremental_step = 1
 --local current_flow = BuildFlow()
-local current_flow = WiggleFlow(ManualFlow(1.5, 3.5), 0.5)
---local current_flow = WiggleFlow(ManualFlow(2, 7.7), 1)
+local current_flow = WiggleFlow(ManualFlow(1.5, 3.5), ManualFlow(0.2, 0.8))
+--local current_flow = WiggleFlow(ManualFlow(2, 7.7), ManualFlow(1, 1))
 local selection_range = 0.03
 local selection_snapshot = {}
 
