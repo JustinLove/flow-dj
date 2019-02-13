@@ -3,6 +3,8 @@ local bar_height = 8
 local bar_width = 45
 local flow_height = 48
 local flow_width = 600
+local flow_baseline = 600
+local flow_scale = -0.09
 local flow_mark = 12
 local data_width = (30 + bar_width + 40 + bar_width)
 local text_width = 300
@@ -92,13 +94,24 @@ return Def.ActorFrame {
 
 				local flow_range = self:GetChild("flow range")
 				flow_range:setsize(range * 2 * flow_width, flow_height)
-				flow_range:xy(flow * flow_width, 0)
+				flow_range:xy(flow * flow_width * flow_scale + flow_baseline, 0)
 				flow_range:diffuse(Brightness(Color.White, 0.5 * brightness))
 				if current then
 					flow_range:glowshift()
 					flow_range:effectcolor1(Brightness(Color.White, 0.6))
 					flow_range:effectcolor2(Brightness(Color.White, 0.8))
 					flow_range:effectperiod(2)
+				end
+
+				local nps_mark = self:GetChild("nps mark")
+				nps_mark:setsize(flow_mark, flow_height)
+				nps_mark:xy(sel.nps * flow_width * flow_scale + flow_baseline, 0)
+				nps_mark:diffuse(Brightness(Color.Red, brightness))
+				if current then
+					nps_mark:glowshift()
+					nps_mark:effectcolor1(Brightness(Color.Red, 0.8))
+					nps_mark:effectcolor2(Brightness(Color.Red, 1.0))
+					nps_mark:effectperiod(2)
 				end
 
 				local predicted_score = self:GetChild("predicted score")
@@ -133,10 +146,10 @@ return Def.ActorFrame {
 
 			self.DifficultyArrowsOn = function(self, flow, range)
 				local left_arrow = self:GetChild("left arrow")
-				left_arrow:xy((flow - range * 2) * flow_width, 0)
+				left_arrow:xy((flow * flow_scale + 1 - range * 2) * flow_width, 0)
 				left_arrow:visible(true)
 				local right_arrow = self:GetChild("right arrow")
-				right_arrow:xy((flow + range * 2) * flow_width, 0)
+				right_arrow:xy((flow * flow_scale + 1 + range * 2) * flow_width, 0)
 				right_arrow:visible(true)
 			end
 
@@ -184,6 +197,9 @@ return Def.ActorFrame {
 	},
 	Def.BitmapText{
 		Name = "right arrow", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENURIGHT;"),
+	},
+	Def.Quad{
+		Name= "nps mark"
 	},
 	Def.Quad{
 		Name= "predicted score"

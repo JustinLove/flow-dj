@@ -805,6 +805,33 @@ local function PickByMeter(flow)
 	return selections
 end
 
+local function PickByRate(flow, start_range)
+	local selections, picked = PickRecent()
+	for i,target in ipairs(flow) do
+		local range = 0
+		while not selections[i] and range < 2.0 do
+			range = range + start_range
+			local low = target - range
+			local high = target + range
+			for j,sel in ipairs(possible_steps) do
+				local path = sel.song:GetSongFilePath()
+				local nps = sel.nps
+				if low < nps and nps < high and not picked[path] then
+					selections[i] = sel
+					sel.selected = true
+					sel.stage = i
+					picked[path] = true
+					break
+				end
+			end
+		end
+		if not selections[i] then
+			lua.ReportScriptError("missing " .. target)
+		end
+	end
+	return selections
+end
+
 local function PickByScore(flow, theta, start_range)
 	local selections, picked = PickRecent()
 	for i,target in ipairs(flow) do
@@ -967,7 +994,8 @@ end
 
 local incremental_history = {}
 local incremental_step = 1
-local current_flow = BuildFlow()
+--local current_flow = BuildFlow()
+local current_flow = WiggleFlow(ManualFlow(1.5, 3.5), 0.5)
 --local current_flow = WiggleFlow(ManualFlow(2, 7.7), 1)
 local selection_range = 0.03
 local selection_snapshot = {}
@@ -1050,7 +1078,8 @@ local function PerformPick(frame)
 	if #scored_steps <= stages and WorstScore(scored_steps) > 0.6 then
 		selection_snapshot = PickBootstrap()
 	else
-		selection_snapshot = PickByScore(current_flow, FlowDJ.theta, selection_range)
+		--selection_snapshot = PickByScore(current_flow, FlowDJ.theta, selection_range)
+		selection_snapshot = PickByRate(current_flow, 0.3)
 	end
 	--selection_snapshot = PickByMeter(flow)
 	--right_text:settext(SelectionsDebug(selection_snapshot))
