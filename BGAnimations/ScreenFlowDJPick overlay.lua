@@ -832,6 +832,37 @@ local function PickByRate(flow, start_range)
 	return selections
 end
 
+local function PickByRange(lower_bound, upper_bound, theta, start_range)
+	local selections, picked = PickRecent()
+	for i,target in ipairs(upper_bound) do
+		local range = 0
+		while not selections[i] and range < 2.0 do
+			range = range + start_range
+			local low = lower_bound[i]
+			local high = upper_bound[i]
+			for j,sel in ipairs(possible_steps) do
+				local path = sel.song:GetSongFilePath()
+				local score = sel.score
+				local nps = sel.nps
+				if score == 0 then
+					score = PredictedScore(sel, theta)
+				end
+				if low < score and high < nps and not picked[path] then
+					selections[i] = sel
+					sel.selected = true
+					sel.stage = i
+					picked[path] = true
+					break
+				end
+			end
+		end
+		if not selections[i] then
+			lua.ReportScriptError("missing " .. target)
+		end
+	end
+	return selections
+end
+
 local function PickByScore(flow, theta, start_range)
 	local selections, picked = PickRecent()
 	for i,target in ipairs(flow) do
@@ -983,8 +1014,10 @@ end
 
 
 local function BuildFlow()
-	return WiggleFlow(ManualFlow(1.5, 3.5), ManualFlow(0.2, 0.8))
+	--return WiggleFlow(ManualFlow(1.5, 3.5), ManualFlow(0.2, 0.8))
 	--return WiggleFlow(ManualFlow(start_score, mid_score), ManualFlow(score_wiggle * 0.5, score_wiggle))
+	--return WiggleFlow(ArcFlow(3, start_score, mid_score), ManualFlow(score_wiggle * 0.5, score_wiggle))
+	return ArcFlow(3, start_score, mid_score)
 end
 
 local function DisplaySelectionForCurrentStage(selections)
@@ -1023,6 +1056,7 @@ end
 local incremental_history = {}
 local incremental_step = 1
 local current_flow = BuildFlow()
+local nps_bound = ArcFlow(3, 1, 2)
 --local current_flow = WiggleFlow(ManualFlow(1.5, 3.5), ManualFlow(0.2, 0.8))
 --local current_flow = WiggleFlow(ArcFlow(3, 1.5, 3.5), ManualFlow(0.2, 0.8))
 --local current_flow = WiggleFlow(ManualFlow(2, 7.7), ManualFlow(1, 1))
@@ -1107,8 +1141,9 @@ local function PerformPick(frame)
 	if #scored_steps <= stages and WorstScore(scored_steps) > 0.6 then
 		selection_snapshot = PickBootstrap()
 	else
+		selection_snapshot = PickByRange(current_flow, nps_bound, FlowDJ.theta, selection_range)
 		--selection_snapshot = PickByScore(current_flow, FlowDJ.theta, selection_range)
-		selection_snapshot = PickByRate(current_flow, 0.3)
+		--selection_snapshot = PickByRate(current_flow, 0.3)
 	end
 	--selection_snapshot = PickByMeter(flow)
 	--right_text:settext(SelectionsDebug(selection_snapshot))

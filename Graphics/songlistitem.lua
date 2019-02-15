@@ -3,8 +3,10 @@ local bar_height = 8
 local bar_width = 45
 local flow_height = 48
 local flow_width = 600
-local flow_baseline = 600
-local flow_scale = -0.09
+local nps_baseline = 600
+local nps_scale = -0.09
+local flow_baseline = 0
+local flow_scale = 1
 local flow_mark = 12
 local data_width = (30 + bar_width + 40 + bar_width)
 local text_width = 300
@@ -105,7 +107,7 @@ return Def.ActorFrame {
 
 				local nps_mark = self:GetChild("nps mark")
 				nps_mark:setsize(flow_mark, flow_height)
-				nps_mark:xy(sel.nps * flow_width * flow_scale + flow_baseline, 0)
+				nps_mark:xy(sel.nps * flow_width * nps_scale + nps_baseline, 0)
 				nps_mark:diffuse(Brightness(Color.Red, brightness))
 				if current then
 					nps_mark:glowshift()
@@ -146,10 +148,10 @@ return Def.ActorFrame {
 
 			self.DifficultyArrowsOn = function(self, flow, range)
 				local left_arrow = self:GetChild("left arrow")
-				left_arrow:xy((flow * flow_scale + 1 - range * 2) * flow_width, 0)
+				left_arrow:xy((flow - range * 2) * flow_width, 0)
 				left_arrow:visible(true)
 				local right_arrow = self:GetChild("right arrow")
-				right_arrow:xy((flow * flow_scale + 1 + range * 2) * flow_width, 0)
+				right_arrow:xy((flow + range * 2) * flow_width, 0)
 				right_arrow:visible(true)
 			end
 
