@@ -1546,7 +1546,7 @@ local t = Def.ActorFrame{
 							end
 						end
 					end
-					if current_controls == "settings1" then
+					if current_controls == "settings1" and items[#selections] then
 						items[#selections]:StagesArrowsOn()
 					end
 					for i = #selections+1,#items do
