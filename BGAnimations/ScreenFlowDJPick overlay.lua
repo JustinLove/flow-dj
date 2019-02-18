@@ -465,6 +465,9 @@ local function PossibleSteps()
 			})
 		end
 	end
+	table.sort(possible, function(a, b)
+		return a['nps'] < b['nps']
+	end)
 	return possible
 end
 
@@ -501,9 +504,7 @@ end
 local initial_theta = {
 	c = 0,
 	meter = 0,
-	--nps = 0,
-	significant_timing_changes = 0,
-	min_bpm = 0,
+	nps = 0,
 	max_bpm = 0,
 }
 for c,category in ipairs(RadarCategory) do
@@ -513,7 +514,7 @@ end
 local function Polynomial(factors, degree)
 	local keys = {}
 	for key,value in pairs(factors) do
-		if key ~= 'c' and key ~= 'significant_timing_changes' then
+		if key ~= 'c' then
 			table.insert(keys, key)
 		end
 	end
@@ -556,8 +557,7 @@ local function AddFactors(steps)
 		sel.factors = {
 			c = 1,
 			meter = sel.meter,
-			--nps = sel.nps,
-			min_bpm = bpms[1] or 0,
+			nps = sel.nps,
 			max_bpm = bpms[2] or 120,
 		}
 		local radar = sel.steps:GetRadarValues(pn)
@@ -566,10 +566,6 @@ local function AddFactors(steps)
 			sel.factors[category] = value
 		end
 		Polynomial(sel.factors, poly)
-		sel.factors['significant_timing_changes'] = 0
-		if sel.steps:HasSignificantTimingChanges() then
-			sel.factors['significant_timing_changes'] = 1
-		end
 		--Cross(sel.factors)
 	end
 	NormalizeFactors(steps)
@@ -832,14 +828,13 @@ local function PickByRate(flow, start_range)
 	return selections
 end
 
-local function PickByRange(lower_bound, upper_bound, theta, start_range)
+local function PickByRange(wiggle, lower_bound, nps_lower_bound, nps_upper_bound, theta, start_range)
 	local selections, picked = PickRecent()
-	for i,target in ipairs(upper_bound) do
+	for i,min in ipairs(lower_bound) do
 		local range = 0
 		while not selections[i] and range < 2.0 do
-			range = range + start_range
-			local low = lower_bound[i]
-			local high = upper_bound[i]
+			local low = 100
+			local high = 0
 			for j,sel in ipairs(possible_steps) do
 				local path = sel.song:GetSongFilePath()
 				local score = sel.score
@@ -847,7 +842,26 @@ local function PickByRange(lower_bound, upper_bound, theta, start_range)
 				if score == 0 then
 					score = PredictedScore(sel, theta)
 				end
-				if low < score and high < nps and not picked[path] then
+				--if min < score and nps_lower_bound[i] < nps and nps < nps_upper_bound[i] and not picked[path] then
+				if min < score and nps_lower_bound[i] < nps and not picked[path] then
+					if nps < low then
+						low = nps
+					end
+					high = nps
+				end
+			end
+			range = range + start_range
+			local target = low + (high - low)*wiggle[i]
+			local low = target - range
+			local high = target + range
+			for j,sel in ipairs(possible_steps) do
+				local path = sel.song:GetSongFilePath()
+				local score = sel.score
+				local nps = sel.nps
+				if score == 0 then
+					score = PredictedScore(sel, theta)
+				end
+				if min < score and low < nps and nps < high and not picked[path] then
 					selections[i] = sel
 					sel.selected = true
 					sel.stage = i
@@ -1014,10 +1028,12 @@ end
 
 
 local function BuildFlow()
-	--return WiggleFlow(ManualFlow(1.5, 3.5), ManualFlow(0.2, 0.8))
+	return WiggleFlow(ArcFlow(3, 0.3, 0.7), ArcFlow(3, 0.3, 0.3))
+	--return WiggleFlow(ManualFlow(0.5, 0.5), ManualFlow(0.5, 0.5))
+	--return WiggleFlow(ArcFlow(3, 1.3, 3.5), ArcFlow(3, 0.3, 1))
 	--return WiggleFlow(ManualFlow(start_score, mid_score), ManualFlow(score_wiggle * 0.5, score_wiggle))
 	--return WiggleFlow(ArcFlow(3, start_score, mid_score), ManualFlow(score_wiggle * 0.5, score_wiggle))
-	return ArcFlow(3, start_score, mid_score)
+	--return ArcFlow(3, start_score, mid_score)
 end
 
 local function DisplaySelectionForCurrentStage(selections)
@@ -1056,7 +1072,9 @@ end
 local incremental_history = {}
 local incremental_step = 1
 local current_flow = BuildFlow()
-local nps_bound = ArcFlow(3, 1, 2)
+local nps_lower_bound = ArcFlow(3, 1, 2)
+local nps_upper_bound = ArcFlow(3, 2, 10)
+local score_bound = ArcFlow(3, start_score, mid_score)
 --local current_flow = WiggleFlow(ManualFlow(1.5, 3.5), ManualFlow(0.2, 0.8))
 --local current_flow = WiggleFlow(ArcFlow(3, 1.5, 3.5), ManualFlow(0.2, 0.8))
 --local current_flow = WiggleFlow(ManualFlow(2, 7.7), ManualFlow(1, 1))
@@ -1141,7 +1159,7 @@ local function PerformPick(frame)
 	if #scored_steps <= stages and WorstScore(scored_steps) > 0.6 then
 		selection_snapshot = PickBootstrap()
 	else
-		selection_snapshot = PickByRange(current_flow, nps_bound, FlowDJ.theta, selection_range)
+		selection_snapshot = PickByRange(current_flow, score_bound, nps_lower_bound, nps_upper_bound, FlowDJ.theta, selection_range)
 		--selection_snapshot = PickByScore(current_flow, FlowDJ.theta, selection_range)
 		--selection_snapshot = PickByRate(current_flow, 0.3)
 	end
