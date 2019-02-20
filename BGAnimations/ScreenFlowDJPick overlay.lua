@@ -465,9 +465,6 @@ local function PossibleSteps()
 			})
 		end
 	end
-	table.sort(possible, function(a, b)
-		return a['nps'] < b['nps']
-	end)
 	return possible
 end
 
@@ -847,7 +844,9 @@ local function PickByRange(wiggle, lower_bound, nps_lower_bound, nps_upper_bound
 					if nps < low then
 						low = nps
 					end
-					high = nps
+					if nps > high then
+						high = nps
+					end
 				end
 			end
 			range = range + start_range
