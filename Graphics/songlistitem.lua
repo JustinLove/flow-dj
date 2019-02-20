@@ -95,15 +95,17 @@ return Def.ActorFrame {
 					group_backdrop:diffuseleftedge(Alpha(Color.Black, 0.00))
 				end
 
-				local flow_range = self:GetChild("flow range")
-				flow_range:setsize((sel.nps_high - sel.nps_low) * flow_width * nps_scale, flow_height)
-				flow_range:xy((sel.nps_low + (sel.nps_high - sel.nps_low)/2) * flow_width * nps_scale + nps_baseline, 0)
-				flow_range:diffuse(Brightness(Color.White, 0.5 * brightness))
-				if current then
-					flow_range:glowshift()
-					flow_range:effectcolor1(Brightness(Color.White, 0.6))
-					flow_range:effectcolor2(Brightness(Color.White, 0.8))
-					flow_range:effectperiod(2)
+				if sel.nps_high and sel.nps_low then
+					local flow_range = self:GetChild("flow range")
+					flow_range:setsize((sel.nps_high - sel.nps_low) * flow_width * nps_scale, flow_height)
+					flow_range:xy((sel.nps_low + (sel.nps_high - sel.nps_low)/2) * flow_width * nps_scale + nps_baseline, 0)
+					flow_range:diffuse(Brightness(Color.White, 0.5 * brightness))
+					if current then
+						flow_range:glowshift()
+						flow_range:effectcolor1(Brightness(Color.White, 0.6))
+						flow_range:effectcolor2(Brightness(Color.White, 0.8))
+						flow_range:effectperiod(2)
+					end
 				end
 
 				local predicted_score = self:GetChild("score bound")

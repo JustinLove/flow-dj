@@ -1044,9 +1044,9 @@ local function BuildFlow()
 		selection_range = 0.3,
 	}
 
---local current_flow = WiggleFlow(ManualFlow(1.5, 3.5), ManualFlow(0.2, 0.8))
---local current_flow = WiggleFlow(ArcFlow(3, 1.5, 3.5), ManualFlow(0.2, 0.8))
---local current_flow = WiggleFlow(ManualFlow(2, 7.7), ManualFlow(1, 1))
+	--local current_flow = WiggleFlow(ManualFlow(1.5, 3.5), ManualFlow(0.2, 0.8))
+	--local current_flow = WiggleFlow(ArcFlow(3, 1.5, 3.5), ManualFlow(0.2, 0.8))
+	--local current_flow = WiggleFlow(ManualFlow(2, 7.7), ManualFlow(1, 1))
 	--return WiggleFlow(ManualFlow(0.5, 0.5), ManualFlow(0.5, 0.5))
 	--return WiggleFlow(ArcFlow(3, 1.3, 3.5), ArcFlow(3, 0.3, 1))
 	--return WiggleFlow(ManualFlow(start_score, mid_score), ManualFlow(score_wiggle * 0.5, score_wiggle))
