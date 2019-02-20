@@ -825,13 +825,13 @@ local function PickByRate(flow, start_range)
 	return selections
 end
 
-local function PickByRange(wiggle, lower_bound, nps_lower_bound, nps_upper_bound, theta, start_range)
+local function PickByRange(flow, theta)
 	local selections, picked = PickRecent()
-	for i,min in ipairs(lower_bound) do
+	for i,min in ipairs(flow.score_bound) do
 		local range = 0
 		while not selections[i] and range < 2.0 do
-			local low = 100
-			local high = 0
+			local bottom = flow.nps_upper_bound[i]
+			local top = flow.nps_lower_bound[i]
 			for j,sel in ipairs(possible_steps) do
 				local path = sel.song:GetSongFilePath()
 				local score = sel.score
@@ -839,18 +839,17 @@ local function PickByRange(wiggle, lower_bound, nps_lower_bound, nps_upper_bound
 				if score == 0 then
 					score = PredictedScore(sel, theta)
 				end
-				--if min < score and nps_lower_bound[i] < nps and nps < nps_upper_bound[i] and not picked[path] then
-				if min < score and nps_lower_bound[i] < nps and not picked[path] then
-					if nps < low then
-						low = nps
+				if min < score and flow.nps_lower_bound[i] + flow.selection_range < nps and nps < flow.nps_upper_bound[i] - flow.selection_range and not picked[path] then
+					if nps < bottom then
+						bottom = nps
 					end
-					if nps > high then
-						high = nps
+					if nps > top then
+						top = nps
 					end
 				end
 			end
-			range = range + start_range
-			local target = low + (high - low)*wiggle[i]
+			range = range + flow.selection_range
+			local target = bottom + (top - bottom)*flow.wiggle[i]
 			local low = target - range
 			local high = target + range
 			for j,sel in ipairs(possible_steps) do
@@ -864,6 +863,8 @@ local function PickByRange(wiggle, lower_bound, nps_lower_bound, nps_upper_bound
 					selections[i] = sel
 					sel.selected = true
 					sel.stage = i
+					sel.nps_low = low
+					sel.nps_high = high
 					picked[path] = true
 					break
 				end
@@ -936,6 +937,14 @@ local function LinearFlow()
 	local flow = {}
 	for stage = 1,stages do
 		flow[stage] = stage
+	end
+	return flow
+end
+
+local function ConstantFlow(x)
+	local flow = {}
+	for stage = 1,stages do
+		flow[stage] = x
 	end
 	return flow
 end
@@ -1027,7 +1036,17 @@ end
 
 
 local function BuildFlow()
-	return WiggleFlow(ArcFlow(3, 0.3, 0.7), ArcFlow(3, 0.3, 0.3))
+	return {
+		wiggle = WiggleFlow(ArcFlow(3, 0+score_wiggle, 1-score_wiggle), ConstantFlow(score_wiggle)),
+		nps_lower_bound = ConstantFlow(0.8),
+		nps_upper_bound = ArcFlow(3, 2, 10),
+		score_bound = ArcFlow(3, start_score, mid_score),
+		selection_range = 0.3,
+	}
+
+--local current_flow = WiggleFlow(ManualFlow(1.5, 3.5), ManualFlow(0.2, 0.8))
+--local current_flow = WiggleFlow(ArcFlow(3, 1.5, 3.5), ManualFlow(0.2, 0.8))
+--local current_flow = WiggleFlow(ManualFlow(2, 7.7), ManualFlow(1, 1))
 	--return WiggleFlow(ManualFlow(0.5, 0.5), ManualFlow(0.5, 0.5))
 	--return WiggleFlow(ArcFlow(3, 1.3, 3.5), ArcFlow(3, 0.3, 1))
 	--return WiggleFlow(ManualFlow(start_score, mid_score), ManualFlow(score_wiggle * 0.5, score_wiggle))
@@ -1071,13 +1090,6 @@ end
 local incremental_history = {}
 local incremental_step = 1
 local current_flow = BuildFlow()
-local nps_lower_bound = ArcFlow(3, 1, 2)
-local nps_upper_bound = ArcFlow(3, 2, 10)
-local score_bound = ArcFlow(3, start_score, mid_score)
---local current_flow = WiggleFlow(ManualFlow(1.5, 3.5), ManualFlow(0.2, 0.8))
---local current_flow = WiggleFlow(ArcFlow(3, 1.5, 3.5), ManualFlow(0.2, 0.8))
---local current_flow = WiggleFlow(ManualFlow(2, 7.7), ManualFlow(1, 1))
-local selection_range = 0.03
 local selection_snapshot = {}
 
 local function IncrementalGraphPredictions(steps, theta, color)
@@ -1158,11 +1170,11 @@ local function PerformPick(frame)
 	if #scored_steps <= stages and WorstScore(scored_steps) > 0.6 then
 		selection_snapshot = PickBootstrap()
 	else
-		selection_snapshot = PickByRange(current_flow, score_bound, nps_lower_bound, nps_upper_bound, FlowDJ.theta, selection_range)
-		--selection_snapshot = PickByScore(current_flow, FlowDJ.theta, selection_range)
-		--selection_snapshot = PickByRate(current_flow, 0.3)
+		selection_snapshot = PickByRange(current_flow, FlowDJ.theta)
+		--selection_snapshot = PickByScore(current_flow.wiggle, FlowDJ.theta, current_flow)
+		--selection_snapshot = PickByRate(current_flow.wiggle, 0.3)
 	end
-	--selection_snapshot = PickByMeter(flow)
+	--selection_snapshot = PickByMeter(current_flow.wiggle)
 	--right_text:settext(SelectionsDebug(selection_snapshot))
 	local song_list = frame:GetChild("song list")
 	AssignScore(possible_steps, FlowDJ.theta)
@@ -1180,13 +1192,13 @@ local function PerformPick(frame)
 
 	--local curve_graph = song_list_overlay:GetChild("curve graph")
 	--curve_graph:baserotationz(90)
-	--GraphData(curve_graph, WigglePath(current_flow))
-	--GraphData(curve_graph, FlowPath(current_flow, 3))
+	--GraphData(curve_graph, WigglePath(current_flow.wiggle))
+	--GraphData(curve_graph, FlowPath(current_flow.wiggle, 3))
 
 	--nps_graph:SetLabel(string.format("%0.1f nps %d-%d bpm", sel.nps, sel.song:GetDisplayBpms()[1], sel.song:GetDisplayBpms()[2]))
 
 	--local flow_graph = graphs:GetChild("flow graph")
-	--GraphFlow(flow_graph, current_flow, selection_snapshot, FlowDJ.theta, selection_range)
+	--GraphFlow(flow_graph, current_flow.wiggle, selection_snapshot, FlowDJ.theta, current_flow.selection_range)
 	--flow_graph:SetLabel(string.format("Stage %d", stage))
 
 	SetView("flow")
@@ -1551,12 +1563,12 @@ local t = Def.ActorFrame{
 						if items and items[i] then
 							sel.predicted_score = PredictedScore(sel, FlowDJ.theta)
 							local current = (i == FlowDJ.stage+1)
-							items[i]:SetSelection(sel, i, current_flow[i], selection_range, current)
+							items[i]:SetSelection(sel, i, current_flow, current)
 							items[i]:StagesArrowsOff()
 							if current then
 								if current_controls == "default" then
 
-									items[i]:DifficultyArrowsOn(current_flow[i], selection_range)
+									items[i]:DifficultyArrowsOn(current_flow.wiggle[i], current_flow.selection_range)
 								else
 									items[i]:DifficultyArrowsOff()
 								end
