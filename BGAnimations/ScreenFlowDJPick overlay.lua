@@ -1603,7 +1603,7 @@ local t = Def.ActorFrame{
 			end,
 			Def.BitmapText{
 				Name = "setting line", Font = "Common Normal", InitCommand = function(self)
-					self:xy(SCREEN_WIDTH * 0.05, 0)
+					self:xy(SCREEN_WIDTH * 0.35, 0)
 					self:zoom(0.05*text_height)
 					settings_text = self
 				end
