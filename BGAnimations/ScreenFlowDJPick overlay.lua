@@ -1206,7 +1206,8 @@ local function PerformPick(frame)
 end
 
 local function BumpFlow(stage, by)
-	local start_factor,mid_factor = ManualFlowWeights(stage, ManualFlowEdges())
+	local mid_factor = ArcWeight(stage, 3)
+	local start_factor = 1 - mid_factor
 
 	start_score = math.max(0.0, math.min(1.0, start_score - 0.02 * start_factor * by))
 	mid_score = math.max(0.0, math.min(1.0, mid_score - 0.02 * mid_factor * by))
