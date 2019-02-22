@@ -9,6 +9,7 @@ local flow_baseline = 0
 local flow_scale = 1
 local flow_mark = 12
 local bound_mark = 4
+local arrow_offset = 20
 local data_width = (30 + bar_width + 40 + bar_width)
 local text_width = 300
 
@@ -95,10 +96,14 @@ return Def.ActorFrame {
 					group_backdrop:diffuseleftedge(Alpha(Color.Black, 0.00))
 				end
 
-				if sel.nps_high and sel.nps_low then
+				local left_arrow = self:GetChild("left wiggle")
+				if left_arrow:GetVisible() and sel.nps_bottom and sel.nps_top then
 					local flow_range = self:GetChild("flow range")
-					flow_range:setsize((sel.nps_high - sel.nps_low) * flow_width * nps_scale, flow_height)
-					flow_range:xy((sel.nps_low + (sel.nps_high - sel.nps_low)/2) * flow_width * nps_scale + nps_baseline, 0)
+					local nps_range = sel.nps_top - sel.nps_bottom
+					local range_bottom = (sel.nps_bottom + nps_range * (flow.wiggle_base[n] - flow.wiggle_range[n])) * flow_width * nps_scale + nps_baseline
+					local range_top = (sel.nps_bottom + nps_range * (flow.wiggle_base[n] + flow.wiggle_range[n])) * flow_width * nps_scale + nps_baseline
+					flow_range:setsize(range_top - range_bottom, flow_height)
+					flow_range:xy(range_bottom + (range_top - range_bottom)/2, 0)
 					flow_range:diffuse(Brightness(Color.White, 0.5 * brightness))
 					if current then
 						flow_range:glowshift()
@@ -106,6 +111,20 @@ return Def.ActorFrame {
 						flow_range:effectcolor2(Brightness(Color.White, 0.8))
 						flow_range:effectperiod(2)
 					end
+					left_arrow:xy(range_bottom - arrow_offset, 0)
+					local right_arrow = self:GetChild("right wiggle")
+					right_arrow:xy(range_bottom + arrow_offset, 0)
+				elseif sel.nps_high and sel.nps_low then
+						local flow_range = self:GetChild("flow range")
+						flow_range:setsize((sel.nps_high - sel.nps_low) * flow_width * nps_scale, flow_height)
+						flow_range:xy((sel.nps_low + (sel.nps_high - sel.nps_low)/2) * flow_width * nps_scale + nps_baseline, 0)
+						flow_range:diffuse(Brightness(Color.White, 0.5 * brightness))
+						if current then
+							flow_range:glowshift()
+							flow_range:effectcolor1(Brightness(Color.White, 0.6))
+							flow_range:effectcolor2(Brightness(Color.White, 0.8))
+							flow_range:effectperiod(2)
+						end
 				end
 
 				local predicted_score = self:GetChild("score bound")
@@ -198,6 +217,21 @@ return Def.ActorFrame {
 				right_arrow:visible(false)
 			end
 
+			self.WiggleArrowsOn = function(self, flow)
+				local left_arrow = self:GetChild("left wiggle")
+				left_arrow:visible(true)
+				local right_arrow = self:GetChild("right wiggle")
+				right_arrow:visible(true)
+			end
+
+			self.WiggleArrowsOff = function(self)
+				local left_arrow = self:GetChild("left wiggle")
+				left_arrow:visible(false)
+				local right_arrow = self:GetChild("right wiggle")
+				right_arrow:visible(false)
+			end
+
+
 			self.StagesArrowsOn = function(self)
 				local up_arrow = self:GetChild("up arrow")
 				up_arrow:xy(flow_width, -spacing)
@@ -253,6 +287,12 @@ return Def.ActorFrame {
 	},
 	Def.Quad{
 		Name= "actual score"
+	},
+	Def.BitmapText{
+		Name = "left wiggle", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENULEFT;"),
+	},
+	Def.BitmapText{
+		Name = "right wiggle", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENURIGHT;"),
 	},
 	Def.BitmapText{
 		Name = "title", Font = "Common Normal"

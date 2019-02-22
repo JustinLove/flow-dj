@@ -865,6 +865,8 @@ local function PickByRange(flow, theta)
 					sel.stage = i
 					sel.nps_low = low
 					sel.nps_high = high
+					sel.nps_bottom = bottom - range
+					sel.nps_top = top + range
 					picked[path] = true
 					break
 				end
@@ -1038,6 +1040,8 @@ end
 local function BuildFlow()
 	return {
 		wiggle = WiggleFlow(ArcFlow(3, 0+score_wiggle, 1-score_wiggle), ConstantFlow(score_wiggle)),
+		wiggle_base = ArcFlow(3, 0+score_wiggle, 1-score_wiggle),
+		wiggle_range = ConstantFlow(score_wiggle),
 		nps_lower_bound = ConstantFlow(0.8),
 		nps_upper_bound = ArcFlow(3, 2, 10),
 		score_bound = ArcFlow(3, start_score, mid_score),
@@ -1138,17 +1142,14 @@ local function SetControls(controls)
 		help_text:GetChild("default help text"):visible(false)
 		help_text:GetChild("settings1 help text"):visible(true)
 		help_text:GetChild("settings2 help text"):visible(false)
-		song_list_overlay:SetWiggleOn()
 	elseif controls == "settings2" then
 		help_text:GetChild("default help text"):visible(false)
 		help_text:GetChild("settings1 help text"):visible(false)
 		help_text:GetChild("settings2 help text"):visible(true)
-		song_list_overlay:SetWiggleOff()
 	else
 		help_text:GetChild("default help text"):visible(true)
 		help_text:GetChild("settings1 help text"):visible(false)
 		help_text:GetChild("settings2 help text"):visible(false)
-		song_list_overlay:SetWiggleOff()
 	end
 	local song_list = flow_frame:GetChild("song list")
 	song_list:SetSelections(selection_snapshot)
@@ -1544,7 +1545,6 @@ local t = Def.ActorFrame{
 				self:zoom(SongListScale())
 
 				self.SetSelections = function(self, selections)
-					song_list_overlay:PlaceWiggle(FlowDJ.stage)
 					self:zoom(SongListScale())
 					self:xy(song_list_column, SCREEN_HEIGHT * 0.14)
 
@@ -1568,11 +1568,18 @@ local t = Def.ActorFrame{
 							if current then
 								if current_controls == "default" then
 
-									items[i]:DifficultyArrowsOn(current_flow.wiggle[i], current_flow.selection_range)
+									items[i]:DifficultyArrowsOn(current_flow.score_bound[i], 0.02)
 								else
 									items[i]:DifficultyArrowsOff()
 								end
 							end
+							if current_controls == "settings1" then
+
+								items[i]:WiggleArrowsOn(current_flow.wiggle_base[i] - score_wiggle)
+							else
+								items[i]:WiggleArrowsOff()
+							end
+							items[i]:SetSelection(sel, i, current_flow, current)
 						end
 					end
 					if current_controls == "settings1" and items[#selections] then
@@ -1592,29 +1599,6 @@ local t = Def.ActorFrame{
 				song_list_overlay = self
 				self:visible(true)
 				self:xy(song_list_column, SCREEN_HEIGHT * 0.53)
-
-				self.SetWiggleOn = function(self, stage)
-					wiggle_left = self:GetChild("wiggle left")
-					wiggle_left:visible(true)
-					wiggle_right = self:GetChild("wiggle right")
-					wiggle_right:visible(true)
-				end
-				self.SetWiggleOff = function(self)
-					wiggle_left = self:GetChild("wiggle left")
-					wiggle_left:visible(false)
-					wiggle_right = self:GetChild("wiggle right")
-					wiggle_right:visible(false)
-				end
-				self.PlaceWiggle = function(self, stage)
-					local scale = SongListScale()
-					local manual = ManualFlow(start_score, mid_score)
-					local base = manual[stage+1]
-
-					wiggle_left = self:GetChild("wiggle left")
-					wiggle_left:xy(scale * 600 * (base - score_wiggle),0)
-					wiggle_right = self:GetChild("wiggle right")
-					wiggle_right:xy(scale * 600 * (base + score_wiggle),0)
-				end
 			end,
 			Def.BitmapText{
 				Name = "setting line", Font = "Common Normal", InitCommand = function(self)
@@ -1622,30 +1606,6 @@ local t = Def.ActorFrame{
 					self:zoom(0.05*text_height)
 					settings_text = self
 				end
-			},
-			Def.ActorFrame{
-				Name= "wiggle left", InitCommand = cmd(visible, false),
-				Def.Quad{
-					Name= "wiggle left line", InitCommand = function(self)
-						self:setsize(2, 0.75*SCREEN_HEIGHT)
-						self:diffusealpha(0.5)
-					end
-				},
-			},
-			Def.ActorFrame{
-				Name= "wiggle right", InitCommand= cmd(visible, false),
-				Def.Quad{
-					Name= "wiggle right line", InitCommand = function(self)
-						self:setsize(2, 0.75*SCREEN_HEIGHT)
-						self:diffusealpha(0.5)
-					end
-				},
-				Def.BitmapText{
-					Name = "left arrow", Font = "Common Normal", InitCommand = cmd(visible, true; xy, -20, 0; settext, "&MENULEFT;"),
-				},
-				Def.BitmapText{
-					Name = "right arrow", Font = "Common Normal", InitCommand = cmd(visible, true; xy, 20, 0; settext, "&MENURIGHT;"),
-				},
 			},
 			--Graph("curve graph", 900*SongListScale(), -0.5*0.75*SCREEN_HEIGHT, 0.75*SCREEN_HEIGHT),
 		},
