@@ -3,7 +3,7 @@ FlowDJ.fake_play = false
 local stages = FlowDJGetSetting("NumberOfStages")
 local start_score = FlowDJGetSetting("StartScore")/100
 local mid_score = FlowDJGetSetting("MidScore")/100
-local score_wiggle = FlowDJGetSetting("ScoreWiggle")/100
+local percent_wiggle = FlowDJGetSetting("PercentWiggle")/100
 local sample_music = FlowDJGetSetting("SampleMusic")
 local maximum_cost = 0.0015
 local minimum_iteration_per_stage = 200
@@ -1039,9 +1039,9 @@ end
 
 local function BuildFlow()
 	return {
-		wiggle = WiggleFlow(ArcFlow(3, 0+score_wiggle, 1-score_wiggle), ConstantFlow(score_wiggle)),
-		wiggle_base = ArcFlow(3, 0+score_wiggle, 1-score_wiggle),
-		wiggle_range = ConstantFlow(score_wiggle),
+		wiggle = WiggleFlow(ArcFlow(3, 0+percent_wiggle, 1-percent_wiggle), ConstantFlow(percent_wiggle)),
+		wiggle_base = ArcFlow(3, 0+percent_wiggle, 1-percent_wiggle),
+		wiggle_range = ConstantFlow(percent_wiggle),
 		nps_lower_bound = ConstantFlow(0.8),
 		nps_upper_bound = ArcFlow(3, 2, 10),
 		score_bound = ArcFlow(3, start_score, mid_score),
@@ -1053,8 +1053,8 @@ local function BuildFlow()
 	--local current_flow = WiggleFlow(ManualFlow(2, 7.7), ManualFlow(1, 1))
 	--return WiggleFlow(ManualFlow(0.5, 0.5), ManualFlow(0.5, 0.5))
 	--return WiggleFlow(ArcFlow(3, 1.3, 3.5), ArcFlow(3, 0.3, 1))
-	--return WiggleFlow(ManualFlow(start_score, mid_score), ManualFlow(score_wiggle * 0.5, score_wiggle))
-	--return WiggleFlow(ArcFlow(3, start_score, mid_score), ManualFlow(score_wiggle * 0.5, score_wiggle))
+	--return WiggleFlow(ManualFlow(start_score, mid_score), ManualFlow(percent_wiggle * 0.5, percent_wiggle))
+	--return WiggleFlow(ArcFlow(3, start_score, mid_score), ManualFlow(percent_wiggle * 0.5, percent_wiggle))
 	--return ArcFlow(3, start_score, mid_score)
 end
 
@@ -1222,9 +1222,9 @@ local function BumpFlow(stage, by)
 end
 
 local function BumpWiggle(by)
-	score_wiggle = math.max(0.0, math.min(0.5, score_wiggle + 0.01 * by))
-	FlowDJSetSetting("ScoreWiggle", math.floor(score_wiggle * 100))
-	settings_text:settext(string.format("wiggle: %d", score_wiggle * 100))
+	percent_wiggle = math.max(0.0, math.min(0.5, percent_wiggle + 0.01 * by))
+	FlowDJSetSetting("PercentWiggle", math.floor(percent_wiggle * 100))
+	settings_text:settext(string.format("wiggle: %d", percent_wiggle * 100))
 	current_flow = BuildFlow()
 	PerformPick(flow_frame)
 end
@@ -1576,7 +1576,7 @@ local t = Def.ActorFrame{
 							end
 							if current_controls == "settings1" then
 
-								items[i]:WiggleArrowsOn(current_flow.wiggle_base[i] - score_wiggle)
+								items[i]:WiggleArrowsOn(current_flow.wiggle_base[i] - percent_wiggle)
 							else
 								items[i]:WiggleArrowsOff()
 							end

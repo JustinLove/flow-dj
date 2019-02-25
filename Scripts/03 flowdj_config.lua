@@ -1,8 +1,8 @@
 local flowdj_default_config = {
 	NumberOfStages = 16,
 	StartScore = 85,
-	MidScore = 70,
-	ScoreWiggle = 5,
+	MidScore = 60,
+	PercentWiggle = 30,
 	SampleMusic = false,
 }
 
@@ -18,7 +18,7 @@ flowdj_config:load()
 add_standard_lua_config_save_load_hooks(flowdj_config)
 
 function FlowDJGetSetting(setting)
-	return flowdj_config:get_data()[setting]
+	return flowdj_config:get_data()[setting] or flowdj_default_config[setting]
 end
 
 function FlowDJSetSetting(setting, value)
