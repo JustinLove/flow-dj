@@ -5,6 +5,9 @@ local start_score = FlowDJGetSetting("StartScore")/100
 local mid_score = FlowDJGetSetting("MidScore")/100
 local percent_wiggle = FlowDJGetSetting("PercentWiggle")/100
 local sample_music = FlowDJGetSetting("SampleMusic")
+local slowest_speed = FlowDJGetSetting("SlowestSpeed")
+local fastest_speed_starting = FlowDJGetSetting("FastestSpeedStarting")
+local fastest_speed = FlowDJGetSetting("FastestSpeed")
 local maximum_cost = 0.0015
 local minimum_iteration_per_stage = 200
 local minimum_iteration = 1000
@@ -1042,8 +1045,8 @@ local function BuildFlow()
 		wiggle = WiggleFlow(ArcFlow(3, 0+percent_wiggle, 1-percent_wiggle), ConstantFlow(percent_wiggle)),
 		wiggle_base = ArcFlow(3, 0+percent_wiggle, 1-percent_wiggle),
 		wiggle_range = ConstantFlow(percent_wiggle),
-		nps_lower_bound = ConstantFlow(0.8),
-		nps_upper_bound = ArcFlow(3, 2, 10),
+		nps_lower_bound = ConstantFlow(slowest_speed),
+		nps_upper_bound = ArcFlow(3, fastest_speed_starting, fastest_speed),
 		score_bound = ArcFlow(3, start_score, mid_score),
 		selection_range = 0.3,
 	}

@@ -138,7 +138,6 @@ return Def.ActorFrame {
 					predicted_score:effectperiod(2)
 				end
 
-				--[[
 				local nps_mark = self:GetChild("nps lower bound")
 				nps_mark:setsize(bound_mark, flow_height)
 				nps_mark:xy(flow.nps_lower_bound[n] * flow_width * nps_scale + nps_baseline, 0)
@@ -160,7 +159,6 @@ return Def.ActorFrame {
 					nps_mark:effectcolor2(Brightness(Color.Red, 1.0))
 					nps_mark:effectperiod(2)
 				end
-				]]
 
 				local nps_mark = self:GetChild("nps mark")
 				nps_mark:setsize(flow_mark, flow_height)
