@@ -156,6 +156,7 @@ return Def.ActorFrame {
 					right_arrow:xy(x + arrow_offset, 0)
 				end
 
+				--[[
 				local nps_mark = self:GetChild("nps upper bound")
 				nps_mark:setsize(bound_mark, flow_height)
 				nps_mark:xy(flow.nps_upper_bound[n] * flow_width * nps_scale + nps_baseline, 0)
@@ -166,6 +167,7 @@ return Def.ActorFrame {
 					nps_mark:effectcolor2(Brightness(Color.Red, 1.0))
 					nps_mark:effectperiod(2)
 				end
+				]]
 
 				local nps_mark = self:GetChild("nps mark")
 				nps_mark:setsize(flow_mark, flow_height)

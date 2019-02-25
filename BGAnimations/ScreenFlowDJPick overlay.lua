@@ -1270,6 +1270,22 @@ local function BumpSlowestSpeed(by)
 	settings_text:settext(string.format("slowest: %0.1f", slowest_speed))
 end
 
+local function BumpFastestSpeedStarting(by)
+	fastest_speed_starting = math.max(0, math.min(10, fastest_speed_starting + by))
+	FlowDJSetSetting("FastestSpeedStarting", fastest_speed_starting)
+	current_flow = BuildFlow()
+	PerformPick(flow_frame)
+	settings_text:settext(string.format("starting: %0.1f", fastest_speed_starting))
+end
+
+local function BumpFastestSpeed(by)
+	fastest_speed = math.max(0, math.min(10, fastest_speed + by))
+	FlowDJSetSetting("FastestSpeed", fastest_speed)
+	current_flow = BuildFlow()
+	PerformPick(flow_frame)
+	settings_text:settext(string.format("fastest: %0.1f", fastest_speed))
+end
+
 local function ToggleSampleMusic()
 	sample_music = not sample_music
 	FlowDJSetSetting("SampleMusic", sample_music)
@@ -1387,6 +1403,27 @@ local function SlowestSpeedControls(button)
 	return false
 end
 
+local function FastestSpeedControls(button)
+	if button == "MenuRight" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
+		BumpFastestSpeedStarting(-0.1)
+		return true
+	elseif button == "MenuLeft" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
+		BumpFastestSpeedStarting(0.1)
+		return true
+	elseif button == "MenuUp" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
+		BumpFastestSpeed(0.1)
+		return true
+	elseif button == "MenuDown" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
+		BumpFastestSpeed(-0.1)
+		return true
+	end
+	return false
+end
+
 local function SpecialControls(button)
 	if button == "MenuLeft" then
 		ToggleSampleMusic()
@@ -1428,6 +1465,7 @@ local function input(event)
 	elseif current_controls == "default" and DefaultControls(button) then
 	elseif current_controls == "wigglestages" and WiggleStagesControls(button) then
 	elseif current_controls == "slowestspeed" and SlowestSpeedControls(button) then
+	elseif current_controls == "fastestspeed" and FastestSpeedControls(button) then
 	elseif current_controls == "special" and SpecialControls(button) then
 	else
 		lua.ReportScriptError(button)

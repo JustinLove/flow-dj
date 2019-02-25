@@ -1,6 +1,18 @@
 ## Todo
 
-- testing nps based selection
+- testing mixed mode selection
+- too many arrows when picking slowest
+- how to show two parts of fastest
+  - could share metrics via global
+  - bring back overlay lines?
+- separate start and mid score?
+- too many settings?
+  - don't want too many slow songs - slowest speed limit
+  - don't want fast songs early - fastest speed curve limit
+  - don't want to exclude faster songs that we do well at
+  - don't want too hard - low and mid score limits
+  - sometimes hitting same levels over and over again - large scale curve - both score and nps curves
+  - variation during session - small scale - wiggle setting, implicit large scale cuves
 - special case for occasional extremes?
 - curve improvements - many curves pick the same 2-3 levels repeatedly
 
