@@ -1141,18 +1141,36 @@ end
 
 local function SetControls(controls)
 	current_controls = controls
-	if controls == "settings1" then
+	if controls == "wigglestages" then
 		help_text:GetChild("default help text"):visible(false)
-		help_text:GetChild("settings1 help text"):visible(true)
-		help_text:GetChild("settings2 help text"):visible(false)
-	elseif controls == "settings2" then
+		help_text:GetChild("wigglestages help text"):visible(true)
+		help_text:GetChild("slowestspeed help text"):visible(false)
+		help_text:GetChild("fastestspeed help text"):visible(false)
+		help_text:GetChild("special help text"):visible(false)
+	elseif controls == "slowestspeed" then
 		help_text:GetChild("default help text"):visible(false)
-		help_text:GetChild("settings1 help text"):visible(false)
-		help_text:GetChild("settings2 help text"):visible(true)
+		help_text:GetChild("wigglestages help text"):visible(false)
+		help_text:GetChild("slowestspeed help text"):visible(true)
+		help_text:GetChild("fastestspeed help text"):visible(false)
+		help_text:GetChild("special help text"):visible(false)
+	elseif controls == "fastestspeed" then
+		help_text:GetChild("default help text"):visible(false)
+		help_text:GetChild("wigglestages help text"):visible(false)
+		help_text:GetChild("slowestspeed help text"):visible(false)
+		help_text:GetChild("fastestspeed help text"):visible(true)
+		help_text:GetChild("special help text"):visible(false)
+	elseif controls == "special" then
+		help_text:GetChild("default help text"):visible(false)
+		help_text:GetChild("wigglestages help text"):visible(false)
+		help_text:GetChild("slowestspeed help text"):visible(false)
+		help_text:GetChild("fastestspeed help text"):visible(false)
+		help_text:GetChild("special help text"):visible(true)
 	else
 		help_text:GetChild("default help text"):visible(true)
-		help_text:GetChild("settings1 help text"):visible(false)
-		help_text:GetChild("settings2 help text"):visible(false)
+		help_text:GetChild("wigglestages help text"):visible(false)
+		help_text:GetChild("slowestspeed help text"):visible(false)
+		help_text:GetChild("fastestspeed help text"):visible(false)
+		help_text:GetChild("special help text"):visible(false)
 	end
 	local song_list = flow_frame:GetChild("song list")
 	song_list:SetSelections(selection_snapshot)
@@ -1160,9 +1178,13 @@ end
 
 local function SwitchControls()
 	if current_controls == "default" then
-		SetControls("settings1")
-	elseif current_controls == "settings1" then
-		SetControls("settings2")
+		SetControls("wigglestages")
+	elseif current_controls == "wigglestages" then
+		SetControls("slowestspeed")
+	elseif current_controls == "slowestspeed" then
+		SetControls("fastestspeed")
+	elseif current_controls == "fastestspeed" then
+		SetControls("special")
 	else
 		SetControls("default")
 	end
@@ -1238,6 +1260,14 @@ local function BumpStages(by)
 	current_flow = BuildFlow()
 	PerformPick(flow_frame)
 	stages_text:settext(string.format("%d Stages", stages))
+end
+
+local function BumpSlowestSpeed(by)
+	slowest_speed = math.max(0, math.min(10, slowest_speed + by))
+	FlowDJSetSetting("SlowestSpeed", slowest_speed)
+	current_flow = BuildFlow()
+	PerformPick(flow_frame)
+	settings_text:settext(string.format("slowest: %0.1f", slowest_speed))
 end
 
 local function ToggleSampleMusic()
@@ -1323,7 +1353,7 @@ local function DefaultControls(button)
 	return false
 end
 
-local function Settings1Controls(button)
+local function WiggleStagesControls(button)
 	if button == "MenuRight" then
 		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
 		BumpWiggle(1)
@@ -1344,7 +1374,20 @@ local function Settings1Controls(button)
 	return false
 end
 
-local function Settings2Controls(button)
+local function SlowestSpeedControls(button)
+	if button == "MenuRight" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
+		BumpSlowestSpeed(-0.1)
+		return true
+	elseif button == "MenuLeft" then
+		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
+		BumpSlowestSpeed(0.1)
+		return true
+	end
+	return false
+end
+
+local function SpecialControls(button)
 	if button == "MenuLeft" then
 		ToggleSampleMusic()
 		return true
@@ -1383,8 +1426,9 @@ local function input(event)
 		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
 		SwitchControls()
 	elseif current_controls == "default" and DefaultControls(button) then
-	elseif current_controls == "settings1" and Settings1Controls(button) then
-	elseif current_controls == "settings2" and Settings2Controls(button) then
+	elseif current_controls == "wigglestages" and WiggleStagesControls(button) then
+	elseif current_controls == "slowestspeed" and SlowestSpeedControls(button) then
+	elseif current_controls == "special" and SpecialControls(button) then
 	else
 		lua.ReportScriptError(button)
 	end
@@ -1577,16 +1621,21 @@ local t = Def.ActorFrame{
 									items[i]:DifficultyArrowsOff()
 								end
 							end
-							if current_controls == "settings1" then
+							if current_controls == "wigglestages" then
 
 								items[i]:WiggleArrowsOn(current_flow.wiggle_base[i] - percent_wiggle)
 							else
 								items[i]:WiggleArrowsOff()
 							end
+							if current_controls == "slowestspeed" then
+								items[i]:SlowestArrowsOn()
+							else
+								items[i]:SlowestArrowsOff()
+							end
 							items[i]:SetSelection(sel, i, current_flow, current)
 						end
 					end
-					if current_controls == "settings1" and items[#selections] then
+					if current_controls == "wigglestages" and items[#selections] then
 						items[#selections]:StagesArrowsOn()
 					end
 					for i = #selections+1,#items do
@@ -1645,10 +1694,16 @@ local t = Def.ActorFrame{
 			Name = "default help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("DefaultHelpText"))
 		},
 		Def.BitmapText{
-			Name = "settings1 help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("Settings1HelpText"); visible, false)
+			Name = "wigglestages help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("WiggleStagesHelpText"); visible, false)
 		},
 		Def.BitmapText{
-			Name = "settings2 help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("Settings2HelpText"); visible, false)
+			Name = "slowestspeed help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("SlowestSpeedHelpText"); visible, false)
+		},
+		Def.BitmapText{
+			Name = "fastestspeed help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("FastestSpeedHelpText"); visible, false)
+		},
+		Def.BitmapText{
+			Name = "special help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("SpecialHelpText"); visible, false)
 		},
 	},
 	Def.BitmapText{

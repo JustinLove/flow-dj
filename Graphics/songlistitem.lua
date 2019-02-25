@@ -138,15 +138,22 @@ return Def.ActorFrame {
 					predicted_score:effectperiod(2)
 				end
 
-				local nps_mark = self:GetChild("nps lower bound")
-				nps_mark:setsize(bound_mark, flow_height)
-				nps_mark:xy(flow.nps_lower_bound[n] * flow_width * nps_scale + nps_baseline, 0)
-				nps_mark:diffuse(Brightness(Color.Red, brightness))
-				if current then
-					nps_mark:glowshift()
-					nps_mark:effectcolor1(Brightness(Color.Red, 0.8))
-					nps_mark:effectcolor2(Brightness(Color.Red, 1.0))
-					nps_mark:effectperiod(2)
+				local left_arrow = self:GetChild("left slowest")
+				if left_arrow:GetVisible() and sel.nps_bottom and sel.nps_top then
+					local nps_mark = self:GetChild("nps lower bound")
+					nps_mark:setsize(bound_mark, flow_height)
+					local x = flow.nps_lower_bound[n] * flow_width * nps_scale + nps_baseline
+					nps_mark:xy(x, 0)
+					nps_mark:diffuse(Brightness(Color.Red, brightness))
+					if current then
+						nps_mark:glowshift()
+						nps_mark:effectcolor1(Brightness(Color.Red, 0.8))
+						nps_mark:effectcolor2(Brightness(Color.Red, 1.0))
+						nps_mark:effectperiod(2)
+					end
+					left_arrow:xy(x - arrow_offset, 0)
+					local right_arrow = self:GetChild("right slowest")
+					right_arrow:xy(x + arrow_offset, 0)
 				end
 
 				local nps_mark = self:GetChild("nps upper bound")
@@ -248,6 +255,24 @@ return Def.ActorFrame {
 				down_arrow:visible(false)
 			end
 
+			self.SlowestArrowsOn = function(self, flow)
+				local left_arrow = self:GetChild("left slowest")
+				left_arrow:visible(true)
+				local right_arrow = self:GetChild("right slowest")
+				right_arrow:visible(true)
+				local nps_mark = self:GetChild("nps lower bound")
+				nps_mark:visible(true)
+			end
+
+			self.SlowestArrowsOff = function(self)
+				local left_arrow = self:GetChild("left slowest")
+				left_arrow:visible(false)
+				local right_arrow = self:GetChild("right slowest")
+				right_arrow:visible(false)
+				local nps_mark = self:GetChild("nps lower bound")
+				nps_mark:visible(false)
+			end
+
 		end,
 	Def.Quad{
 		Name= "flow backdrop", InitCommand = cmd(setsize, 0, 0; xy, flow_width/2, 0),
@@ -293,6 +318,12 @@ return Def.ActorFrame {
 	},
 	Def.BitmapText{
 		Name = "right wiggle", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENURIGHT;"),
+	},
+	Def.BitmapText{
+		Name = "left slowest", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENULEFT;"),
+	},
+	Def.BitmapText{
+		Name = "right slowest", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENURIGHT;"),
 	},
 	Def.BitmapText{
 		Name = "title", Font = "Common Normal"
