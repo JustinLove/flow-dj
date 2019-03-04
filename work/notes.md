@@ -1,9 +1,11 @@
 ## Todo
 
+- WIP: converting to 0-1 functions that can be evaluated for flow or high res graphing
 - testing mixed mode selection
 - too many arrows when picking slowest
 - how to show two parts of fastest
   - could share metrics via global
+  - functions for coordiate conversion?
   - bring back overlay lines?
 - separate start and mid score?
 - too many settings?

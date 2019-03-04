@@ -1019,35 +1019,62 @@ local function WiggleFlow(flow, scale)
 	return flow
 end
 
-local function WigglePath(flow)
-	local out = {}
-	local scale = 100
-	for i=1,#flow*scale do
-		out[i] = math.sin(FlowDJ.scale*i/scale + FlowDJ.offset)+1
+local function ArcFactor(a)
+	return function(x)
+		return (x ^ (a-1)) * (1 - (x ^ a)) * (2.1 + (a - 1.5) * 0.5)
 	end
-	return out
 end
 
-local function FlowPath(flow, a)
-	local out = {}
-	local scale = 100
-	local x
-	for i=1,#flow*scale do
-		x = i/(#flow*scale)
-		out[i] = (x ^ (a-1)) * (1 - (x ^ a))
+local function Scaled(f, start, middle)
+	return function(x)
+		local factor = f(x)
+		return start * (1-factor) + middle * factor
 	end
-	return out
 end
 
+local function WiggleFactor(x)
+	return math.sin(FlowDJ.scale*(x*10) + FlowDJ.offset)+1
+end
+
+local function AddCurve(a, b)
+	return function(x)
+		return a(x) + b(x)
+	end
+end
+
+local function ManualFlowFactor(edge)
+	return function(x)
+		local end_distance = math.min(x, 1 - x)
+		local start_factor = 0
+		local mid_factor = 1
+		if end_distance < edge then
+			mid_factor = end_distance / edge
+		else
+			mid_factor = 1
+		end
+		return mid_factor
+	end
+end
+
+local function EvalFlow(n, f)
+	local flow = {}
+	for i = 1,n do
+		flow[i] = f(i/n)
+	end
+	return flow
+end
 
 local function BuildFlow()
 	return {
-		wiggle = WiggleFlow(ArcFlow(3, 0+percent_wiggle, 1-percent_wiggle), ConstantFlow(percent_wiggle)),
-		wiggle_base = ArcFlow(3, 0+percent_wiggle, 1-percent_wiggle),
+		wiggle = EvalFlow(stages,
+			AddCurve(
+				Scaled(ArcFactor(3), 0+percent_wiggle, 1-percent_wiggle),
+				Scaled(WiggleFactor, 0, percent_wiggle))),
+		wiggle_base = EvalFlow(stages, Scaled(ArcFactor(3), 0+percent_wiggle, 1-percent_wiggle)),
 		wiggle_range = ConstantFlow(percent_wiggle),
 		nps_lower_bound = ConstantFlow(slowest_speed),
-		nps_upper_bound = ArcFlow(3, fastest_speed_starting, fastest_speed),
-		score_bound = ArcFlow(3, start_score, mid_score),
+		nps_upper_bound = EvalFlow(stages, Scaled(ArcFactor(3), fastest_speed_starting, fastest_speed)),
+		score_bound = EvalFlow(stages, Scaled(ArcFactor(3), start_score, mid_score)),
 		selection_range = 0.3,
 	}
 
@@ -1218,8 +1245,18 @@ local function PerformPick(frame)
 
 	--local curve_graph = song_list_overlay:GetChild("curve graph")
 	--curve_graph:baserotationz(90)
-	--GraphData(curve_graph, WigglePath(current_flow.wiggle))
-	--GraphData(curve_graph, FlowPath(current_flow.wiggle, 3))
+	--GraphData(curve_graph, EvalFlow(1000, Scaled(ArcFactor(3), 0+percent_wiggle, 1-percent_wiggle, x)))
+	--GraphData(curve_graph, EvalFlow(1000, WiggleFactor))
+	--GraphData(curve_graph, EvalFlow(1000, ManualFlowFactor(0.2)))
+	--GraphData(curve_graph, EvalFlow(1000, Scaled(ManualFlowFactor(0.2), 0+percent_wiggle, 1-percent_wiggle, x)))
+	--GraphData(curve_graph, EvalFlow(1000,
+		--AddCurve(
+			--Scaled(ManualFlowFactor(0.2), 0+percent_wiggle, 1-percent_wiggle),
+			--Scaled(WiggleFactor, 0, percent_wiggle))))
+	--GraphData(curve_graph, EvalFlow(1000,
+		--AddCurve(
+			--Scaled(ArcFactor(3), 0+percent_wiggle, 1-percent_wiggle),
+			--Scaled(WiggleFactor, 0, percent_wiggle))))
 
 	--nps_graph:SetLabel(string.format("%0.1f nps %d-%d bpm", sel.nps, sel.song:GetDisplayBpms()[1], sel.song:GetDisplayBpms()[2]))
 
