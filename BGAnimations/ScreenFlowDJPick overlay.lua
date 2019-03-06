@@ -938,85 +938,17 @@ local function PickBootstrap()
 	return selections
 end
 
-local function LinearFlow()
-	local flow = {}
-	for stage = 1,stages do
-		flow[stage] = stage
+local function ConstantFactor(c)
+	return function(x)
+		return c
 	end
-	return flow
 end
 
-local function ConstantFlow(x)
-	local flow = {}
-	for stage = 1,stages do
-		flow[stage] = x
-	end
-	return flow
-end
-
-local function BezierFlow()
-	local flow = {}
-	local p0 = 3
-	local p1 = 10
-	local p2 = 10
-	local p3 = 3
-	for stage = 1,stages do
-		local t = stage/stages
+local function BezierFactor(p0, p1, p2, p3)
+	return function(t)
 		local it = 1 - t
-		local meter = it*it*it*p0 + 3*it*it*t*p1 + 3*it*t*t*p2 + t*t*t*p3
-		lua.ReportScriptError(meter)
-		flow[stage] = meter
+		return it*it*it*p0 + 3*it*it*t*p1 + 3*it*t*t*p2 + t*t*t*p3
 	end
-	return flow
-end
-
-local function ManualFlowEdges()
-	return math.floor(stages / 5)
-end
-
-local function ManualFlowWeights(stage, edges)
-	local end_distance = math.min(stage - 1, stages - stage)
-	local start_factor = 0
-	local mid_factor = 1
-	if end_distance < edges then
-		mid_factor = end_distance / edges
-	else
-		mid_factor = 1
-	end
-	start_factor = 1 - mid_factor
-	return start_factor,mid_factor
-end
-
-local function ManualFlow(start, middle)
-	local flow = {}
-	local edges = ManualFlowEdges()
-	for stage = 1,stages do
-		local start_factor,mid_factor = ManualFlowWeights(stage, edges)
-		flow[stage] = start * start_factor + middle * mid_factor
-	end
-	return flow
-end
-
-local function ArcWeight(stage, a)
-	local x = stage/stages
-	return (x ^ (a-1)) * (1 - (x ^ a)) * (2.1 + (a - 1.5) * 0.5)
-end
-
-local function ArcFlow(a, start, middle)
-	local flow = {}
-	for stage = 1,stages do
-		local factor = ArcWeight(stage, a)
-		flow[stage] = start * (1-factor) + middle * factor
-	end
-	return flow
-end
-
-
-local function WiggleFlow(flow, scale)
-	for i,target in ipairs(flow) do
-		flow[i] = target + (math.sin(FlowDJ.scale*i + FlowDJ.offset) * scale[i])
-	end
-	return flow
 end
 
 local function ArcFactor(a)
@@ -1039,6 +971,12 @@ end
 local function AddCurve(a, b)
 	return function(x)
 		return a(x) + b(x)
+	end
+end
+
+local function ExponetialFactor(pow)
+	return function(x)
+		return 1 - (2 * (x - 0.5)) ^ pow
 	end
 end
 
@@ -1068,11 +1006,11 @@ local function BuildFlow()
 	return {
 		wiggle = EvalFlow(stages,
 			AddCurve(
-				Scaled(ArcFactor(3), 0+percent_wiggle, 1-percent_wiggle),
+				Scaled(ExponetialFactor(4), 0+percent_wiggle, 1-percent_wiggle),
 				Scaled(WiggleFactor, percent_wiggle, 0))),
-		wiggle_base = EvalFlow(stages, Scaled(ArcFactor(3), 0+percent_wiggle, 1-percent_wiggle)),
-		wiggle_range = ConstantFlow(percent_wiggle),
-		nps_lower_bound = ConstantFlow(slowest_speed),
+		wiggle_base = EvalFlow(stages, Scaled(ExponetialFactor(4), 0+percent_wiggle, 1-percent_wiggle)),
+		wiggle_range = EvalFlow(stages, ConstantFactor(percent_wiggle)),
+		nps_lower_bound = EvalFlow(stages, ConstantFactor(slowest_speed)),
 		nps_upper_bound = EvalFlow(stages, Scaled(ArcFactor(3), fastest_speed_starting, fastest_speed)),
 		score_bound = EvalFlow(stages, Scaled(ArcFactor(3), start_score, mid_score)),
 		selection_range = 0.3,
@@ -1245,6 +1183,8 @@ local function PerformPick(frame)
 
 	--local curve_graph = song_list_overlay:GetChild("curve graph")
 	--curve_graph:baserotationz(90)
+	--GraphData(curve_graph, EvalFlow(1000, BezierFactor(0, 1, 1, 0)))
+	--GraphData(curve_graph, EvalFlow(1000, ExponetialFactor(4)))
 	--GraphData(curve_graph, EvalFlow(1000, Scaled(ArcFactor(3), 0+percent_wiggle, 1-percent_wiggle, x)))
 	--GraphData(curve_graph, EvalFlow(1000, WiggleFactor))
 	--GraphData(curve_graph, EvalFlow(1000, ManualFlowFactor(0.2)))
@@ -1268,7 +1208,7 @@ local function PerformPick(frame)
 end
 
 local function BumpFlow(stage, by)
-	local mid_factor = ArcWeight(stage, 3)
+	local mid_factor = ArcFactor(3)(stage/stages)
 	local start_factor = 1 - mid_factor
 
 	start_score = math.max(0.0, math.min(1.0, start_score - 0.02 * start_factor * by))

@@ -1,6 +1,8 @@
 ## Todo
 
 - WIP: converting to 0-1 functions that can be evaluated for flow or high res graphing
+  - testing exponential curve
+  - bsplines? https://en.wikipedia.org/wiki/De_Boor%27s_algorithm
 - testing mixed mode selection
 - too many arrows when picking slowest
 - how to show two parts of fastest
