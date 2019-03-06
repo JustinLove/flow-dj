@@ -1069,7 +1069,7 @@ local function BuildFlow()
 		wiggle = EvalFlow(stages,
 			AddCurve(
 				Scaled(ArcFactor(3), 0+percent_wiggle, 1-percent_wiggle),
-				Scaled(WiggleFactor, 0, percent_wiggle))),
+				Scaled(WiggleFactor, percent_wiggle, 0))),
 		wiggle_base = EvalFlow(stages, Scaled(ArcFactor(3), 0+percent_wiggle, 1-percent_wiggle)),
 		wiggle_range = ConstantFlow(percent_wiggle),
 		nps_lower_bound = ConstantFlow(slowest_speed),
