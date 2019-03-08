@@ -951,6 +951,41 @@ local function BezierFactor(p0, p1, p2, p3)
 	end
 end
 
+local function BSpline(knots, levels, degree)
+	return function(x)
+		local index = (#knots - 1) - degree - 1
+		for i = 1,(#knots-1) do
+			if knots[i] <= x and x < knots[i+1] then
+				index = i - 1
+				break
+			end
+		end
+
+		--lua.ReportScriptError("x " .. x .. ", index " .. index)
+
+		local d = {}
+		for i = 0,(degree+1) do
+			d[1+i] = levels[1 + i + index - degree]
+		end
+		--lua.ReportScriptError(rec_print_table_to_str(d))
+
+		for r = 1,(degree+1) do
+			for j = degree,r,-1 do
+				local from = knots[1 + j + index - degree]
+				local to = knots[1 + j + 1 + index - r]
+				local alpha = (x - from) / (to - from)
+				--lua.ReportScriptError("r " .. r .. ", j " .. j .. ", from" .. from .. ", to " .. to .. "," .. alpha)
+				local di = d[1+j]
+				local dip = d[1+j-1]
+				--lua.ReportScriptError(di .. "," .. dip)
+				d[1+j] = ((1.0 - alpha) * d[1+j-1]) + (alpha * d[1+j])
+			end
+		end
+
+		return d[1 + degree]
+	end
+end
+
 local function ArcFactor(a)
 	return function(x)
 		return (x ^ (a-1)) * (1 - (x ^ a)) * (2.1 + (a - 1.5) * 0.5)
@@ -1002,17 +1037,23 @@ local function EvalFlow(n, f)
 	return flow
 end
 
+local shape = BSpline({0,0 , 0 , 0.2 , 0.65, 0.8 , 1  , 1,1},
+                         {0.0,0.8,  1.0 , 1.0 , 0.8, 0.0},2)
+
 local function BuildFlow()
+	--local shape = BSpline({0,0 , 0 , 0.2 , 0.65, 0.8 , 1  , 1,1},
+	                         --{0.0,0.8,  1.0 , 1.0 , 0.8, 0.0},2)
+	--local shape = ExponetialFactor(4)
+	local base = Scaled(shape, 0+percent_wiggle, 1-percent_wiggle)
+	local range = Scaled(WiggleFactor, percent_wiggle, 0)
+
 	return {
-		wiggle = EvalFlow(stages,
-			AddCurve(
-				Scaled(ExponetialFactor(4), 0+percent_wiggle, 1-percent_wiggle),
-				Scaled(WiggleFactor, percent_wiggle, 0))),
-		wiggle_base = EvalFlow(stages, Scaled(ExponetialFactor(4), 0+percent_wiggle, 1-percent_wiggle)),
+		wiggle = EvalFlow(stages, AddCurve(base, range)),
+		wiggle_base = EvalFlow(stages, base),
 		wiggle_range = EvalFlow(stages, ConstantFactor(percent_wiggle)),
 		nps_lower_bound = EvalFlow(stages, ConstantFactor(slowest_speed)),
-		nps_upper_bound = EvalFlow(stages, Scaled(ArcFactor(3), fastest_speed_starting, fastest_speed)),
-		score_bound = EvalFlow(stages, Scaled(ArcFactor(3), start_score, mid_score)),
+		nps_upper_bound = EvalFlow(stages, Scaled(shape, fastest_speed_starting, fastest_speed)),
+		score_bound = EvalFlow(stages, Scaled(shape, start_score, mid_score)),
 		selection_range = 0.3,
 	}
 
@@ -1182,7 +1223,15 @@ local function PerformPick(frame)
 	score_graph:SetLabel(string.format("%0.2f m%d", sel.effective_score, sel.meter))
 
 	--local curve_graph = song_list_overlay:GetChild("curve graph")
+	--local shape = BSpline({0,0,0,0.2,0.65,0.8,1,1,1}, {0,0.8,1,1,0.8,0},2)
+	--local shape = ExponetialFactor(4)
+	--local base = Scaled(shape, 0+percent_wiggle, 1-percent_wiggle)
+	--local range = Scaled(WiggleFactor, percent_wiggle, 0)
+	--local wiggle = EvalFlow(1000, AddCurve(base, range)),
 	--curve_graph:baserotationz(90)
+	--GraphData(curve_graph, wiggle)
+	--GraphData(curve_graph, EvalFlow(1000, BSpline({0,0,0,0.2,0.65,0.8,1,1,1}, {0,0.8,1,1,0.8,0},2)))
+	--GraphData(curve_graph, EvalFlow(1000, BSpline({0,0.33,0.66,1}, {0,1,0},0)))
 	--GraphData(curve_graph, EvalFlow(1000, BezierFactor(0, 1, 1, 0)))
 	--GraphData(curve_graph, EvalFlow(1000, ExponetialFactor(4)))
 	--GraphData(curve_graph, EvalFlow(1000, Scaled(ArcFactor(3), 0+percent_wiggle, 1-percent_wiggle, x)))
@@ -1208,7 +1257,7 @@ local function PerformPick(frame)
 end
 
 local function BumpFlow(stage, by)
-	local mid_factor = ArcFactor(3)(stage/stages)
+	local mid_factor = shape(stage/stages)
 	local start_factor = 1 - mid_factor
 
 	start_score = math.max(0.0, math.min(1.0, start_score - 0.02 * start_factor * by))
