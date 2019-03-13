@@ -277,32 +277,6 @@ local function GraphData(graph, data)
 	end
 end
 
-local function GraphDimensionOfSelections(graph, data, dimension)
-	graph:Clear()
-	graph:AddPoint(0, 0, Color.Black)
-	local stage = FlowDJ.stage + 1
-	local sorted = CopyTable(data)
-	table.sort(sorted, function(a, b)
-		return a[dimension] < b[dimension]
-	end)
-	local max = sorted[#sorted][dimension]
-	for i,item in ipairs(sorted) do
-		local x = i/(#sorted+1)
-		local y = item[dimension]/max
-		local point = graph:AddPoint(x, y, Color.White)
-		if item.selected and point then
-			point:xy(x, 1 - y/2):setsize(0.005, y):diffuse(Brightness(Color.White, 0.5))
-			if item.stage == stage then
-				point:glowshift()
-				point:effectcolor1(Brightness(Color.Green, 0.7))
-				point:effectcolor2(Brightness(Color.Green, 1))
-				point:effectperiod(2)
-				point:setsize(0.03, y)
-			end
-		end
-	end
-end
-
 local function GraphFlow(graph, flow, selections, theta, range)
 	graph:Clear()
 	graph:AddPoint(0, 0, Color.Black)
@@ -1032,7 +1006,7 @@ end
 local function EvalFlow(n, f)
 	local flow = {}
 	for i = 1,n do
-		flow[i] = f(i/n)
+		flow[i] = f((i-1)/(n-1))
 	end
 	return flow
 end
@@ -1052,7 +1026,8 @@ local function BuildFlow()
 		wiggle_base = EvalFlow(stages, base),
 		wiggle_range = EvalFlow(stages, ConstantFactor(percent_wiggle)),
 		nps_lower_bound = EvalFlow(stages, ConstantFactor(slowest_speed)),
-		nps_upper_bound = EvalFlow(stages, Scaled(shape, fastest_speed_starting, fastest_speed)),
+		--nps_upper_bound = EvalFlow(stages, Scaled(ExponetialFactor(2), fastest_speed_starting, fastest_speed)),
+		nps_upper_bound = EvalFlow(stages, ConstantFactor(fastest_speed)),
 		score_bound = EvalFlow(stages, Scaled(shape, start_score, mid_score)),
 		selection_range = 0.3,
 	}
@@ -1213,15 +1188,6 @@ local function PerformPick(frame)
 	song_list:SetSelections(selection_snapshot)
 	DisplaySelectionForCurrentStage(selection_snapshot)
 
-	local stage = FlowDJ.stage + 1
-	local graphs = frame:GetChild("graphs")
-	local sel = selection_snapshot[stage]
-
-	local score_graph = graphs:GetChild("score graph")
-	--AssignScore(possible_steps, FlowDJ.theta)
-	GraphDimensionOfSelections(score_graph, possible_steps, "effective_score")
-	score_graph:SetLabel(string.format("%0.2f m%d", sel.effective_score, sel.meter))
-
 	--local curve_graph = song_list_overlay:GetChild("curve graph")
 	--local shape = BSpline({0,0,0,0.2,0.65,0.8,1,1,1}, {0,0.8,1,1,0.8,0},2)
 	--local shape = ExponetialFactor(4)
@@ -1246,12 +1212,6 @@ local function PerformPick(frame)
 		--AddCurve(
 			--Scaled(ArcFactor(3), 0+percent_wiggle, 1-percent_wiggle),
 			--Scaled(WiggleFactor, 0, percent_wiggle))))
-
-	--nps_graph:SetLabel(string.format("%0.1f nps %d-%d bpm", sel.nps, sel.song:GetDisplayBpms()[1], sel.song:GetDisplayBpms()[2]))
-
-	--local flow_graph = graphs:GetChild("flow graph")
-	--GraphFlow(flow_graph, current_flow.wiggle, selection_snapshot, FlowDJ.theta, current_flow.selection_range)
-	--flow_graph:SetLabel(string.format("Stage %d", stage))
 
 	SetView("flow")
 end
@@ -1614,11 +1574,6 @@ local t = Def.ActorFrame{
 			self:xy(0, SCREEN_HEIGHT)
 			self:visible(true)
 		end,
-		Def.ActorFrame {
-			Name = "graphs", InitCommand = cmd(xy, banner_column, SCREEN_HEIGHT * 0.3),
-			Graph("score graph", 0, SCREEN_HEIGHT * 0.07, SCREEN_HEIGHT * 0.5),
-			--Graph("flow graph", 220, 0, 400),
-		},
 		Def.Sprite {
 			Name="Banner",
 			InitCommand = function(self)
