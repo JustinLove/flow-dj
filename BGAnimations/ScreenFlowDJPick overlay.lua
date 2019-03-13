@@ -804,6 +804,7 @@ end
 
 local function PickByRange(flow, theta)
 	local selections, picked = PickRecent()
+	local predictions = {}
 	for i,min in ipairs(flow.score_bound) do
 		local range = 0
 		while not selections[i] and range < 2.0 do
@@ -814,7 +815,10 @@ local function PickByRange(flow, theta)
 				local score = sel.score
 				local nps = sel.nps
 				if score == 0 then
-					score = PredictedScore(sel, theta)
+					if not predictions[j] then
+						predictions[j] = PredictedScore(sel, theta)
+					end
+					score = predictions[j]
 				end
 				if min < score and flow.nps_lower_bound[i] + flow.selection_range < nps and nps < flow.nps_upper_bound[i] - flow.selection_range and not picked[path] then
 					if nps < bottom then
@@ -834,7 +838,10 @@ local function PickByRange(flow, theta)
 				local score = sel.score
 				local nps = sel.nps
 				if score == 0 then
-					score = PredictedScore(sel, theta)
+					if not predictions[j] then
+						predictions[j] = PredictedScore(sel, theta)
+					end
+					score = predictions[j]
 				end
 				if min < score and low < nps and nps < high and not picked[path] then
 					selections[i] = sel
