@@ -1,6 +1,5 @@
 ## Todo
 
-- wait in initial training?
 - testing mixed mode selection
 - too many arrows when picking slowest
 - how to show two parts of fastest

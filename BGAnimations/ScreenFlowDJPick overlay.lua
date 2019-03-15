@@ -575,7 +575,7 @@ local function GradientDescent(steps, theta, cost_history)
 		cost_history[#cost_history+1] = 0
 		return theta, cost_history
 	end
-	local alpha = 0.1
+	local alpha = 0.2
 	local tick_start = GetTimeSinceStart()
 	local crazy = 0
 	if #cost_history == 0 then
@@ -1175,54 +1175,44 @@ local function IncrementalUpdate()
 	IncrementalGraphPredictions(scored_steps, FlowDJ.theta, Color.White)
 end
 
-local function SetView(view)
-	current_view = view
-	local time = 0.5
-	if view == "flow" then
-		flow_frame:linear(time):xy(0, 0)
-		model_frame:linear(time):xy(_screen.cx - 200, _screen.cy - SCREEN_HEIGHT)
-	else
-		flow_frame:linear(time):xy(0, SCREEN_HEIGHT)
-		model_frame:linear(time):xy(_screen.cx - 200, _screen.cy)
-	end
-end
-
-local function SwitchView()
-	if current_view == "flow" then
-		SetView("model")
-	else
-		SetView("flow")
-	end
-end
-
 local function SetControls(controls)
 	current_controls = controls
 	if controls == "wigglestages" then
+		help_text:GetChild("training help text"):visible(false)
 		help_text:GetChild("default help text"):visible(false)
 		help_text:GetChild("wigglestages help text"):visible(true)
 		help_text:GetChild("slowestspeed help text"):visible(false)
 		help_text:GetChild("fastestspeed help text"):visible(false)
 		help_text:GetChild("special help text"):visible(false)
 	elseif controls == "slowestspeed" then
+		help_text:GetChild("training help text"):visible(false)
 		help_text:GetChild("default help text"):visible(false)
 		help_text:GetChild("wigglestages help text"):visible(false)
 		help_text:GetChild("slowestspeed help text"):visible(true)
 		help_text:GetChild("fastestspeed help text"):visible(false)
 		help_text:GetChild("special help text"):visible(false)
 	elseif controls == "fastestspeed" then
+		help_text:GetChild("training help text"):visible(false)
 		help_text:GetChild("default help text"):visible(false)
 		help_text:GetChild("wigglestages help text"):visible(false)
 		help_text:GetChild("slowestspeed help text"):visible(false)
 		help_text:GetChild("fastestspeed help text"):visible(true)
 		help_text:GetChild("special help text"):visible(false)
 	elseif controls == "special" then
+		help_text:GetChild("training help text"):visible(false)
 		help_text:GetChild("default help text"):visible(false)
 		help_text:GetChild("wigglestages help text"):visible(false)
 		help_text:GetChild("slowestspeed help text"):visible(false)
 		help_text:GetChild("fastestspeed help text"):visible(false)
 		help_text:GetChild("special help text"):visible(true)
 	else
-		help_text:GetChild("default help text"):visible(true)
+		if #selection_snapshot == 0 then
+			help_text:GetChild("training help text"):visible(true)
+			help_text:GetChild("default help text"):visible(false)
+		else
+			help_text:GetChild("training help text"):visible(false)
+			help_text:GetChild("default help text"):visible(true)
+		end
 		help_text:GetChild("wigglestages help text"):visible(false)
 		help_text:GetChild("slowestspeed help text"):visible(false)
 		help_text:GetChild("fastestspeed help text"):visible(false)
@@ -1245,6 +1235,28 @@ local function SwitchControls()
 		SetControls("default")
 	end
 end
+
+local function SetView(view)
+	current_view = view
+	local time = 0.5
+	if view == "flow" then
+		flow_frame:linear(time):xy(0, 0)
+		model_frame:linear(time):xy(_screen.cx - 200, _screen.cy - SCREEN_HEIGHT)
+	else
+		flow_frame:linear(time):xy(0, SCREEN_HEIGHT)
+		model_frame:linear(time):xy(_screen.cx - 200, _screen.cy)
+	end
+	SetControls(current_controls)
+end
+
+local function SwitchView()
+	if current_view == "flow" then
+		SetView("model")
+	else
+		SetView("flow")
+	end
+end
+
 
 local function PerformPick(frame)
 	ResetSelected(possible_steps)
@@ -1402,11 +1414,15 @@ local function update(self)
 		cost_quad:setsize(200 * incremental_history[#incremental_history] / 0.005, 10)
 		graph:SetLabel(string.format("avg cost %0.8f", incremental_history[#incremental_history]))
 
-		if #selection_snapshot == 0
-			and #incremental_history > minimum_iteration_per_stage
-			and (incremental_history[#incremental_history] < maximum_cost
-				or #incremental_history > minimum_iteration) then
-			PerformPick(flow_frame)
+		if #selection_snapshot == 0 then
+			if #incremental_history >= maximum_iteration then
+				PerformPick(flow_frame)
+			elseif FlowDJ.stage > 0
+				and #incremental_history > minimum_iteration_per_stage
+				and (incremental_history[#incremental_history] < maximum_cost
+					or #incremental_history > minimum_iteration) then
+				PerformPick(flow_frame)
+			end
 		end
 	end
 end
@@ -1519,6 +1535,9 @@ local function input(event)
 		elseif #selection_snapshot > 0 then
 			flowdj_config:save()
 			StartNextGame(selection_snapshot)
+			SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
+		else
+			PerformPick(flow_frame)
 			SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 		end
 	elseif button == "Back" then
@@ -1801,7 +1820,10 @@ local t = Def.ActorFrame{
 			self:xy(_screen.cx, SCREEN_HEIGHT - 30)
 		end,
 		Def.BitmapText{
-			Name = "default help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("DefaultHelpText"))
+			Name = "training help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("TrainingHelpText"))
+		},
+		Def.BitmapText{
+			Name = "default help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("DefaultHelpText"); visible, false)
 		},
 		Def.BitmapText{
 			Name = "wigglestages help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("WiggleStagesHelpText"); visible, false)
