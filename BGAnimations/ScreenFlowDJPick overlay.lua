@@ -884,13 +884,14 @@ local function PickByBounds(flow, theta)
 					end
 					score = predictions[j]
 				end
-				lua.ReportScriptError(rec_print_table_to_str({
+				--[[lua.ReportScriptError(rec_print_table_to_str({
 						min = min,
 						score = score,
 						bottom = bottom,
 						nps = nps,
 						top = top
 					}))
+					]]
 				if min < score and bottom < nps and nps < top and not picked[path] then
 					selections[i] = sel
 					sel.selected = true
@@ -1038,6 +1039,12 @@ local function AddCurve(a, b)
 	end
 end
 
+local function MultiplyCurve(a, b)
+	return function(x)
+		return a(x) * b(x)
+	end
+end
+
 local function ExponetialFactor(pow)
 	return function(x)
 		return 1 - (2 * (x - 0.5)) ^ pow
@@ -1074,18 +1081,19 @@ local function BuildFlow()
 	                         --{0.0,0.8,  1.0 , 1.0 , 0.8, 0.0},2)
 	--local shape = ExponetialFactor(4)
 	local base = Scaled(shape, 0+percent_wiggle, 1-percent_wiggle)
-	local range = Scaled(WiggleFactor, percent_wiggle, 0)
+	local range = MultiplyCurve(shape, Scaled(WiggleFactor, percent_wiggle, 0))
 	local wiggle = AddCurve(base, range)
 
 	return {
 		wiggle = EvalFlow(stages, AddCurve(base, range)),
 		wiggle_base = EvalFlow(stages, base),
 		wiggle_range = EvalFlow(stages, ConstantFactor(percent_wiggle)),
-		nps_lower_bound = EvalFlow(stages, ConstantFactor(slowest_speed)),
-		--nps_lower_bound = EvalFlow(stages, Scaled(wiggle, slowest_speed, 2.5)),
+		--nps_lower_bound = EvalFlow(stages, ConstantFactor(slowest_speed)),
+		nps_lower_bound = EvalFlow(stages, Scaled(wiggle, slowest_speed, 3.5)),
 		--nps_upper_bound = EvalFlow(stages, Scaled(ExponetialFactor(2), fastest_speed_starting, fastest_speed)),
 		nps_upper_bound = EvalFlow(stages, ConstantFactor(fastest_speed)),
-		score_bound = EvalFlow(stages, Scaled(shape, start_score, mid_score)),
+		--score_bound = EvalFlow(stages, Scaled(shape, start_score, mid_score)),
+		score_bound = EvalFlow(stages, Scaled(wiggle, start_score, mid_score)),
 		selection_range = 0.3,
 	}
 
@@ -1234,8 +1242,8 @@ local function PerformPick(frame)
 	if #scored_steps <= stages and WorstScore(scored_steps) > 0.6 then
 		selection_snapshot = PickBootstrap()
 	else
-		--selection_snapshot = PickByBounds(current_flow, FlowDJ.theta)
-		selection_snapshot = PickByRange(current_flow, FlowDJ.theta)
+		selection_snapshot = PickByBounds(current_flow, FlowDJ.theta)
+		--selection_snapshot = PickByRange(current_flow, FlowDJ.theta)
 		--selection_snapshot = PickByScore(current_flow.wiggle, FlowDJ.theta, current_flow)
 		--selection_snapshot = PickByRate(current_flow.wiggle, 0.3)
 	end
