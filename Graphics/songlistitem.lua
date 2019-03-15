@@ -15,7 +15,7 @@ local text_width = 300
 
 return Def.ActorFrame {
 	Name = "song list item", InitCommand = function(self)
-			self.SetSelection = function(self, sel, n, flow, current)
+			self.SetSelection = function(self, sel, n, f, flow, current)
 				self:xy(0, n*spacing)
 				self:visible(true)
 
@@ -100,8 +100,8 @@ return Def.ActorFrame {
 				if left_arrow:GetVisible() and sel.nps_bottom and sel.nps_top then
 					local flow_range = self:GetChild("flow range")
 					local nps_range = sel.nps_top - sel.nps_bottom
-					local range_bottom = (sel.nps_bottom + nps_range * (flow.wiggle_base[n] - flow.wiggle_range[n])) * flow_width * nps_scale + nps_baseline
-					local range_top = (sel.nps_bottom + nps_range * (flow.wiggle_base[n] + flow.wiggle_range[n])) * flow_width * nps_scale + nps_baseline
+					local range_bottom = (sel.nps_bottom + nps_range * (flow.wiggle_base(f) - flow.wiggle_range(f))) * flow_width * nps_scale + nps_baseline
+					local range_top = (sel.nps_bottom + nps_range * (flow.wiggle_base(f) + flow.wiggle_range(f))) * flow_width * nps_scale + nps_baseline
 					flow_range:setsize(range_top - range_bottom, flow_height)
 					flow_range:xy(range_bottom + (range_top - range_bottom)/2, 0)
 					flow_range:diffuse(Brightness(Color.White, 0.5 * brightness))
@@ -129,7 +129,7 @@ return Def.ActorFrame {
 
 				local predicted_score = self:GetChild("score bound")
 				predicted_score:setsize(bound_mark, flow_height)
-				predicted_score:xy(flow.score_bound[n] * flow_width, 0)
+				predicted_score:xy(flow.score_bound(f) * flow_width, 0)
 				predicted_score:diffuse(Brightness(Color.White, 0.5 * brightness))
 				if current then
 					predicted_score:glowshift()
@@ -142,7 +142,7 @@ return Def.ActorFrame {
 				if left_arrow:GetVisible() and sel.nps_bottom and sel.nps_top then
 					local nps_mark = self:GetChild("nps lower bound")
 					nps_mark:setsize(bound_mark, flow_height)
-					local x = flow.nps_lower_bound[n] * flow_width * nps_scale + nps_baseline
+					local x = flow.nps_lower_bound(f) * flow_width * nps_scale + nps_baseline
 					nps_mark:xy(x, 0)
 					nps_mark:diffuse(Brightness(Color.Red, brightness))
 					if current then
@@ -159,7 +159,7 @@ return Def.ActorFrame {
 				--[[
 				local nps_mark = self:GetChild("nps upper bound")
 				nps_mark:setsize(bound_mark, flow_height)
-				nps_mark:xy(flow.nps_upper_bound[n] * flow_width * nps_scale + nps_baseline, 0)
+				nps_mark:xy(flow.nps_upper_bound(f) * flow_width * nps_scale + nps_baseline, 0)
 				nps_mark:diffuse(Brightness(Color.Red, brightness))
 				if current then
 					nps_mark:glowshift()

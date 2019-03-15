@@ -2,9 +2,6 @@
 
 - wait in initial training?
 - No points being graphed before pick
-- WIP: converting to 0-1 functions that can be evaluated for flow or high res graphing
-  - testing exponential curve
-  - bsplines? https://en.wikipedia.org/wiki/De_Boor%27s_algorithm
 - testing mixed mode selection
 - too many arrows when picking slowest
 - how to show two parts of fastest
@@ -14,7 +11,7 @@
 - separate start and mid score?
 - too many settings?
   - don't want too many slow songs - slowest speed limit
-  - don't want fast songs early - fastest speed curve limit
+  - xx don't want fast songs early - fastest speed curve limit
   - don't want to exclude faster songs that we do well at
   - don't want too hard - low and mid score limits
   - sometimes hitting same levels over and over again - large scale curve - both score and nps curves

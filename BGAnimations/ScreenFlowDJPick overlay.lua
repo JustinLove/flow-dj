@@ -265,15 +265,23 @@ local function Project(collection, dimension)
 	return projection
 end
 
-local function GraphData(graph, data)
+local function GraphData(graph, data, max)
 	graph:Clear()
 	graph:AddPoint(0, 0, Color.Black)
-	local max = 0
-	for i,item in ipairs(data) do
-		max = math.max(max, item)
+	if not max then
+		max = 0
+		for i,item in ipairs(data) do
+			max = math.max(max, item)
+		end
 	end
 	for i,item in ipairs(data) do
 		graph:AddPoint(i/(#data+1), item/max, Color.White)
+	end
+end
+
+local function GraphDataOverlay(graph, data, max, color)
+	for i,item in ipairs(data) do
+		graph:AddPoint(i/(#data+1), item/max, color)
 	end
 end
 
@@ -866,11 +874,13 @@ end
 local function PickByBounds(flow, theta)
 	local selections, picked = PickRecent()
 	local predictions = {}
-	for i,min in ipairs(flow.score_bound) do
+	for i = 1,stages do
+		local x = (i-1)/(stages-1)
+		local min = flow.score_bound(x)
 		local range = 0
 		while not selections[i] and range < 2.0 do
-			local top = flow.nps_upper_bound[i]
-			local bottom = flow.nps_lower_bound[i]
+			local top = flow.nps_upper_bound(x)
+			local bottom = flow.nps_lower_bound(x)
 			range = range + flow.selection_range
 			local low = bottom - range
 			local high = top + range
@@ -1074,26 +1084,26 @@ local function EvalFlow(n, f)
 end
 
 local shape = BSpline({0,0 , 0 , 0.2 , 0.65, 0.8 , 1  , 1,1},
-                         {0.0,0.8,  1.0 , 1.0 , 0.8, 0.0},2)
+                         {0.0,0.6,  1.0 , 1.0 , 0.8, 0.0},2)
 
 local function BuildFlow()
 	--local shape = BSpline({0,0 , 0 , 0.2 , 0.65, 0.8 , 1  , 1,1},
 	                         --{0.0,0.8,  1.0 , 1.0 , 0.8, 0.0},2)
 	--local shape = ExponetialFactor(4)
-	local base = Scaled(shape, 0+percent_wiggle, 1-percent_wiggle)
+	local base = Scaled(shape, 0, 1-percent_wiggle)
 	local range = MultiplyCurve(shape, Scaled(WiggleFactor, percent_wiggle, 0))
 	local wiggle = AddCurve(base, range)
 
 	return {
-		wiggle = EvalFlow(stages, AddCurve(base, range)),
-		wiggle_base = EvalFlow(stages, base),
-		wiggle_range = EvalFlow(stages, ConstantFactor(percent_wiggle)),
-		--nps_lower_bound = EvalFlow(stages, ConstantFactor(slowest_speed)),
-		nps_lower_bound = EvalFlow(stages, Scaled(wiggle, slowest_speed, 3.5)),
-		--nps_upper_bound = EvalFlow(stages, Scaled(ExponetialFactor(2), fastest_speed_starting, fastest_speed)),
-		nps_upper_bound = EvalFlow(stages, ConstantFactor(fastest_speed)),
-		--score_bound = EvalFlow(stages, Scaled(shape, start_score, mid_score)),
-		score_bound = EvalFlow(stages, Scaled(wiggle, start_score, mid_score)),
+		wiggle = wiggle,
+		wiggle_base = base,
+		wiggle_range = ConstantFactor(percent_wiggle),
+		--nps_lower_bound = ConstantFactor(slowest_speed),
+		nps_lower_bound = Scaled(wiggle, slowest_speed, 3.5),
+		--nps_upper_bound = Scaled(ExponetialFactor(2), fastest_speed_starting, fastest_speed),
+		nps_upper_bound = ConstantFactor(fastest_speed),
+		--score_bound = Scaled(shape, start_score, mid_score),
+		score_bound = Scaled(wiggle, start_score, mid_score),
 		selection_range = 0.3,
 	}
 
@@ -1255,12 +1265,18 @@ local function PerformPick(frame)
 	DisplaySelectionForCurrentStage(selection_snapshot)
 
 	--local curve_graph = song_list_overlay:GetChild("curve graph")
+	--curve_graph:baserotationz(90)
+	--GraphData(curve_graph, EvalFlow(1000, current_flow.wiggle_base), 1)
+	--GraphDataOverlay(curve_graph, EvalFlow(1000, AddCurve(ConstantFactor(10), Scaled(current_flow.nps_lower_bound, 0, -1))), 10, Color.Red)
+	--GraphDataOverlay(curve_graph, EvalFlow(1000, current_flow.score_bound), 1, Color.Blue)
+	--GraphData(curve_graph, EvalFlow(1000, current_flow.wiggle, 1))
+	--GraphData(curve_graph, EvalFlow(1000, MultiplyCurve(shape, Scaled(WiggleFactor, percent_wiggle, 0))), 1)
+
 	--local shape = BSpline({0,0,0,0.2,0.65,0.8,1,1,1}, {0,0.8,1,1,0.8,0},2)
 	--local shape = ExponetialFactor(4)
 	--local base = Scaled(shape, 0+percent_wiggle, 1-percent_wiggle)
 	--local range = Scaled(WiggleFactor, percent_wiggle, 0)
 	--local wiggle = EvalFlow(1000, AddCurve(base, range)),
-	--curve_graph:baserotationz(90)
 	--GraphData(curve_graph, wiggle)
 	--GraphData(curve_graph, EvalFlow(1000, BSpline({0,0,0,0.2,0.65,0.8,1,1,1}, {0,0.8,1,1,0.8,0},2)))
 	--GraphData(curve_graph, EvalFlow(1000, BSpline({0,0.33,0.66,1}, {0,1,0},0)))
@@ -1696,19 +1712,20 @@ local t = Def.ActorFrame{
 						if items and items[i] then
 							sel.predicted_score = PredictedScore(sel, FlowDJ.theta)
 							local current = (i == FlowDJ.stage+1)
-							items[i]:SetSelection(sel, i, current_flow, current)
+							local x = (i-1)/(stages-1)
+							items[i]:SetSelection(sel, i, (i-1)/(stages-1), current_flow, current)
 							items[i]:StagesArrowsOff()
 							if current then
 								if current_controls == "default" then
 
-									items[i]:DifficultyArrowsOn(current_flow.score_bound[i], 0.02)
+									items[i]:DifficultyArrowsOn(current_flow.score_bound(x), 0.02)
 								else
 									items[i]:DifficultyArrowsOff()
 								end
 							end
 							if current_controls == "wigglestages" then
 
-								items[i]:WiggleArrowsOn(current_flow.wiggle_base[i] - percent_wiggle)
+								items[i]:WiggleArrowsOn(current_flow.wiggle_base(x) - percent_wiggle)
 							else
 								items[i]:WiggleArrowsOff()
 							end
@@ -1717,7 +1734,7 @@ local t = Def.ActorFrame{
 							else
 								items[i]:SlowestArrowsOff()
 							end
-							items[i]:SetSelection(sel, i, current_flow, current)
+							items[i]:SetSelection(sel, i, x, current_flow, current)
 						end
 					end
 					if current_controls == "wigglestages" and items[#selections] then
