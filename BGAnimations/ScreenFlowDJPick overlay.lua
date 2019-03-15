@@ -1563,8 +1563,16 @@ local function Graph(name, x, y, scale)
 				local points = data:GetChild("point")
 				if points and points[n] then
 					points[n]:xy(x, 1 - y):diffuse(color)
+					if n == #points then
+						data:AddChildFromPath(THEME:GetPathG("", "point.lua"))
+					end
 				else
 					data:AddChildFromPath(THEME:GetPathG("", "point.lua"))
+					data:AddChildFromPath(THEME:GetPathG("", "point.lua"))
+					points = data:GetChild("point")
+					if points and points[n] then
+						points[n]:xy(x, 1 - y):diffuse(color)
+					end
 				end
 			end
 

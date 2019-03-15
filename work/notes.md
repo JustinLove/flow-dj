@@ -1,7 +1,6 @@
 ## Todo
 
 - wait in initial training?
-- No points being graphed before pick
 - testing mixed mode selection
 - too many arrows when picking slowest
 - how to show two parts of fastest
