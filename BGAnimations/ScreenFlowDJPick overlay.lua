@@ -1,8 +1,8 @@
 local fake_data = false
 FlowDJ.fake_play = false
 local stages = FlowDJGetSetting("NumberOfStages")
-local start_score = FlowDJGetSetting("StartScore")/100
 local mid_score = FlowDJGetSetting("MidScore")/100
+local start_score = mid_score + (1.0 - mid_score)/2
 local percent_wiggle = FlowDJGetSetting("PercentWiggle")/100
 local sample_music = FlowDJGetSetting("SampleMusic")
 local slowest_speed = FlowDJGetSetting("SlowestSpeed")
@@ -1184,6 +1184,7 @@ local function SetControls(controls)
 		help_text:GetChild("slowestspeed help text"):visible(false)
 		help_text:GetChild("fastestspeed help text"):visible(false)
 		help_text:GetChild("special help text"):visible(false)
+		song_list_overlay:SetLineOff()
 	elseif controls == "slowestspeed" then
 		help_text:GetChild("training help text"):visible(false)
 		help_text:GetChild("default help text"):visible(false)
@@ -1191,6 +1192,7 @@ local function SetControls(controls)
 		help_text:GetChild("slowestspeed help text"):visible(true)
 		help_text:GetChild("fastestspeed help text"):visible(false)
 		help_text:GetChild("special help text"):visible(false)
+		song_list_overlay:SetLineOff()
 	elseif controls == "fastestspeed" then
 		help_text:GetChild("training help text"):visible(false)
 		help_text:GetChild("default help text"):visible(false)
@@ -1198,6 +1200,7 @@ local function SetControls(controls)
 		help_text:GetChild("slowestspeed help text"):visible(false)
 		help_text:GetChild("fastestspeed help text"):visible(true)
 		help_text:GetChild("special help text"):visible(false)
+		song_list_overlay:SetLineOff()
 	elseif controls == "special" then
 		help_text:GetChild("training help text"):visible(false)
 		help_text:GetChild("default help text"):visible(false)
@@ -1205,6 +1208,7 @@ local function SetControls(controls)
 		help_text:GetChild("slowestspeed help text"):visible(false)
 		help_text:GetChild("fastestspeed help text"):visible(false)
 		help_text:GetChild("special help text"):visible(true)
+		song_list_overlay:SetLineOff()
 	else
 		if #selection_snapshot == 0 then
 			help_text:GetChild("training help text"):visible(true)
@@ -1217,6 +1221,7 @@ local function SetControls(controls)
 		help_text:GetChild("slowestspeed help text"):visible(false)
 		help_text:GetChild("fastestspeed help text"):visible(false)
 		help_text:GetChild("special help text"):visible(false)
+		song_list_overlay:SetLineOn()
 	end
 	local song_list = flow_frame:GetChild("song list")
 	song_list:SetSelections(selection_snapshot)
@@ -1311,11 +1316,8 @@ local function PerformPick(frame)
 end
 
 local function BumpFlow(stage, by)
-	local mid_factor = shape(stage/stages)
-	local start_factor = 1 - mid_factor
-
-	start_score = math.max(0.0, math.min(1.0, start_score - 0.02 * start_factor * by))
-	mid_score = math.max(0.0, math.min(1.0, mid_score - 0.02 * mid_factor * by))
+	mid_score = math.max(0.0, math.min(1.0, mid_score - 0.02 * by))
+	start_score = mid_score + (1.0 - mid_score)/2
 
 	FlowDJSetSetting("StartScore", math.floor(start_score * 100))
 	FlowDJSetSetting("MidScore", math.floor(mid_score * 100))
@@ -1721,6 +1723,7 @@ local t = Def.ActorFrame{
 				self:zoom(SongListScale())
 
 				self.SetSelections = function(self, selections)
+					song_list_overlay:PlaceLine(FlowDJ.stage)
 					self:zoom(SongListScale())
 					self:xy(song_list_column, SCREEN_HEIGHT * 0.14)
 
@@ -1740,16 +1743,7 @@ local t = Def.ActorFrame{
 							sel.predicted_score = PredictedScore(sel, FlowDJ.theta)
 							local current = (i == FlowDJ.stage+1)
 							local x = (i-1)/(stages-1)
-							items[i]:SetSelection(sel, i, (i-1)/(stages-1), current_flow, current)
 							items[i]:StagesArrowsOff()
-							if current then
-								if current_controls == "default" then
-
-									items[i]:DifficultyArrowsOn(current_flow.score_bound(x), 0.02)
-								else
-									items[i]:DifficultyArrowsOff()
-								end
-							end
 							if current_controls == "wigglestages" then
 
 								items[i]:WiggleArrowsOn(current_flow.wiggle_base(x) - percent_wiggle)
@@ -1781,6 +1775,22 @@ local t = Def.ActorFrame{
 				song_list_overlay = self
 				self:visible(true)
 				self:xy(song_list_column, SCREEN_HEIGHT * 0.53)
+
+				self.SetLineOn = function(self, stage)
+					local overlay_line = self:GetChild("overlay setting")
+					overlay_line:visible(true)
+				end
+				self.SetLineOff = function(self)
+					local overlay_line = self:GetChild("overlay setting")
+					overlay_line:visible(false)
+				end
+				self.PlaceLine = function(self, stage)
+					local scale = SongListScale()
+					local base = mid_score
+
+					local overlay_line = self:GetChild("overlay setting")
+					overlay_line:xy(scale * 600 * base,0)
+				end
 			end,
 			Def.BitmapText{
 				Name = "setting line", Font = "Common Normal", InitCommand = function(self)
@@ -1788,6 +1798,21 @@ local t = Def.ActorFrame{
 					self:zoom(0.05*text_height)
 					settings_text = self
 				end
+			},
+			Def.ActorFrame{
+				Name= "overlay setting", InitCommand= cmd(visible, false),
+				Def.Quad{
+					Name= "overlay line", InitCommand = function(self)
+						self:setsize(2, 0.75*SCREEN_HEIGHT)
+						self:diffusealpha(0.5)
+					end
+				},
+				Def.BitmapText{
+					Name = "left arrow", Font = "Common Normal", InitCommand = cmd(visible, true; xy, -20, 0; settext, "&MENULEFT;"),
+				},
+				Def.BitmapText{
+					Name = "right arrow", Font = "Common Normal", InitCommand = cmd(visible, true; xy, 20, 0; settext, "&MENURIGHT;"),
+				},
 			},
 			--Graph("curve graph", 900*SongListScale(), -0.5*0.75*SCREEN_HEIGHT, 0.75*SCREEN_HEIGHT),
 		},
