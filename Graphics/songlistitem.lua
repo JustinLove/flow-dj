@@ -13,6 +13,9 @@ local arrow_offset = 20
 local data_width = (30 + bar_width + 40 + bar_width)
 local text_width = 300
 
+FlowDJ.flow_width = flow_width
+FlowDJ.NpsScale = function(x) return (x * nps_scale + 1) * flow_width end
+
 return Def.ActorFrame {
 	Name = "song list item", InitCommand = function(self)
 			self.SetSelection = function(self, sel, n, f, flow, current)
@@ -96,12 +99,13 @@ return Def.ActorFrame {
 					group_backdrop:diffuseleftedge(Alpha(Color.Black, 0.00))
 				end
 
+					--[[
 				local left_arrow = self:GetChild("left wiggle")
 				if left_arrow:GetVisible() and sel.nps_bottom and sel.nps_top then
 					local flow_range = self:GetChild("flow range")
 					local nps_range = sel.nps_top - sel.nps_bottom
-					local range_bottom = (sel.nps_bottom + nps_range * (flow.wiggle_base(f) - flow.wiggle_range(f))) * flow_width * nps_scale + nps_baseline
-					local range_top = (sel.nps_bottom + nps_range * (flow.wiggle_base(f) + flow.wiggle_range(f))) * flow_width * nps_scale + nps_baseline
+					local range_bottom = FlowDJ.NpsScale(sel.nps_bottom + nps_range * (flow.wiggle_base(f) - flow.wiggle_range(f)))
+					local range_top = FlowDJ.NpsScale(sel.nps_bottom + nps_range * (flow.wiggle_base(f) + flow.wiggle_range(f)))
 					flow_range:setsize(range_top - range_bottom, flow_height)
 					flow_range:xy(range_bottom + (range_top - range_bottom)/2, 0)
 					flow_range:diffuse(Brightness(Color.White, 0.5 * brightness))
@@ -116,8 +120,27 @@ return Def.ActorFrame {
 					right_arrow:xy(range_bottom + arrow_offset, 0)
 				elseif sel.nps_high and sel.nps_low then
 						local flow_range = self:GetChild("flow range")
-						flow_range:setsize((sel.nps_high - sel.nps_low) * flow_width * nps_scale, flow_height)
-						flow_range:xy((sel.nps_low + (sel.nps_high - sel.nps_low)/2) * flow_width * nps_scale + nps_baseline, 0)
+						flow_range:setsize(FlowDJ.NpsScale(sel.nps_high - sel.nps_low), flow_height)
+						flow_range:xy(FlowDJ.NpsScale(sel.nps_low + (sel.nps_high - sel.nps_low)/2), 0)
+						flow_range:diffuse(Brightness(Color.White, 0.5 * brightness))
+						if current then
+							flow_range:glowshift()
+							flow_range:effectcolor1(Brightness(Color.White, 0.6))
+							flow_range:effectcolor2(Brightness(Color.White, 0.8))
+							flow_range:effectperiod(2)
+						end
+				else
+						local flow_range = self:GetChild("flow range")
+						local score = flow.score_bound(f) * flow_width
+						local nps = FlowDJ.NpsScale(flow.nps_lower_bound(f))
+						local left = score
+						local right = nps
+						if right < left then
+							left = nps
+							right = score
+						end
+						flow_range:setsize(right - left, flow_height)
+						flow_range:xy(left, 0)
 						flow_range:diffuse(Brightness(Color.White, 0.5 * brightness))
 						if current then
 							flow_range:glowshift()
@@ -126,6 +149,7 @@ return Def.ActorFrame {
 							flow_range:effectperiod(2)
 						end
 				end
+						]]
 
 				local predicted_score = self:GetChild("score bound")
 				predicted_score:setsize(bound_mark, flow_height)
@@ -142,7 +166,7 @@ return Def.ActorFrame {
 				if left_arrow:GetVisible() and sel.nps_bottom and sel.nps_top then
 					local nps_mark = self:GetChild("nps lower bound")
 					nps_mark:setsize(bound_mark, flow_height)
-					local x = flow.nps_lower_bound(f) * flow_width * nps_scale + nps_baseline
+					local x = FlowDJ.NpsScale(flow.nps_lower_bound(f))
 					nps_mark:xy(x, 0)
 					nps_mark:diffuse(Brightness(Color.Red, brightness))
 					if current then
@@ -159,7 +183,7 @@ return Def.ActorFrame {
 				--[[
 				local nps_mark = self:GetChild("nps upper bound")
 				nps_mark:setsize(bound_mark, flow_height)
-				nps_mark:xy(flow.nps_upper_bound(f) * flow_width * nps_scale + nps_baseline, 0)
+				nps_mark:xy(FlowDJ.NpsScale(flow.nps_upper_bound(f)), 0)
 				nps_mark:diffuse(Brightness(Color.Red, brightness))
 				if current then
 					nps_mark:glowshift()
@@ -171,7 +195,7 @@ return Def.ActorFrame {
 
 				local nps_mark = self:GetChild("nps mark")
 				nps_mark:setsize(flow_mark, flow_height)
-				nps_mark:xy(sel.nps * flow_width * nps_scale + nps_baseline, 0)
+				nps_mark:xy(FlowDJ.NpsScale(sel.nps), 0)
 				nps_mark:diffuse(Brightness(Color.Red, brightness))
 				if current then
 					nps_mark:glowshift()

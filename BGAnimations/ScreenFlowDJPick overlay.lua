@@ -922,12 +922,14 @@ local function PickByBounds(flow, theta)
 	return selections
 end
 
-local function PickByScore(flow, theta, start_range)
+local function PickByScore(flow, theta)
 	local selections, picked = PickRecent()
-	for i,target in ipairs(flow) do
+	for i = 1,stages do
+		local x = (i-1)/(stages-1)
+		local target = flow.score_bound(x)
 		local range = 0
 		while not selections[i] and range < 2.0 do
-			range = range + start_range
+			range = range + 0.03
 			local low = target - range
 			local high = target + range
 			for j,sel in ipairs(possible_steps) do
@@ -1271,7 +1273,7 @@ local function PerformPick(frame)
 	else
 		selection_snapshot = PickByBounds(current_flow, FlowDJ.theta)
 		--selection_snapshot = PickByRange(current_flow, FlowDJ.theta)
-		--selection_snapshot = PickByScore(current_flow.wiggle, FlowDJ.theta, current_flow)
+		--selection_snapshot = PickByScore(current_flow, FlowDJ.theta)
 		--selection_snapshot = PickByRate(current_flow.wiggle, 0.3)
 	end
 	--selection_snapshot = PickByMeter(current_flow.wiggle)
