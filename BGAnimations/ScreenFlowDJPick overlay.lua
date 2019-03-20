@@ -1224,7 +1224,6 @@ local function SetControls(controls)
 		help_text:GetChild("slowestspeed help text"):visible(false)
 		help_text:GetChild("fastestspeed help text"):visible(false)
 		help_text:GetChild("special help text"):visible(false)
-		song_list_overlay:SetLineOn()
 	end
 	local song_list = flow_frame:GetChild("song list")
 	song_list:SetSelections(selection_snapshot)
@@ -1329,6 +1328,7 @@ local function BumpFlow(stage, by)
 
 	current_flow = BuildFlow()
 	PerformPick(flow_frame)
+	song_list_overlay:SetLineOn()
 end
 
 local function BumpWiggle(by)

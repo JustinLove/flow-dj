@@ -85,8 +85,13 @@ return Def.ActorFrame {
 					flow_backdrop:diffuserightedge(Alpha(Color.White, 0.4))
 					flow_backdrop:diffuseleftedge(Alpha(Color.White, 0.1))
 				else
-					flow_backdrop:diffuserightedge(Alpha(Color.Black, 0.5))
-					flow_backdrop:diffuseleftedge(Alpha(Color.Black, 0.1))
+					if current then
+						flow_backdrop:diffuserightedge(Alpha(Color.Black, 0.8))
+						flow_backdrop:diffuseleftedge(Alpha(Color.Black, 0.2))
+					else
+						flow_backdrop:diffuserightedge(Alpha(Color.Black, 0.5))
+						flow_backdrop:diffuseleftedge(Alpha(Color.Black, 0.1))
+					end
 				end
 
 				local group_backdrop = self:GetChild("group backdrop")
@@ -95,8 +100,13 @@ return Def.ActorFrame {
 					group_backdrop:diffuserightedge(Alpha(Color.Black, 0.4))
 					group_backdrop:diffuseleftedge(Alpha(Color.Black, 0.00))
 				else
-					group_backdrop:diffuserightedge(Alpha(Color.Black, 0.5))
-					group_backdrop:diffuseleftedge(Alpha(Color.Black, 0.00))
+					if current then
+						group_backdrop:diffuserightedge(Alpha(Color.Black, 0.8))
+						group_backdrop:diffuseleftedge(Alpha(Color.Black, 0.0))
+					else
+						group_backdrop:diffuserightedge(Alpha(Color.Black, 0.5))
+						group_backdrop:diffuseleftedge(Alpha(Color.Black, 0.0))
+					end
 				end
 
 					--[[
