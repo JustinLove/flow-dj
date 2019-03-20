@@ -109,15 +109,14 @@ return Def.ActorFrame {
 					end
 				end
 
-					--[[
 				local left_arrow = self:GetChild("left wiggle")
-				if left_arrow:GetVisible() and sel.nps_bottom and sel.nps_top then
-					local flow_range = self:GetChild("flow range")
-					local nps_range = sel.nps_top - sel.nps_bottom
-					local range_bottom = FlowDJ.NpsScale(sel.nps_bottom + nps_range * (flow.wiggle_base(f) - flow.wiggle_range(f)))
-					local range_top = FlowDJ.NpsScale(sel.nps_bottom + nps_range * (flow.wiggle_base(f) + flow.wiggle_range(f)))
-					flow_range:setsize(range_top - range_bottom, flow_height)
-					flow_range:xy(range_bottom + (range_top - range_bottom)/2, 0)
+				local flow_range = self:GetChild("flow range")
+				if left_arrow:GetVisible() then
+					flow_range:visible(true)
+					local range_left = flow.wiggle_base(f) * flow_width
+					local range_right = (flow.wiggle_base(f) + flow.wiggle_range(f)) * flow_width
+					flow_range:setsize(range_right - range_left, flow_height)
+					flow_range:xy(range_left + (range_right - range_left)/2, 0)
 					flow_range:diffuse(Brightness(Color.White, 0.5 * brightness))
 					if current then
 						flow_range:glowshift()
@@ -125,41 +124,12 @@ return Def.ActorFrame {
 						flow_range:effectcolor2(Brightness(Color.White, 0.8))
 						flow_range:effectperiod(2)
 					end
-					left_arrow:xy(range_bottom - arrow_offset, 0)
+					left_arrow:xy(range_right - arrow_offset, 0)
 					local right_arrow = self:GetChild("right wiggle")
-					right_arrow:xy(range_bottom + arrow_offset, 0)
-				elseif sel.nps_high and sel.nps_low then
-						local flow_range = self:GetChild("flow range")
-						flow_range:setsize(FlowDJ.NpsScale(sel.nps_high - sel.nps_low), flow_height)
-						flow_range:xy(FlowDJ.NpsScale(sel.nps_low + (sel.nps_high - sel.nps_low)/2), 0)
-						flow_range:diffuse(Brightness(Color.White, 0.5 * brightness))
-						if current then
-							flow_range:glowshift()
-							flow_range:effectcolor1(Brightness(Color.White, 0.6))
-							flow_range:effectcolor2(Brightness(Color.White, 0.8))
-							flow_range:effectperiod(2)
-						end
+					right_arrow:xy(range_right + arrow_offset, 0)
 				else
-						local flow_range = self:GetChild("flow range")
-						local score = flow.score_bound(f) * flow_width
-						local nps = FlowDJ.NpsScale(flow.nps_lower_bound(f))
-						local left = score
-						local right = nps
-						if right < left then
-							left = nps
-							right = score
-						end
-						flow_range:setsize(right - left, flow_height)
-						flow_range:xy(left, 0)
-						flow_range:diffuse(Brightness(Color.White, 0.5 * brightness))
-						if current then
-							flow_range:glowshift()
-							flow_range:effectcolor1(Brightness(Color.White, 0.6))
-							flow_range:effectcolor2(Brightness(Color.White, 0.8))
-							flow_range:effectperiod(2)
-						end
+					flow_range:visible(false)
 				end
-						]]
 
 				local predicted_score = self:GetChild("score bound")
 				predicted_score:setsize(bound_mark, flow_height)

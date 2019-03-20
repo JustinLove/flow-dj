@@ -1043,7 +1043,7 @@ local function Scaled(f, start, middle)
 end
 
 local function WiggleFactor(x)
-	return math.sin(FlowDJ.scale*(x*10) + FlowDJ.offset)+1
+	return math.sin(FlowDJ.scale*(x*10) + FlowDJ.offset)
 end
 
 local function AddCurve(a, b)
@@ -1094,18 +1094,18 @@ local function BuildFlow()
 	                         --{0.0,0.8,  1.0 , 1.0 , 0.8, 0.0},2)
 	--local shape = ExponetialFactor(4)
 	local base = Scaled(shape, 0, 1-percent_wiggle)
-	local range = MultiplyCurve(shape, Scaled(WiggleFactor, percent_wiggle, 0))
+	local envelope = Scaled(shape, 0.5, 1)
+	local range = MultiplyCurve(envelope, Scaled(WiggleFactor, 0, percent_wiggle))
 	local wiggle = AddCurve(base, range)
 
 	return {
 		wiggle = wiggle,
-		wiggle_base = base,
-		wiggle_range = ConstantFactor(percent_wiggle),
+		wiggle_base = Scaled(shape, start_score, mid_score),
+		wiggle_range = Scaled(envelope, 0, percent_wiggle * mid_score * 2),
 		--nps_lower_bound = ConstantFactor(slowest_speed),
 		nps_lower_bound = Scaled(wiggle, slowest_speed, 3.5),
 		--nps_upper_bound = Scaled(ExponetialFactor(2), fastest_speed_starting, fastest_speed),
 		nps_upper_bound = ConstantFactor(fastest_speed),
-		--score_bound = Scaled(shape, start_score, mid_score),
 		score_bound = Scaled(wiggle, start_score, mid_score),
 		selection_range = 0.3,
 	}
