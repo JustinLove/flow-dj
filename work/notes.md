@@ -1,5 +1,6 @@
 ## Todo
 
+- default line/arrows distracting, current highlight not good
 - testing mixed mode selection
 - too many arrows when picking slowest
 - how to show two parts of fastest

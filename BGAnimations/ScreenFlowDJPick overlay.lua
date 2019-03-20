@@ -223,6 +223,15 @@ local function Truncate(table, to)
 	return truncated
 end
 
+local function Scramble(list)
+	for i = 1,#list do
+		local j = math.random(#list)
+		local temp = list[i]
+		list[i] = list[j]
+		list[j] = temp
+	end
+end
+
 function calc_nps(pn, song_len, steps)
 	local radar= steps:GetRadarValues(pn)
 	local notes= radar:GetValue("RadarCategory_TapsAndHolds") +
@@ -438,6 +447,7 @@ local function PossibleSteps()
 	local possible = {}
 	for g, song in ipairs(all_songs) do
 		local song_steps = song:GetStepsByStepsType(stepstype)
+		Scramble(song_steps)
 		local song_length = song:GetLastSecond() - song:GetFirstSecond()
 		for t, steps in ipairs(song_steps) do
 			--lua.ReportScriptError(steps:PredictMeter())
@@ -603,15 +613,6 @@ local function GradientDescent(steps, theta, cost_history)
 		cost_history[#cost_history+1] = ComputeCost(steps, theta)
 	end
 	return theta, cost_history
-end
-
-local function Scramble(list)
-	for i = 1,#list do
-		local j = math.random(#list)
-		local temp = list[i]
-		list[i] = list[j]
-		list[j] = temp
-	end
 end
 
 local function ScoredSteps(possible)
