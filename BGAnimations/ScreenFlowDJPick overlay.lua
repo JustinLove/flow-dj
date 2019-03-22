@@ -1077,6 +1077,13 @@ local function ManualFlowFactor(edge)
 	end
 end
 
+local function DistributionFactor(x)
+	math.randomseed(GAMESTATE:GetGameSeed()*x)
+	local y = 1-(math.random() ^ 3)
+	math.randomseed(GetTimeSinceStart())
+	return y
+end
+
 local function EvalFlow(n, f)
 	local flow = {}
 	for i = 1,n do
@@ -1271,6 +1278,7 @@ local function PerformPick(frame)
 
 	--local curve_graph = song_list_overlay:GetChild("curve graph")
 	--curve_graph:baserotationz(90)
+	--GraphData(curve_graph, EvalFlow(10, DistributionFactor), 1)
 	--GraphData(curve_graph, EvalFlow(1000, current_flow.wiggle_base), 1)
 	--GraphDataOverlay(curve_graph, EvalFlow(1000, AddCurve(ConstantFactor(10), Scaled(current_flow.nps_lower_bound, 0, -1))), 10, Color.Red)
 	--GraphDataOverlay(curve_graph, EvalFlow(1000, current_flow.score_bound), 1, Color.Blue)
