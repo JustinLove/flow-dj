@@ -1,12 +1,6 @@
 ## Todo
 
 - testing mixed mode selection
-- too many arrows when picking slowest
-- how to show two parts of fastest
-  - could share metrics via global
-  - functions for coordiate conversion?
-  - bring back overlay lines?
-- separate start and mid score?
 - too many settings?
   - don't want too many slow songs - slowest speed limit
   - xx don't want fast songs early - fastest speed curve limit

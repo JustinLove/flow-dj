@@ -230,6 +230,16 @@ return Def.ActorFrame {
 				right_arrow:visible(false)
 			end
 
+			self.ScoreMarkOn = function(self)
+				local score_bound = self:GetChild("score bound")
+				score_bound:visible(true)
+			end
+
+			self.ScoreMarkOff = function(self)
+				local score_bound = self:GetChild("score bound")
+				score_bound:visible(false)
+			end
+
 			self.WiggleArrowsOn = function(self, flow)
 				local left_arrow = self:GetChild("left wiggle")
 				left_arrow:visible(true)

@@ -44,6 +44,7 @@ local right_text = false
 local current_view = "model"
 local current_controls = "default"
 local entering_song = false
+local show_score_settings = false
 
 lua.ReportScriptError('----------------' .. math.random())
 
@@ -1216,6 +1217,7 @@ local function SetControls(controls)
 end
 
 local function SwitchControls()
+	show_score_settings = false
 	if current_controls == "default" then
 		SetControls("wigglestages")
 	elseif current_controls == "wigglestages" then
@@ -1311,6 +1313,7 @@ local function BumpFlow(stage, by)
 	settings_text:settext(string.format("low: %d\nmid: %d", start_score * 100, mid_score * 100))
 
 	current_flow = BuildFlow()
+	show_score_settings = true
 	PerformPick(flow_frame)
 	song_list_overlay:SetLineOn()
 end
@@ -1708,6 +1711,11 @@ local t = Def.ActorFrame{
 								items[i]:SlowestArrowsOn()
 							else
 								items[i]:SlowestArrowsOff()
+							end
+							if show_score_settings == true then
+								items[i]:ScoreMarkOn()
+							else
+								items[i]:ScoreMarkOff()
 							end
 							items[i]:SetSelection(sel, i, x, current_flow, current)
 						end
