@@ -1191,7 +1191,7 @@ local function SetControls(controls)
 		help_text:GetChild("wigglestages help text"):visible(false)
 		help_text:GetChild("slowestspeed help text"):visible(true)
 		help_text:GetChild("special help text"):visible(false)
-		song_list_overlay:SetLineOff()
+		song_list_overlay:SetLineOn()
 	elseif controls == "special" then
 		help_text:GetChild("training help text"):visible(false)
 		help_text:GetChild("default help text"):visible(false)
@@ -1672,7 +1672,11 @@ local t = Def.ActorFrame{
 				self:zoom(SongListScale())
 
 				self.SetSelections = function(self, selections)
-					song_list_overlay:PlaceLine(FlowDJ.stage)
+					if current_controls == "default" then
+						song_list_overlay:ScoreLine(mid_score)
+					elseif current_controls == "slowestspeed" then
+						song_list_overlay:NpsLine(slowest_speed)
+					end
 					self:zoom(SongListScale())
 					self:xy(song_list_column, SCREEN_HEIGHT * 0.14)
 
@@ -1725,7 +1729,7 @@ local t = Def.ActorFrame{
 				self:visible(true)
 				self:xy(song_list_column, SCREEN_HEIGHT * 0.53)
 
-				self.SetLineOn = function(self, stage)
+				self.SetLineOn = function(self)
 					local overlay_line = self:GetChild("overlay setting")
 					overlay_line:visible(true)
 				end
@@ -1733,16 +1737,21 @@ local t = Def.ActorFrame{
 					local overlay_line = self:GetChild("overlay setting")
 					overlay_line:visible(false)
 				end
-				self.PlaceLine = function(self, stage)
+				self.ScoreLine = function(self, score)
 					local scale = SongListScale()
-					local base = mid_score
 
 					local overlay_line = self:GetChild("overlay setting")
-					overlay_line:xy(scale * 600 * base,0)
+					overlay_line:xy(scale * 600 * score,0)
+				end
+				self.NpsLine = function(self, nps)
+					local scale = SongListScale()
+
+					local overlay_line = self:GetChild("overlay setting")
+					overlay_line:xy(scale * FlowDJ.NpsScale(nps),0)
 				end
 			end,
 			Def.BitmapText{
-				Name = "setting line", Font = "Common Normal", InitCommand = function(self)
+				Name = "settings text", Font = "Common Normal", InitCommand = function(self)
 					self:xy(SCREEN_WIDTH * 0.35, 0)
 					self:zoom(0.05*text_height)
 					settings_text = self

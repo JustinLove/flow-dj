@@ -142,9 +142,8 @@ return Def.ActorFrame {
 					predicted_score:effectperiod(2)
 				end
 
-				local left_arrow = self:GetChild("left slowest")
-				if left_arrow:GetVisible() and sel.nps_bottom and sel.nps_top then
-					local nps_mark = self:GetChild("nps lower bound")
+				local nps_mark = self:GetChild("nps lower bound")
+				if nps_mark:GetVisible() and sel.nps_bottom and sel.nps_top then
 					nps_mark:setsize(bound_mark, flow_height)
 					local x = FlowDJ.NpsScale(flow.nps_lower_bound(f))
 					nps_mark:xy(x, 0)
@@ -155,6 +154,7 @@ return Def.ActorFrame {
 						nps_mark:effectcolor2(Brightness(Color.Red, 1.0))
 						nps_mark:effectperiod(2)
 					end
+					local left_arrow = self:GetChild("left slowest")
 					left_arrow:xy(x - arrow_offset, 0)
 					local right_arrow = self:GetChild("right slowest")
 					right_arrow:xy(x + arrow_offset, 0)
@@ -262,10 +262,10 @@ return Def.ActorFrame {
 			end
 
 			self.SlowestArrowsOn = function(self, flow)
-				local left_arrow = self:GetChild("left slowest")
-				left_arrow:visible(true)
-				local right_arrow = self:GetChild("right slowest")
-				right_arrow:visible(true)
+				--local left_arrow = self:GetChild("left slowest")
+				--left_arrow:visible(true)
+				--local right_arrow = self:GetChild("right slowest")
+				--right_arrow:visible(true)
 				local nps_mark = self:GetChild("nps lower bound")
 				nps_mark:visible(true)
 			end
