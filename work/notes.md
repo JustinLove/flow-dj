@@ -1,5 +1,6 @@
 ## Todo
 
+- warm up training shown on later rounds
 - testing mixed mode selection
 - too many arrows when picking slowest
 - how to show two parts of fastest
@@ -17,7 +18,6 @@
 - special case for occasional extremes?
 - curve improvements - many curves pick the same 2-3 levels repeatedly
 
-- rethink/remove distribution graph
 - include/exclude
 - try with different themes?
 - profiles?

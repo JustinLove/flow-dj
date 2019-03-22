@@ -6,8 +6,6 @@ local start_score = mid_score + (1.0 - mid_score)/2
 local percent_wiggle = FlowDJGetSetting("PercentWiggle")/100
 local sample_music = FlowDJGetSetting("SampleMusic")
 local slowest_speed = FlowDJGetSetting("SlowestSpeed")
-local fastest_speed_starting = FlowDJGetSetting("FastestSpeedStarting")
-local fastest_speed = FlowDJGetSetting("FastestSpeed")
 local maximum_cost = 0.0015
 local minimum_iteration_per_stage = 200
 local minimum_iteration = 1000
@@ -1104,8 +1102,8 @@ local function BuildFlow()
 		wiggle_range = Scaled(envelope, 0, percent_wiggle * mid_score * 2),
 		--nps_lower_bound = ConstantFactor(slowest_speed),
 		nps_lower_bound = Scaled(wiggle, slowest_speed, 3.5),
-		--nps_upper_bound = Scaled(ExponetialFactor(2), fastest_speed_starting, fastest_speed),
-		nps_upper_bound = ConstantFactor(fastest_speed),
+		--nps_upper_bound = Scaled(ExponetialFactor(2), 2, 10),
+		nps_upper_bound = ConstantFactor(10),
 		score_bound = Scaled(wiggle, start_score, mid_score),
 		selection_range = 0.3,
 	}
@@ -1185,7 +1183,6 @@ local function SetControls(controls)
 		help_text:GetChild("default help text"):visible(false)
 		help_text:GetChild("wigglestages help text"):visible(true)
 		help_text:GetChild("slowestspeed help text"):visible(false)
-		help_text:GetChild("fastestspeed help text"):visible(false)
 		help_text:GetChild("special help text"):visible(false)
 		song_list_overlay:SetLineOff()
 	elseif controls == "slowestspeed" then
@@ -1193,15 +1190,6 @@ local function SetControls(controls)
 		help_text:GetChild("default help text"):visible(false)
 		help_text:GetChild("wigglestages help text"):visible(false)
 		help_text:GetChild("slowestspeed help text"):visible(true)
-		help_text:GetChild("fastestspeed help text"):visible(false)
-		help_text:GetChild("special help text"):visible(false)
-		song_list_overlay:SetLineOff()
-	elseif controls == "fastestspeed" then
-		help_text:GetChild("training help text"):visible(false)
-		help_text:GetChild("default help text"):visible(false)
-		help_text:GetChild("wigglestages help text"):visible(false)
-		help_text:GetChild("slowestspeed help text"):visible(false)
-		help_text:GetChild("fastestspeed help text"):visible(true)
 		help_text:GetChild("special help text"):visible(false)
 		song_list_overlay:SetLineOff()
 	elseif controls == "special" then
@@ -1209,7 +1197,6 @@ local function SetControls(controls)
 		help_text:GetChild("default help text"):visible(false)
 		help_text:GetChild("wigglestages help text"):visible(false)
 		help_text:GetChild("slowestspeed help text"):visible(false)
-		help_text:GetChild("fastestspeed help text"):visible(false)
 		help_text:GetChild("special help text"):visible(true)
 		song_list_overlay:SetLineOff()
 	else
@@ -1222,7 +1209,6 @@ local function SetControls(controls)
 		end
 		help_text:GetChild("wigglestages help text"):visible(false)
 		help_text:GetChild("slowestspeed help text"):visible(false)
-		help_text:GetChild("fastestspeed help text"):visible(false)
 		help_text:GetChild("special help text"):visible(false)
 	end
 	local song_list = flow_frame:GetChild("song list")
@@ -1235,8 +1221,6 @@ local function SwitchControls()
 	elseif current_controls == "wigglestages" then
 		SetControls("slowestspeed")
 	elseif current_controls == "slowestspeed" then
-		SetControls("fastestspeed")
-	elseif current_controls == "fastestspeed" then
 		SetControls("special")
 	else
 		SetControls("default")
@@ -1353,22 +1337,6 @@ local function BumpSlowestSpeed(by)
 	current_flow = BuildFlow()
 	PerformPick(flow_frame)
 	settings_text:settext(string.format("slowest: %0.1f", slowest_speed))
-end
-
-local function BumpFastestSpeedStarting(by)
-	fastest_speed_starting = math.max(0, math.min(10, fastest_speed_starting + by))
-	FlowDJSetSetting("FastestSpeedStarting", fastest_speed_starting)
-	current_flow = BuildFlow()
-	PerformPick(flow_frame)
-	settings_text:settext(string.format("starting: %0.1f", fastest_speed_starting))
-end
-
-local function BumpFastestSpeed(by)
-	fastest_speed = math.max(0, math.min(10, fastest_speed + by))
-	FlowDJSetSetting("FastestSpeed", fastest_speed)
-	current_flow = BuildFlow()
-	PerformPick(flow_frame)
-	settings_text:settext(string.format("fastest: %0.1f", fastest_speed))
 end
 
 local function ToggleSampleMusic()
@@ -1492,27 +1460,6 @@ local function SlowestSpeedControls(button)
 	return false
 end
 
-local function FastestSpeedControls(button)
-	if button == "MenuRight" then
-		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
-		BumpFastestSpeedStarting(-0.1)
-		return true
-	elseif button == "MenuLeft" then
-		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
-		BumpFastestSpeedStarting(0.1)
-		return true
-	elseif button == "MenuUp" then
-		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
-		BumpFastestSpeed(0.1)
-		return true
-	elseif button == "MenuDown" then
-		SOUND:PlayOnce(THEME:GetPathS("MusicWheel", "change"))
-		BumpFastestSpeed(-0.1)
-		return true
-	end
-	return false
-end
-
 local function SpecialControls(button)
 	if button == "MenuLeft" then
 		ToggleSampleMusic()
@@ -1557,7 +1504,6 @@ local function input(event)
 	elseif current_controls == "default" and DefaultControls(button) then
 	elseif current_controls == "wigglestages" and WiggleStagesControls(button) then
 	elseif current_controls == "slowestspeed" and SlowestSpeedControls(button) then
-	elseif current_controls == "fastestspeed" and FastestSpeedControls(button) then
 	elseif current_controls == "special" and SpecialControls(button) then
 	else
 		lua.ReportScriptError(button)
@@ -1858,9 +1804,6 @@ local t = Def.ActorFrame{
 		},
 		Def.BitmapText{
 			Name = "slowestspeed help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("SlowestSpeedHelpText"); visible, false)
-		},
-		Def.BitmapText{
-			Name = "fastestspeed help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("FastestSpeedHelpText"); visible, false)
 		},
 		Def.BitmapText{
 			Name = "special help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("SpecialHelpText"); visible, false)

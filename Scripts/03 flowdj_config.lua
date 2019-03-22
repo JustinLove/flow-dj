@@ -5,8 +5,6 @@ local flowdj_default_config = {
 	PercentWiggle = 30,
 	SampleMusic = false,
 	SlowestSpeed = 0.8,
-	FastestSpeedStarting = 2,
-	FastestSpeed = 10,
 }
 
 flowdj_config = create_lua_config {
