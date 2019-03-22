@@ -2,9 +2,9 @@ local flowdj_default_config = {
 	NumberOfStages = 16,
 	StartScore = 85,
 	MidScore = 60,
-	PercentWiggle = 30,
+	PercentWiggle = 20,
 	SampleMusic = false,
-	SlowestSpeed = 0.8,
+	SlowestSpeed = 3.5,
 }
 
 flowdj_config = create_lua_config {

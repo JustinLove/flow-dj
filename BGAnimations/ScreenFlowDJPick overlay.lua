@@ -1101,7 +1101,7 @@ local function BuildFlow()
 		wiggle_base = Scaled(shape, start_score, mid_score),
 		wiggle_range = Scaled(envelope, 0, percent_wiggle * mid_score * 2),
 		--nps_lower_bound = ConstantFactor(slowest_speed),
-		nps_lower_bound = Scaled(wiggle, slowest_speed, 3.5),
+		nps_lower_bound = Scaled(wiggle, slowest_speed/4, slowest_speed),
 		--nps_upper_bound = Scaled(ExponetialFactor(2), 2, 10),
 		nps_upper_bound = ConstantFactor(10),
 		score_bound = Scaled(wiggle, start_score, mid_score),
