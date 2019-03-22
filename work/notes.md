@@ -1,6 +1,5 @@
 ## Todo
 
-- warm up training shown on later rounds
 - testing mixed mode selection
 - too many arrows when picking slowest
 - how to show two parts of fastest

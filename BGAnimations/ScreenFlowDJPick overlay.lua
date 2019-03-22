@@ -1200,7 +1200,7 @@ local function SetControls(controls)
 		help_text:GetChild("special help text"):visible(true)
 		song_list_overlay:SetLineOff()
 	else
-		if #selection_snapshot == 0 then
+		if #selection_snapshot == 0 and FlowDJ.stage == 0 then
 			help_text:GetChild("training help text"):visible(true)
 			help_text:GetChild("default help text"):visible(false)
 		else
@@ -1376,6 +1376,7 @@ local function update(self)
 		--EvaluatePredictions(PossibleSteps())
 		--MultipleTraining(PossibleSteps())
 		song_text:settext("Modeling score of unplayed steps")
+		SetControls(current_controls)
 	end
 	if frame >= 2 then
 
@@ -1803,7 +1804,7 @@ local t = Def.ActorFrame{
 			self:xy(_screen.cx, SCREEN_HEIGHT - 30)
 		end,
 		Def.BitmapText{
-			Name = "training help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("TrainingHelpText"))
+			Name = "training help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("TrainingHelpText"); visible, false)
 		},
 		Def.BitmapText{
 			Name = "default help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("DefaultHelpText"); visible, false)
