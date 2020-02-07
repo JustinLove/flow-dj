@@ -209,7 +209,7 @@ return Def.ActorFrame {
 				end
 
 				local score_text = self:GetChild("score text")
-				score_text:settextf("%2d", sel.effective_score * 100)
+				score_text:settextf("%2d", math.floor(sel.effective_score * 100))
 				score_text:xy(flow_width - 10 - score_text:GetWidth()*0.5, 0)
 
 			end

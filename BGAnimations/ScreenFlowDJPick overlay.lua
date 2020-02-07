@@ -1318,7 +1318,7 @@ local function BumpFlow(stage, by)
 	FlowDJSetSetting("StartScore", math.floor(start_score * 100))
 	FlowDJSetSetting("MidScore", math.floor(mid_score * 100))
 
-	settings_text:settext(string.format("low: %d\nmid: %d", start_score * 100, mid_score * 100))
+	settings_text:settext(string.format("low: %d\nmid: %d", math.floor(start_score * 100), math.floor(mid_score * 100)))
 
 	current_flow = BuildFlow()
 	show_score_settings = true
@@ -1329,7 +1329,7 @@ end
 local function BumpWiggle(by)
 	percent_wiggle = math.max(0.0, math.min(0.5, percent_wiggle + 0.01 * by))
 	FlowDJSetSetting("PercentWiggle", math.floor(percent_wiggle * 100))
-	settings_text:settext(string.format("wiggle: %d", percent_wiggle * 100))
+	settings_text:settext(string.format("wiggle: %d", math.floor(percent_wiggle * 100)))
 	current_flow = BuildFlow()
 	PerformPick(flow_frame)
 end
