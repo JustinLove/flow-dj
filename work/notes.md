@@ -69,7 +69,9 @@ Def.Actor\* does not return the actual actor, it is not available until provided
 
 
 		Def.ActorFrame{
-			Name= "line frame", InitCommand= cmd(visible, true),
+			Name= "line frame", InitCommand= function(self)
+				self:visible(true)
+			end,
 			Def.ActorMultiVertex{
 				Name= "line", InitCommand = function(self)
 					graph_line = self
@@ -80,7 +82,9 @@ Def.Actor\* does not return the actual actor, it is not available until provided
 						})
 					graph_line:SetNumVertices(#selections)
 				end,
-				OnCommand = cmd(diffuse, Color.White)
+				OnCommand = function(self)
+					self:diffuse(Color.White)
+				end,
 			},
 		},
 

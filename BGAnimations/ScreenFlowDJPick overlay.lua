@@ -1568,13 +1568,22 @@ local function Graph(name, x, y, scale)
 		end,
 		Def.ActorFrame{
 			Def.Quad{
-				Name= "backdrop", InitCommand = cmd(setsize, 1, 1; xy, 0.5, 0.5),
-				OnCommand = cmd(diffuse, Alpha(Color.Black, 0.5))
+				Name= "backdrop", InitCommand = function(self)
+					self:setsize(1, 1)
+					self:xy(0.5, 0.5)
+				end,
+				OnCommand = function(self)
+					self:diffuse(Alpha(Color.Black, 0.5))
+				end,
 			},
-			Name= "background", InitCommand= cmd(visible, true),
+			Name= "background", InitCommand= function(self)
+				self:visible(true)
+			end,
 		},
 		Def.ActorFrame{
-			Name= "data", InitCommand= cmd(visible, true),
+			Name= "data", InitCommand= function(self)
+				self:visible(true)
+			end
 		},
 		Def.BitmapText{
 			Name = "label", Font = "Common Normal", InitCommand = function(self)
@@ -1652,8 +1661,12 @@ local t = Def.ActorFrame{
 				banner_sprite = self
 				self:xy(banner_column, SCREEN_HEIGHT * 0.26)
 			end,
-			OnCommand= cmd(playcommand, "Set"),
-			CurrentSongChangedMessageCommand= cmd(playcommand, "Set"),
+			OnCommand= function(self)
+				self:playcommand("Set")
+			end,
+			CurrentSongChangedMessageCommand= function(self)
+				self:playcommand("Set")
+			end,
 			SetCommand= function(self, sel)
 				if sel and sel.song then
 					if sel.song:HasBanner()then
@@ -1667,7 +1680,7 @@ local t = Def.ActorFrame{
 					end
 				else
 					self:visible(false)
-						song_text:settext("")
+					song_text:settext("")
 				end
 			end
 		},
@@ -1737,7 +1750,9 @@ local t = Def.ActorFrame{
 				end
 			end,
 			Def.ActorFrame{
-				Name= "list", InitCommand= cmd(visible, true),
+				Name= "list", InitCommand= function(self)
+					self:visible(true)
+				end,
 			},
 		},
 		Def.ActorFrame{
@@ -1775,7 +1790,9 @@ local t = Def.ActorFrame{
 				end
 			},
 			Def.ActorFrame{
-				Name= "overlay setting", InitCommand= cmd(visible, false),
+				Name= "overlay setting", InitCommand= function(self)
+					self:visible(false)
+				end,
 				Def.Quad{
 					Name= "overlay line", InitCommand = function(self)
 						self:setsize(2, 0.75*SCREEN_HEIGHT)
@@ -1783,10 +1800,18 @@ local t = Def.ActorFrame{
 					end
 				},
 				Def.BitmapText{
-					Name = "left arrow", Font = "Common Normal", InitCommand = cmd(visible, true; xy, -20, 0; settext, "&MENULEFT;"),
+					Name = "left arrow", Font = "Common Normal", InitCommand = function(self)
+						self:visible(true)
+						self:xy(-20, 0)
+						self:settext("&MENULEFT;")
+					end,
 				},
 				Def.BitmapText{
-					Name = "right arrow", Font = "Common Normal", InitCommand = cmd(visible, true; xy, 20, 0; settext, "&MENURIGHT;"),
+					Name = "right arrow", Font = "Common Normal", InitCommand = function(self)
+						self:visible(true)
+						self:xy(20, 0)
+						self:settext("&MENURIGHT;")
+					end,
 				},
 			},
 			--Graph("curve graph", 900*SongListScale(), -0.5*0.75*SCREEN_HEIGHT, 0.75*SCREEN_HEIGHT),
@@ -1807,10 +1832,19 @@ local t = Def.ActorFrame{
 			end
 		},
 		Def.BitmapText{
-			Name = "model x axis label", Font = "Common Normal", InitCommand = cmd(visible, true; xy, SCREEN_WIDTH * 0.2, SCREEN_HEIGHT * 0.32; settext, "actual score"),
+			Name = "model x axis label", Font = "Common Normal", InitCommand = function(self)
+				self:visible(true)
+				self:xy(SCREEN_WIDTH * 0.2, SCREEN_HEIGHT * 0.32)
+				self:settext("actual score")
+			end,
 		},
 		Def.BitmapText{
-			Name = "model y axis label", Font = "Common Normal", InitCommand = cmd(visible, true; xy, SCREEN_WIDTH * 0.015, 0; rotationz, 270; settext, "estimated score"),
+			Name = "model y axis label", Font = "Common Normal", InitCommand = function(self)
+				self:visible(true)
+				self:xy(SCREEN_WIDTH * 0.015, 0)
+				self:rotationz(270)
+				self:settext("estimated score")
+			end,
 		},
 	},
 	Def.ActorFrame{
@@ -1820,19 +1854,34 @@ local t = Def.ActorFrame{
 			self:xy(_screen.cx, SCREEN_HEIGHT - 30)
 		end,
 		Def.BitmapText{
-			Name = "training help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("TrainingHelpText"); visible, false)
+			Name = "training help text", Font = "Common Normal", InitCommand = function(self)
+				self:settext(Screen.String("TrainingHelpText"))
+				self:visible(false)
+			end,
 		},
 		Def.BitmapText{
-			Name = "default help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("DefaultHelpText"); visible, false)
+			Name = "default help text", Font = "Common Normal", InitCommand = function(self)
+				self:settext(Screen.String("DefaultHelpText"))
+				self:visible(false)
+			end,
 		},
 		Def.BitmapText{
-			Name = "wigglestages help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("WiggleStagesHelpText"); visible, false)
+			Name = "wigglestages help text", Font = "Common Normal", InitCommand = function(self)
+				self:settext(Screen.String("WiggleStagesHelpText"))
+				self:visible(false)
+			end,
 		},
 		Def.BitmapText{
-			Name = "slowestspeed help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("SlowestSpeedHelpText"); visible, false)
+			Name = "slowestspeed help text", Font = "Common Normal", InitCommand = function(self)
+				self:settext(Screen.String("SlowestSpeedHelpText"))
+				self:visible(false)
+			end,
 		},
 		Def.BitmapText{
-			Name = "special help text", Font = "Common Normal", InitCommand = cmd(settext, Screen.String("SpecialHelpText"); visible, false)
+			Name = "special help text", Font = "Common Normal", InitCommand = function(self)
+				self:settext(Screen.String("SpecialHelpText"))
+				self:visible(false)
+			end,
 		},
 	},
 	Def.BitmapText{

@@ -291,16 +291,30 @@ return Def.ActorFrame {
 
 		end,
 	Def.Quad{
-		Name= "flow backdrop", InitCommand = cmd(setsize, 0, 0; xy, flow_width/2, 0),
+		Name= "flow backdrop", InitCommand = function(self)
+			self:setsize(0, 0)
+			self:xy(flow_width/2, 0)
+		end,
 	},
 	Def.Quad{
-		Name= "group backdrop", InitCommand = cmd(setsize, 0, 0; xy, -flow_width/2 - 30, 0),
+		Name= "group backdrop", InitCommand = function(self)
+			self:setsize(0, 0)
+			self:xy(-flow_width/2 - 30, 0)
+		end,
 	},
 	Def.BitmapText{
-		Name = "up arrow", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENUUP;"; zoom, 2),
+		Name = "up arrow", Font = "Common Normal", InitCommand = function(self)
+			self:visible(false)
+			self:settext("&MENUUP;")
+			self:zoom(2)
+		end,
 	},
 	Def.BitmapText{
-		Name = "down arrow", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENUDOWN;"; zoom, 2),
+		Name = "down arrow", Font = "Common Normal", InitCommand = function(self)
+			self:visible(false)
+			self:settext("&MENUDOWN;")
+			self:zoom(2)
+		end,
 	},
 	Def.Quad{
 		Name= "flow range"
@@ -315,10 +329,16 @@ return Def.ActorFrame {
 		Name= "nps upper bound"
 	},
 	Def.BitmapText{
-		Name = "left arrow", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENULEFT;"),
+		Name = "left arrow", Font = "Common Normal", InitCommand = function(self)
+			self:visible(false)
+			self:settext("&MENULEFT;")
+		end,
 	},
 	Def.BitmapText{
-		Name = "right arrow", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENURIGHT;"),
+		Name = "right arrow", Font = "Common Normal", InitCommand = function(self)
+			self:visible(false)
+			self:settext("&MENURIGHT;")
+		end,
 	},
 	Def.Quad{
 		Name= "nps mark"
@@ -330,16 +350,28 @@ return Def.ActorFrame {
 		Name= "actual score"
 	},
 	Def.BitmapText{
-		Name = "left wiggle", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENULEFT;"),
+		Name = "left wiggle", Font = "Common Normal", InitCommand = function(self)
+			self:visible(false)
+			self:settext("&MENULEFT;")
+		end,
 	},
 	Def.BitmapText{
-		Name = "right wiggle", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENURIGHT;"),
+		Name = "right wiggle", Font = "Common Normal", InitCommand = function(self)
+			self:visible(false)
+			self:settext("&MENURIGHT;")
+		end,
 	},
 	Def.BitmapText{
-		Name = "left slowest", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENULEFT;"),
+		Name = "left slowest", Font = "Common Normal", InitCommand = function(self)
+			self:visible(false)
+			self:settext("&MENULEFT;")
+		end,
 	},
 	Def.BitmapText{
-		Name = "right slowest", Font = "Common Normal", InitCommand = cmd(visible, false; settext, "&MENURIGHT;"),
+		Name = "right slowest", Font = "Common Normal", InitCommand = function(self)
+			self:visible(false)
+			self:settext("&MENURIGHT;")
+		end,
 	},
 	Def.BitmapText{
 		Name = "title", Font = "Common Normal"
