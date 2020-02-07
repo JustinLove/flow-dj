@@ -40,6 +40,8 @@ https://dguzek.github.io/Lua-For-SM5/
 consensual has persistent mods
 
 
+Preferences.ini, AdditionalFolders=
+
 ## Solved
 
 Branch in scripts controls most transitions
