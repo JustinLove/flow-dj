@@ -1494,6 +1494,7 @@ local function input(event)
 	if button == "Start" then
 		if entering_song then
 			SetupNextGame(selection_snapshot)
+			setenv("NewOptions","Main")
 			trans_new_screen("ScreenPlayerOptions")
 			SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 		elseif #selection_snapshot > 0 then

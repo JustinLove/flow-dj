@@ -1,5 +1,9 @@
 ## Todo
 
+- no speed options
+- inconsistent song selection
+- selection visualization?
+
 - testing mixed mode selection
 - too many settings?
   - don't want too many slow songs - slowest speed limit
@@ -35,7 +39,11 @@ Trace("")
 lua.ReportScriptError("")
 rec_print_table()
 
-https://dguzek.github.io/Lua-For-SM5/
+https://quietly-turning.github.io/Lua-For-SM5/
+https://quietly-turning.github.io/Lua-For-SM5/Luadoc/Lua.xml
+
+xxxx https://dguzek.github.io/Lua-For-SM5/
+
 
 consensual has persistent mods
 

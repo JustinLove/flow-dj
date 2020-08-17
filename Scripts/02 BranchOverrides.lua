@@ -70,5 +70,3 @@ Branch.AfterScreenSelectColor = function()
 	BaseAfterScreenSelectColor()
 	return "ScreenFlowDJPick"
 end
-
-ModeIconColors["FlowDJ"] = color("#b4c3d2") -- steel
