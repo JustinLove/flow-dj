@@ -55,9 +55,16 @@ if not FlowDJ.fake_play then
 	FlowDJ.stage = GAMESTATE:GetCurrentStageIndex()
 end
 if FlowDJ.stage == 0 then
-	FlowDJ.offset = math.random(0,math.pi)
-	FlowDJ.scale = math.random(1,3)
+	FlowDJ.seed = GAMESTATE:GetGameSeed()
+	FlowDJ.offset = math.random() * math.pi
+	FlowDJ.scale = math.random() * 2 + 1
 end
+
+if FlowDJ.seed == 8365 then
+	FlowDJ.seed = math.floor(math.random() * 32767)
+end
+
+lua.ReportScriptError('seed' .. FlowDJ.seed)
 
 local function CopyTable(from)
 	local to = {}
@@ -258,7 +265,9 @@ end
 local function RemoveUnwantedGroups(songs)
 	local filtered_songs = {}
 	for i,song in ipairs(songs) do
-		if song:GetGroupName() ~= "Muted" then
+		if song:GetGroupName() ~= "Impossible" then
+		--if song:GetGroupName() == "Muted" then
+		--if song:GetGroupName() ~= "Muted" and song:GetGroupName() ~= "Impossible" then
 			table.insert(filtered_songs, song)
 		end
 	end
@@ -373,9 +382,12 @@ local function WeightByPlayCount(songs)
 	end
 	most = (most / 2) + 1
 
-	math.randomseed(GAMESTATE:GetGameSeed())
 	for i,item in ipairs(weighted) do
-		weighted[i].weight = math.random() * (weighted[i].count + 1) / (weighted[i].count + most)
+		local rand = math.random()
+		local play = (weighted[i].count + 1) / (weighted[i].count + most)
+		--weighted[i].rand = rand
+		--weighted[i].play = play
+		weighted[i].weight = rand * play
 	end
 
 	table.sort(weighted, function(a, b)
@@ -395,8 +407,7 @@ local function WeightByPlayCount(songs)
 	for i,item in ipairs(weighted) do
 		sorted[i] = weighted[i].song
 	end
-	math.randomseed(GetTimeSinceStart())
-	return sorted
+	return sorted, weighted
 end
 
 local function GraphSteps()
@@ -442,7 +453,8 @@ local function GetScore(song, steps)
 end
 
 local function PossibleSteps()
-	local all_songs = WeightByPlayCount(RemoveUnwantedGroups(SONGMAN:GetAllSongs()))
+	math.randomseed(FlowDJ.seed)
+	local all_songs, weighted = WeightByPlayCount(RemoveUnwantedGroups(SONGMAN:GetAllSongs()))
 	local possible = {}
 	for g, song in ipairs(all_songs) do
 		local song_steps = song:GetStepsByStepsType(stepstype)
@@ -459,6 +471,7 @@ local function PossibleSteps()
 			})
 		end
 	end
+	math.randomseed(GetTimeSinceStart())
 	return possible
 end
 
@@ -1078,7 +1091,7 @@ local function ManualFlowFactor(edge)
 end
 
 local function DistributionFactor(x)
-	math.randomseed(GAMESTATE:GetGameSeed()*x)
+	math.randomseed(FlowDJ.seed*x)
 	local y = 1-(math.random() ^ 3)
 	math.randomseed(GetTimeSinceStart())
 	return y
