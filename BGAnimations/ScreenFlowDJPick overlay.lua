@@ -527,6 +527,9 @@ local function Polynomial(factors, degree)
 			factors[key..d] = factors[key] ^ d
 		end
 	end
+	--for i,key in ipairs(keys) do
+		--factors[key.."root"] = math.sqrt(factors[key])
+	--end
 end
 
 local function Cross(factors)
@@ -548,6 +551,11 @@ local poly = 2
 
 Polynomial(initial_theta, poly)
 --Cross(initial_theta)
+
+local theta_count = 0
+for key,value in pairs(initial_theta) do
+	theta_count = theta_count + 1
+end
 
 -- ~= nan check
 if not FlowDJ.theta['c'] or FlowDJ.theta['c'] ~= FlowDJ.theta['c'] then
@@ -592,12 +600,39 @@ local function ComputeCost(steps, theta)
 	return cost
 end
 
+local termerror = {}
+local termcost = {}
+
+local function TermCost(steps, theta)
+	if #steps < 1 then
+		return 0
+	end
+	for key,value in pairs(theta) do
+		termerror[key] = 0
+		termcost[key] = 0
+	end
+	for p,sel in ipairs(steps) do
+		local prediction = 0
+		for key,value in pairs(theta) do
+			prediction = prediction + value * sel.factors[key]
+		end
+		local error = prediction - sel.score
+		for key,value in pairs(termcost) do
+			termerror[key] = termerror[key] + error * sel.factors[key]
+			termcost[key] = termcost[key] + math.abs(error * sel.factors[key])
+		end
+	end
+	for key,value in pairs(termcost) do
+		termcost[key] = termcost[key] / #steps
+	end
+end
+
 local function GradientDescent(steps, theta, cost_history)
 	if #steps < 1 then
 		cost_history[#cost_history+1] = 0
 		return theta, cost_history
 	end
-	local alpha = 0.2
+	local alpha = 8/theta_count
 	local tick_start = GetTimeSinceStart()
 	local crazy = 0
 	if #cost_history == 0 then
@@ -624,6 +659,7 @@ local function GradientDescent(steps, theta, cost_history)
 		end
 		cost_history[#cost_history+1] = ComputeCost(steps, theta)
 	end
+	TermCost(steps, theta)
 	return theta, cost_history
 end
 
@@ -1629,8 +1665,23 @@ local function ModelFactors(x, y, scale)
 					self:xy(0, i*5)
 					self:SetUpdateFunction(function(self)
 						local value = self:GetChild("value")
-						value:setsize(math.abs(FlowDJ.theta[key]) * 20, 3)
-						value:xy(FlowDJ.theta[key] * 20 / 2, 0)
+						local v = FlowDJ.theta[key] * 20
+						value:setsize(math.abs(v), 3)
+						value:xy(v / 2, 0)
+
+						if termerror[key] then
+							local error = self:GetChild("error")
+							local e = termerror[key] * 20
+							error:setsize(math.abs(e), 3)
+							error:xy(e / 2 + 20, 0)
+						end
+
+						if termcost[key] then
+							local cost = self:GetChild("cost")
+							local c = termcost[key] * 400
+							cost:setsize(math.abs(c), 3)
+							cost:xy(c / 2 + 40, 0)
+						end
 					end)
 				end,
 			Def.BitmapText{
@@ -1643,6 +1694,12 @@ local function ModelFactors(x, y, scale)
 			},
 			Def.Quad{
 				Name= "value"
+			},
+			Def.Quad{
+				Name= "error"
+			},
+			Def.Quad{
+				Name= "cost"
 			},
 		}
 	end

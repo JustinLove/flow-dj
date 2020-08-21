@@ -1,8 +1,11 @@
 ## Todo
 
-- no speed options
-- inconsistent song selection
+- settings not being saved in profile
+- save factors?
+- recent scores?
 - selection visualization?
+- factor selection?
+- discord?
 
 - testing mixed mode selection
 - too many settings?
