@@ -21,6 +21,7 @@ end
 
 local PreviousLoadProfileCustom = LoadProfileCustom
 function LoadProfileCustom(profile, dir, pn)
+	--lua.ReportScriptError("LoadProfileCustom" .. dir .. (pn or ''))
 	for i, callback in ipairs(profile_load_callbacks) do
 		callback(profile, dir, pn)
 	end
@@ -30,7 +31,7 @@ function LoadProfileCustom(profile, dir, pn)
 end
 local PreviousSaveProfileCustom = SaveProfileCustom
 function SaveProfileCustom(profile, dir, pn)
-	--lua.ReportScriptError("SaveProfileCustom")
+	--lua.ReportScriptError("SaveProfileCustom" .. dir .. (pn or ''))
 	for i, callback in ipairs(profile_save_callbacks) do
 		callback(profile, dir, pn)
 	end
@@ -46,6 +47,7 @@ function add_gamestate_reset_callback(func)
 end
 
 function GameStateResetCustom()
+	--lua.ReportScriptError("GameStateResetCustom")
 	for i, callback in ipairs(gamestate_reset_callbacks) do
 		callback()
 	end

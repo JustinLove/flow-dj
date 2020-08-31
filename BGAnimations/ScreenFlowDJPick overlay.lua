@@ -111,7 +111,7 @@ local function SongDebug(song)
 		song:GetDisplayMainTitle(),
 		song:GetDisplayBpms()[1],
 		song:GetDisplayBpms()[2],
-		PROFILEMAN:GetSongNumTimesPlayed(song, 'ProfileSlot_Machine'))
+		PROFILEMAN:GetSongNumTimesPlayed(song, 'ProfileSlot_Player1'))
 end
 
 local function SongsDebug(songs)
@@ -371,7 +371,7 @@ local function WeightByPlayCount(songs)
 	local weighted = {}
 	local most = 0
 	for i,song in ipairs(songs) do
-		local count = PROFILEMAN:GetSongNumTimesPlayed(song, 'ProfileSlot_Machine')
+		local count = PROFILEMAN:GetSongNumTimesPlayed(song, 'ProfileSlot_Player1')
 		most = math.max(most, count)
 		weighted[i] = {
 			song = song,
@@ -1547,7 +1547,7 @@ local function input(event)
 			trans_new_screen("ScreenPlayerOptions")
 			SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 		elseif #selection_snapshot > 0 then
-			flowdj_config:save()
+			flowdj_config:save("PlayerNumber_P1")
 			StartNextGame(selection_snapshot)
 			SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 		else
@@ -1557,7 +1557,7 @@ local function input(event)
 	elseif button == "Back" then
 		FlowDJ.stage = 0
 		stop_music()
-		flowdj_config:save()
+		flowdj_config:save("PlayerNumber_P1")
 		trans_new_screen("ScreenTitleMenu")
 		SOUND:PlayOnce(THEME:GetPathS("Common", "cancel"))
 	elseif button == "Select" then

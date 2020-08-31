@@ -19,10 +19,10 @@ flowdj_config:load()
 add_standard_lua_config_save_load_hooks(flowdj_config)
 
 function FlowDJGetSetting(setting)
-	return flowdj_config:get_data()[setting] or flowdj_default_config[setting]
+	return flowdj_config:get_data('PlayerNumber_P1')[setting] or flowdj_default_config[setting]
 end
 
 function FlowDJSetSetting(setting, value)
-	flowdj_config:get_data()[setting] = value
-	flowdj_config:set_dirty()
+	flowdj_config:get_data('PlayerNumber_P1')[setting] = value
+	flowdj_config:set_dirty('PlayerNumber_P1')
 end
