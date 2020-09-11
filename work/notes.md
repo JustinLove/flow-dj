@@ -1,7 +1,7 @@
 ## Todo
 
-- settings not being saved in profile
-- save factors?
+- x settings not being saved in profile
+- x save factors?
 - recent scores?
 - selection visualization?
 - factor selection?

@@ -561,6 +561,11 @@ end
 if not FlowDJ.theta['c'] or FlowDJ.theta['c'] ~= FlowDJ.theta['c'] then
 	lua.ReportScriptError("reset theta")
 	FlowDJ.theta = CopyTable(initial_theta)
+	--lua.ReportScriptError(rec_print_table_to_str(flowdj_theta:get_data('PlayerNumber_P1')))
+	local loaded = flowdj_theta:get_data('PlayerNumber_P1')
+	for key,value in pairs(FlowDJ.theta) do
+		FlowDJ.theta[key] = loaded[key]
+	end
 end
 
 local function AddFactors(steps)
@@ -1558,6 +1563,11 @@ local function input(event)
 		FlowDJ.stage = 0
 		stop_music()
 		flowdj_config:save("PlayerNumber_P1")
+		for key,value in pairs(FlowDJ.theta) do
+			flowdj_theta:get_data('PlayerNumber_P1')[key] = value
+		end
+		flowdj_theta:set_dirty('PlayerNumber_P1')
+		flowdj_theta:save("PlayerNumber_P1")
 		trans_new_screen("ScreenTitleMenu")
 		SOUND:PlayOnce(THEME:GetPathS("Common", "cancel"))
 	elseif button == "Select" then

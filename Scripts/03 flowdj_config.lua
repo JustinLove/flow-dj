@@ -15,8 +15,19 @@ flowdj_config = create_lua_config {
 	exceptions = {},
 }
 
+flowdj_theta = create_lua_config {
+	name = "flowdj_theta",
+	file = "flowdj_theta.lua",
+	default = {},
+	match_depth = 0,
+	use_alternate_config_prefix = nil,
+	exceptions = {},
+}
+
 flowdj_config:load()
 add_standard_lua_config_save_load_hooks(flowdj_config)
+flowdj_theta:load()
+add_standard_lua_config_save_load_hooks(flowdj_theta)
 
 function FlowDJGetSetting(setting)
 	return flowdj_config:get_data('PlayerNumber_P1')[setting] or flowdj_default_config[setting]
