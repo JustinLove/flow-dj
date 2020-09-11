@@ -37,3 +37,18 @@ function FlowDJSetSetting(setting, value)
 	flowdj_config:get_data('PlayerNumber_P1')[setting] = value
 	flowdj_config:set_dirty('PlayerNumber_P1')
 end
+
+function FlowDJGetTheta(theta)
+	--lua.ReportScriptError(rec_print_table_to_str(flowdj_theta:get_data('PlayerNumber_P1')))
+	local loaded = flowdj_theta:get_data('PlayerNumber_P1')
+	for key,value in pairs(theta) do
+		theta[key] = loaded[key]
+	end
+end
+
+function FlowDJSetTheta(theta)
+	for key,value in pairs(FlowDJ.theta) do
+		flowdj_theta:get_data('PlayerNumber_P1')[key] = value
+	end
+	flowdj_theta:set_dirty('PlayerNumber_P1')
+end
