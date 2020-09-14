@@ -33,6 +33,7 @@ local graph = false
 local cost_quad = false
 local song_text = false
 local banner_sprite = false
+local selection_graph = false
 local stages_text = false
 local settings_text = false
 local song_list_overlay = false
@@ -72,6 +73,62 @@ local function CopyTable(from)
 		to[key] = value
 	end
 	return to
+end
+
+local function GraphNpsScale(x)
+	return math.pow(x, 0.5) / 3
+end
+
+local function GraphScoreScale(x)
+	return math.pow(x, 2)
+end
+
+local function GraphSelection(steps, flow)
+	selection_graph:Clear()
+	local data = selection_graph:GetChild("data")
+	for p,sel in ipairs(steps) do
+		local color = Alpha(Color.White, 0.2)
+		if sel.skipped then
+			color = Brightness(Color.Red, 0.4)
+		end
+		if sel.selected then
+			color = Brightness(Color.White, 0.2)
+		end
+		selection_graph:SetPoint(p, GraphScoreScale(sel.effective_score), GraphNpsScale(sel.nps), color)
+		if sel.selected or sel.skipped then
+			local points = data:GetChild("point")
+			local point = points[p]
+			point:setsize(0.01, 0.01)
+			if sel.skipped then
+				for s,stage in ipairs(sel.skippedOn) do
+					if stage == FlowDJ.stage+1 then
+						point:glowshift()
+						point:effectcolor1(Brightness(Color.Red, 0.6))
+						point:effectcolor2(Brightness(Color.Red, 1.0))
+						point:effectperiod(2)
+						point:setsize(0.04, 0.04)
+					end
+				end
+			end
+			if sel.selected then
+				if sel.stage == FlowDJ.stage+1 then
+					point:glowshift()
+					point:effectcolor1(Brightness(Color.White, 0.8))
+					point:effectcolor2(Brightness(Color.White, 1.0))
+					point:effectperiod(2)
+					point:setsize(0.04, 0.04)
+				end
+			end
+		end
+	end
+	local stage_progress = (FlowDJ.stage)/(stages-1)
+	local nps_lower_bound = GraphNpsScale(flow.nps_lower_bound(stage_progress))
+	local score_bound = GraphScoreScale(flow.score_bound(stage_progress))
+	data:AddChildFromPath(THEME:GetPathG("", "box.lua"))
+	data:AddChildFromPath(THEME:GetPathG("", "box.lua"))
+	local boxes = data:GetChild("box")
+	boxes[1]:setsize(1, nps_lower_bound):xy(0.5, 1 - (nps_lower_bound/2)):diffuse(Alpha(Color.Red, 0.5))
+	boxes[2]:setsize(score_bound, 1):xy(score_bound/2, 0.5):diffuse(Alpha(Color.White, 0.5))
 end
 
 local function GraphPredictions(steps, theta, color)
@@ -478,6 +535,8 @@ end
 local function ResetSelected(selections)
 	for i,sel in ipairs(selections) do
 		sel.selected = false
+		sel.skipped = false
+		sel.skippedOn = {}
 	end
 end
 
@@ -944,15 +1003,8 @@ local function PickByBounds(flow, theta)
 					end
 					score = predictions[j]
 				end
-				--[[lua.ReportScriptError(rec_print_table_to_str({
-						min = min,
-						score = score,
-						bottom = bottom,
-						nps = nps,
-						top = top
-					}))
-					]]
-				if min < score and bottom < nps and nps < top and not picked[path] then
+				if picked[path] then
+				elseif min < score and bottom < nps and nps < top then
 					selections[i] = sel
 					sel.selected = true
 					sel.stage = i
@@ -962,6 +1014,16 @@ local function PickByBounds(flow, theta)
 					sel.nps_top = top
 					picked[path] = true
 					break
+				else
+					sel.skipped = true
+					table.insert(sel.skippedOn, i)
+					--[[lua.ReportScriptError(rec_print_table_to_str({
+							min = min,
+							score = score,
+							bottom = bottom,
+							nps = nps,
+							top = top
+						}))]]--
 				end
 			end
 		end
@@ -1325,6 +1387,7 @@ local function PerformPick(frame)
 	AssignScore(possible_steps, FlowDJ.theta)
 	song_list:SetSelections(selection_snapshot)
 	DisplaySelectionForCurrentStage(selection_snapshot)
+	GraphSelection(possible_steps, current_flow)
 
 	--local curve_graph = song_list_overlay:GetChild("curve graph")
 	--curve_graph:baserotationz(90)
@@ -1431,6 +1494,7 @@ local function update(self)
 	if frame == 2 then
 		local screen = self:GetParent()
 		graph = screen:GetChild("model"):GetChild("graph")
+		selection_graph = screen:GetChild("Flow Display"):GetChild("selection graph")
 		--GraphSteps()
 		--left_text:settext(SongsDebug(RecentSongs()))
 		--left_text:settext(StepsDebug(RecentSteps()))
@@ -1760,6 +1824,7 @@ local t = Def.ActorFrame{
 				end
 			end
 		},
+		Graph("selection graph", banner_column, SCREEN_HEIGHT * 0.35, math.min(SCREEN_WIDTH * 0.3, SCREEN_HEIGHT * 0.7)),
 		Def.BitmapText{
 			Name = "Song", Font = "Common Normal", InitCommand = function(self)
 				song_text = self
