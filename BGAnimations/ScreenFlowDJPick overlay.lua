@@ -15,6 +15,7 @@ local text_height = SCREEN_HEIGHT/48
 local function SongListScale()
 	return math.min(0.6 * text_height / stages, 0.12*SCREEN_WIDTH/240)
 end
+local selection_graph_scale = math.min(SCREEN_WIDTH * 0.28, SCREEN_HEIGHT * 0.7)
 
 local pn = GAMESTATE:GetEnabledPlayers()[1]
 --local currentstyle = GAMESTATE:GetCurrentStyle(pn)
@@ -1541,7 +1542,7 @@ local function update(self)
 	if frame == 2 then
 		local screen = self:GetParent()
 		graph = screen:GetChild("model"):GetChild("graph")
-		selection_graph = screen:GetChild("Flow Display"):GetChild("selection graph")
+		selection_graph = screen:GetChild("Flow Display"):GetChild("selection graph frame"):GetChild("selection graph")
 		--GraphSteps()
 		--left_text:settext(SongsDebug(PlayedSongs()))
 		--left_text:settext(StepsDebug(PlayedSteps()))
@@ -1871,7 +1872,34 @@ local t = Def.ActorFrame{
 				end
 			end
 		},
-		Graph("selection graph", banner_column, SCREEN_HEIGHT * 0.35, math.min(SCREEN_WIDTH * 0.3, SCREEN_HEIGHT * 0.7)),
+		Def.ActorFrame {
+			Name = "selection graph frame", InitCommand = function(self)
+				model_frame = self
+				self:xy(banner_column, SCREEN_HEIGHT * 0.38)
+				self:visible(true)
+				self:zoom(selection_graph_scale)
+				self:GetChild("selection graph"):SetLabel("")
+			end,
+			Graph("selection graph", 0, 0, 1),
+			Def.BitmapText{
+				Name = "selection x axis label", Font = "Common Normal", InitCommand = function(self)
+					self:visible(true)
+					self:zoom(1/selection_graph_scale)
+					self:xy(0, 1.05)
+					self:settext("score")
+				end,
+			},
+			Def.BitmapText{
+				Name = "selection y axis label", Font = "Common Normal", InitCommand = function(self)
+					self:visible(true)
+					self:zoom(1/selection_graph_scale)
+					self:xy(-0.55, 0.5)
+					self:rotationz(270)
+					self:diffuse(Color.Red)
+					self:settext("nps")
+				end,
+			},
+		},
 		Def.BitmapText{
 			Name = "Song", Font = "Common Normal", InitCommand = function(self)
 				song_text = self

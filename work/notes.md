@@ -3,10 +3,10 @@
 - x settings not being saved in profile
 - x save factors?
 - recent scores?
-- selection visualization?
-  - not all the points
-  - axis labels
-  - low and high exclusion ranges
+- x selection visualization?
+  - x not all the points
+  - x axis labels
+  - x row and high exclusion ranges
 - factor selection?
 - author factor?
 - discord?
