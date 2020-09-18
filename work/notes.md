@@ -4,7 +4,11 @@
 - x save factors?
 - recent scores?
 - selection visualization?
+  - not all the points
+  - axis labels
+  - low and high exclusion ranges
 - factor selection?
+- author factor?
 - discord?
 
 - testing mixed mode selection

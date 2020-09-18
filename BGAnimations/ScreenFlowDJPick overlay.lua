@@ -225,7 +225,7 @@ local function ThetaDebug(theta)
 	return table.concat(debug, "\n")
 end
 
-local function RecentSongs()
+local function PlayedSongs()
 	local recent = {}
 	for i = 1,STATSMAN:GetStagesPlayed() do
 		local stats = STATSMAN:GetPlayedStageStats(i)
@@ -235,7 +235,7 @@ local function RecentSongs()
 	return recent
 end
 
-local function RecentSteps()
+local function PlayedSteps()
 	local recent = {}
 	for i = 1,STATSMAN:GetStagesPlayed() do
 		local stats = STATSMAN:GetPlayedStageStats(i)
@@ -246,7 +246,7 @@ local function RecentSteps()
 	return recent
 end
 
-local function FakeRecentSteps(pool)
+local function FakePlayedSteps(pool)
 	local recent = {}
 	for i = 1,FlowDJ.stage do
 		sel = pool[math.random(#pool)]
@@ -747,9 +747,9 @@ end
 local possible_steps = PossibleSteps()
 AddFactors(possible_steps)
 
-local fake_recent_steps = {}
+local fake_played_steps = {}
 if fake_data then
-	fake_recent_steps = FakeRecentSteps(possible_steps)
+	fake_played_steps = FakePlayedSteps(possible_steps)
 end
 
 local scored_steps = ScoredSteps(possible_steps)
@@ -820,14 +820,14 @@ local function EvaluatePredictions(possible)
 	--right_text:settext(rec_print_table_to_str(CountRadarUsage(possible)))
 end
 
-local function StatsPickRecent()
+local function StatsPickPlayed()
 	local selections = {}
 	local picked = {}
 	local recent
 	if fake_data then
-		recent = fake_recent_steps
+		recent = fake_played_steps
 	else
-		recent = RecentSteps()
+		recent = PlayedSteps()
 	end
 	local stages = STATSMAN:GetStagesPlayed()
 	for i = 1,stages do
@@ -850,10 +850,10 @@ local function StatsPickRecent()
 	return selections, picked
 end
 
-local function FakePickRecent()
+local function FakePickPlayed()
 	local selections = {}
 	local picked = {}
-	local recent = fake_recent_steps
+	local recent = fake_played_steps
 	for i,sel in ipairs(recent) do
 		picked[sel.song:GetSongFilePath()] = true
 		local stage = (#recent-i)+1
@@ -863,16 +863,16 @@ local function FakePickRecent()
 	return selections, picked
 end
 
-local function PickRecent()
+local function PickPlayed()
 	if fake_data then
-		return FakePickRecent()
+		return FakePickPlayed()
 	else
-		return StatsPickRecent()
+		return StatsPickPlayed()
 	end
 end
 
 local function PickByMeter(flow)
-	local selections, picked = PickRecent()
+	local selections, picked = PickPlayed()
 	for i,target in ipairs(flow) do
 		local meter = math.floor(target)
 		for j,sel in ipairs(possible_steps) do
@@ -893,7 +893,7 @@ local function PickByMeter(flow)
 end
 
 local function PickByRate(flow, start_range)
-	local selections, picked = PickRecent()
+	local selections, picked = PickPlayed()
 	for i,target in ipairs(flow) do
 		local range = 0
 		while not selections[i] and range < 2.0 do
@@ -920,7 +920,7 @@ local function PickByRate(flow, start_range)
 end
 
 local function PickByRange(flow, theta)
-	local selections, picked = PickRecent()
+	local selections, picked = PickPlayed()
 	local predictions = {}
 	for i,min in ipairs(flow.score_bound) do
 		local range = 0
@@ -981,7 +981,7 @@ local function PickByRange(flow, theta)
 end
 
 local function PickByBounds(flow, theta)
-	local selections, picked = PickRecent()
+	local selections, picked = PickPlayed()
 	local predictions = {}
 	for i = 1,stages do
 		local x = (i-1)/(stages-1)
@@ -1035,7 +1035,7 @@ local function PickByBounds(flow, theta)
 end
 
 local function PickByScore(flow, theta)
-	local selections, picked = PickRecent()
+	local selections, picked = PickPlayed()
 	for i = 1,stages do
 		local x = (i-1)/(stages-1)
 		local target = flow.score_bound(x)
@@ -1067,7 +1067,7 @@ local function PickByScore(flow, theta)
 end
 
 local function PickBootstrap()
-	local selections, picked = PickRecent()
+	local selections, picked = PickPlayed()
 	for i = 1,stages do
 		local range = 0
 		while not selections[i] and range < 10 do
@@ -1496,8 +1496,8 @@ local function update(self)
 		graph = screen:GetChild("model"):GetChild("graph")
 		selection_graph = screen:GetChild("Flow Display"):GetChild("selection graph")
 		--GraphSteps()
-		--left_text:settext(SongsDebug(RecentSongs()))
-		--left_text:settext(StepsDebug(RecentSteps()))
+		--left_text:settext(SongsDebug(PlayedSongs()))
+		--left_text:settext(StepsDebug(PlayedSteps()))
 		--EvaluatePredictions(PossibleSteps())
 		--MultipleTraining(PossibleSteps())
 		song_text:settext("Modeling score of unplayed steps")
