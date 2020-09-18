@@ -131,15 +131,15 @@ return Def.ActorFrame {
 					flow_range:visible(false)
 				end
 
-				local predicted_score = self:GetChild("score bound")
-				predicted_score:setsize(bound_mark, flow_height)
-				predicted_score:xy(flow.score_bound(f) * flow_width, 0)
-				predicted_score:diffuse(Brightness(Color.White, 0.5 * brightness))
+				local score_bound = self:GetChild("score bound")
+				score_bound:setsize(bound_mark, flow_height)
+				score_bound:xy(flow.score_bound(f) * flow_width, 0)
+				score_bound:diffuse(Brightness(Color.White, 0.5 * brightness))
 				if current then
-					predicted_score:glowshift()
-					predicted_score:effectcolor1(Brightness(Color.White, 0.6))
-					predicted_score:effectcolor2(Brightness(Color.White, 0.8))
-					predicted_score:effectperiod(2)
+					score_bound:glowshift()
+					score_bound:effectcolor1(Brightness(Color.White, 0.6))
+					score_bound:effectcolor2(Brightness(Color.White, 0.8))
+					score_bound:effectperiod(2)
 				end
 
 				local nps_mark = self:GetChild("nps lower bound")
