@@ -98,7 +98,7 @@ local function GraphSelection(steps, flow)
 		if sel.selected or sel.skipped then
 			local points = data:GetChild("point")
 			local point = points[p]
-			point:setsize(0.01, 0.01)
+			point:setsize(0.02, 0.02)
 			if sel.skipped then
 				for s,stage in ipairs(sel.skippedOn) do
 					if stage == FlowDJ.stage+1 then
@@ -983,10 +983,14 @@ end
 local function PickByBounds(flow, theta)
 	local selections, picked = PickPlayed()
 	local predictions = {}
+	local considered = {}
 	for i = 1,stages do
 		local x = (i-1)/(stages-1)
 		local min = flow.score_bound(x)
 		local range = 0
+		if selections[i] then
+			table.insert(considered, selections[i])
+		end
 		while not selections[i] and range < 2.0 do
 			local top = flow.nps_upper_bound(x)
 			local bottom = flow.nps_lower_bound(x)
@@ -1013,10 +1017,12 @@ local function PickByBounds(flow, theta)
 					sel.nps_bottom = bottom
 					sel.nps_top = top
 					picked[path] = true
+					table.insert(considered, sel)
 					break
 				else
 					sel.skipped = true
 					table.insert(sel.skippedOn, i)
+					table.insert(considered, sel)
 					--[[lua.ReportScriptError(rec_print_table_to_str({
 							min = min,
 							score = score,
@@ -1031,7 +1037,7 @@ local function PickByBounds(flow, theta)
 			lua.ReportScriptError("missing " .. i)
 		end
 	end
-	return selections
+	return selections, considered
 end
 
 local function PickByScore(flow, theta)
@@ -1275,6 +1281,7 @@ local incremental_history = {}
 local incremental_step = 1
 local current_flow = BuildFlow()
 local selection_snapshot = {}
+local considered_snapshot = {}
 
 local function IncrementalGraphPredictions(steps, theta, color)
 	if #steps < 1 then
@@ -1376,7 +1383,7 @@ local function PerformPick(frame)
 	if #scored_steps <= stages and WorstScore(scored_steps) > 0.6 then
 		selection_snapshot = PickBootstrap()
 	else
-		selection_snapshot = PickByBounds(current_flow, FlowDJ.theta)
+		selection_snapshot, considered_snapshot = PickByBounds(current_flow, FlowDJ.theta)
 		--selection_snapshot = PickByRange(current_flow, FlowDJ.theta)
 		--selection_snapshot = PickByScore(current_flow, FlowDJ.theta)
 		--selection_snapshot = PickByRate(current_flow.wiggle, 0.3)
@@ -1387,7 +1394,7 @@ local function PerformPick(frame)
 	AssignScore(possible_steps, FlowDJ.theta)
 	song_list:SetSelections(selection_snapshot)
 	DisplaySelectionForCurrentStage(selection_snapshot)
-	GraphSelection(possible_steps, current_flow)
+	GraphSelection(considered_snapshot, current_flow)
 
 	--local curve_graph = song_list_overlay:GetChild("curve graph")
 	--curve_graph:baserotationz(90)
