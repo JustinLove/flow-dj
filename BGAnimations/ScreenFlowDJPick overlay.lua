@@ -83,7 +83,7 @@ local function GraphScoreScale(x)
 	return math.pow(x, 2)
 end
 
-local function GraphSelection(steps, flow)
+local function GraphSelection(steps, flow, show_lines)
 	selection_graph:Clear()
 	local data = selection_graph:GetChild("data")
 	for p,sel in ipairs(steps) do
@@ -129,6 +129,42 @@ local function GraphSelection(steps, flow)
 	local boxes = data:GetChild("box")
 	boxes[1]:setsize(1, nps_lower_bound):xy(0.5, 1 - (nps_lower_bound/2)):diffuse(Alpha(Color.Red, 0.5))
 	boxes[2]:setsize(score_bound, 1):xy(score_bound/2, 0.5):diffuse(Alpha(Color.White, 0.5))
+
+	if not show_lines then
+		return
+	end
+
+	data:AddChildFromPath(THEME:GetPathG("", "line.lua"))
+	data:AddChildFromPath(THEME:GetPathG("", "line.lua"))
+	data:AddChildFromPath(THEME:GetPathG("", "line.lua"))
+	data:AddChildFromPath(THEME:GetPathG("", "line.lua"))
+	local lines = data:GetChild("line")
+	local nps_lower_bound_min = nps_lower_bound
+	local nps_lower_bound_max = nps_lower_bound
+	local score_bound_min = score_bound
+	local score_bound_max = score_bound
+	for stage = 0,(stages-1) do
+		local f = stage/(stages-1)
+		local nps = GraphNpsScale(flow.nps_lower_bound(f))
+		local score = GraphScoreScale(flow.score_bound(f))
+		nps_lower_bound_min = math.min(nps_lower_bound_min, nps)
+		nps_lower_bound_max = math.max(nps_lower_bound_max, nps)
+		score_bound_min = math.min(score_bound_min, score)
+		score_bound_max = math.max(score_bound_max, score)
+	end
+	lines[1]:setsize(1, 0.04):xy(0.5, 1 - nps_lower_bound_min + 0.02)
+		:diffusetopedge(Alpha(Color.Red, 0.3))
+		:diffusebottomedge(Alpha(Color.Red, 0.0))
+	lines[2]:setsize(1, 0.04):xy(0.5, 1 - nps_lower_bound_max + 0.02)
+		:diffusetopedge(Alpha(Color.Red, 0.3))
+		:diffusebottomedge(Alpha(Color.Red, 0.0))
+
+	lines[3]:setsize(0.04, 1):xy(score_bound_min - 0.02, 0.5)
+		:diffuseleftedge(Alpha(Color.White, 0.0))
+		:diffuserightedge(Alpha(Color.White, 0.3))
+	lines[4]:setsize(0.04, 1):xy(score_bound_max - 0.02, 0.5)
+		:diffuseleftedge(Alpha(Color.White, 0.0))
+		:diffuserightedge(Alpha(Color.White, 0.3))
 end
 
 local function GraphPredictions(steps, theta, color)
@@ -1312,6 +1348,7 @@ local function SetControls(controls)
 		help_text:GetChild("slowestspeed help text"):visible(false)
 		help_text:GetChild("special help text"):visible(false)
 		song_list_overlay:SetLineOff()
+		GraphSelection(considered_snapshot, current_flow, true)
 	elseif controls == "slowestspeed" then
 		help_text:GetChild("training help text"):visible(false)
 		help_text:GetChild("default help text"):visible(false)
@@ -1319,6 +1356,7 @@ local function SetControls(controls)
 		help_text:GetChild("slowestspeed help text"):visible(true)
 		help_text:GetChild("special help text"):visible(false)
 		song_list_overlay:SetLineOn()
+		GraphSelection(considered_snapshot, current_flow, true)
 	elseif controls == "special" then
 		help_text:GetChild("training help text"):visible(false)
 		help_text:GetChild("default help text"):visible(false)
@@ -1326,6 +1364,7 @@ local function SetControls(controls)
 		help_text:GetChild("slowestspeed help text"):visible(false)
 		help_text:GetChild("special help text"):visible(true)
 		song_list_overlay:SetLineOff()
+		GraphSelection(considered_snapshot, current_flow, true)
 	else
 		if #selection_snapshot == 0 and FlowDJ.stage == 0 then
 			help_text:GetChild("training help text"):visible(true)
@@ -1337,6 +1376,7 @@ local function SetControls(controls)
 		help_text:GetChild("wigglestages help text"):visible(false)
 		help_text:GetChild("slowestspeed help text"):visible(false)
 		help_text:GetChild("special help text"):visible(false)
+		GraphSelection(considered_snapshot, current_flow, show_score_settings)
 	end
 	local song_list = flow_frame:GetChild("song list")
 	song_list:SetSelections(selection_snapshot)
@@ -1394,7 +1434,7 @@ local function PerformPick(frame)
 	AssignScore(possible_steps, FlowDJ.theta)
 	song_list:SetSelections(selection_snapshot)
 	DisplaySelectionForCurrentStage(selection_snapshot)
-	GraphSelection(considered_snapshot, current_flow)
+	GraphSelection(considered_snapshot, current_flow, show_score_settings or (current_controls ~= "default"))
 
 	--local curve_graph = song_list_overlay:GetChild("curve graph")
 	--curve_graph:baserotationz(90)
