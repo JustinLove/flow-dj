@@ -7,9 +7,11 @@ local percent_wiggle = FlowDJGetSetting("PercentWiggle")/100
 local sample_music = FlowDJGetSetting("SampleMusic")
 local slowest_speed = FlowDJGetSetting("SlowestSpeed")
 local maximum_cost = 0.0015
-local minimum_iteration_per_stage = 200
+local minimum_iteration_per_stage = 1200
 local minimum_iteration = 1000
 local maximum_iteration = 5000
+
+local author_theta = {}
 
 local text_height = SCREEN_HEIGHT/48
 local function SongListScale()
@@ -174,6 +176,7 @@ local function GraphPredictions(steps, theta, color)
 		for key,value in pairs(theta) do
 			prediction = prediction + value * sel.factors[key]
 		end
+		prediction = prediction + author_theta[sel.author_id]
 		graph:SetPoint(p, sel.score, prediction, color)
 	end
 end
@@ -183,6 +186,7 @@ local function PredictedScore(sel, theta)
 	for key,value in pairs(theta) do
 		prediction = prediction + value * sel.factors[key]
 	end
+	prediction = prediction + author_theta[sel.author_id]
 	return prediction
 end
 
@@ -193,6 +197,7 @@ local function AssignScore(steps, theta)
 			for key,value in pairs(theta) do
 				prediction = prediction + value * sel.factors[key]
 			end
+			prediction = prediction + author_theta[sel.author_id]
 			sel.effective_score = prediction
 		else
 			sel.effective_score = sel.score
@@ -546,6 +551,9 @@ local function GetScore(song, steps)
 	return 0
 end
 
+local author_names = {}
+local author_ids = {}
+
 local function PossibleSteps()
 	math.randomseed(FlowDJ.seed)
 	local all_songs, weighted = WeightByPlayCount(RemoveUnwantedGroups(SONGMAN:GetAllSongs()))
@@ -556,9 +564,24 @@ local function PossibleSteps()
 		local song_length = song:GetLastSecond() - song:GetFirstSecond()
 		for t, steps in ipairs(song_steps) do
 			--lua.ReportScriptError(steps:PredictMeter())
+			local author = steps:GetAuthorCredit()
+			if author == '' then
+				author = song:GetGroupName()
+			end
+			local author_id = author_ids[author]
+			if not author_id then
+				table.insert(author_names, author)
+				author_id = #author_names
+				author_ids[author] = author_id
+			end
+			if not author_id then
+				lua.ReportScriptError('blank ' .. song:GetDisplayMainTitle())
+			end
 			table.insert(possible, {
 				steps = steps,
 				song = song,
+				author = author,
+				author_id = author_id,
 				nps = calc_nps(pn, song_length, steps),
 				meter = steps:GetMeter(),
 				score = GetScore(song, steps),
@@ -657,6 +680,9 @@ end
 if not FlowDJ.theta['c'] or FlowDJ.theta['c'] ~= FlowDJ.theta['c'] then
 	lua.ReportScriptError("reset theta")
 	FlowDJ.theta = CopyTable(initial_theta)
+	for i,author in ipairs(author_names) do
+		author_theta[i] = 0
+	end
 	FlowDJGetTheta(FlowDJ.theta)
 end
 
@@ -690,6 +716,7 @@ local function ComputeCost(steps, theta)
 		for key,value in pairs(theta) do
 			prediction = prediction + value * sel.factors[key]
 		end
+		prediction = prediction + author_theta[sel.author_id]
 		cost = cost + (prediction - sel.score) ^ 2
 	end
 	cost = cost / (2*#steps)
@@ -700,6 +727,9 @@ end
 local termerror = {}
 local termcost = {}
 
+local authorerror = {}
+local authorcost = {}
+
 local function TermCost(steps, theta)
 	if #steps < 1 then
 		return 0
@@ -708,19 +738,29 @@ local function TermCost(steps, theta)
 		termerror[key] = 0
 		termcost[key] = 0
 	end
+	for i,value in ipairs(author_theta) do
+		authorerror[i] = 0
+		authorcost[i] = 0
+	end
 	for p,sel in ipairs(steps) do
 		local prediction = 0
 		for key,value in pairs(theta) do
 			prediction = prediction + value * sel.factors[key]
 		end
+		prediction = prediction + author_theta[sel.author_id]
 		local error = prediction - sel.score
 		for key,value in pairs(termcost) do
 			termerror[key] = termerror[key] + error * sel.factors[key]
 			termcost[key] = termcost[key] + math.abs(error * sel.factors[key])
 		end
+		authorerror[sel.author_id] = authorerror[sel.author_id] + error
+		authorcost[sel.author_id] = authorcost[sel.author_id] + math.abs(error)
 	end
 	for key,value in pairs(termcost) do
 		termcost[key] = termcost[key] / #steps
+	end
+	for i,value in ipairs(authorerror) do
+		authorcost[i] = authorcost[i] / #steps
 	end
 end
 
@@ -738,21 +778,30 @@ local function GradientDescent(steps, theta, cost_history)
 	while GetTimeSinceStart() - tick_start < 0.02 and #cost_history < maximum_iteration and crazy < 100 do
 		crazy = crazy + 1
 		local dtheta = {}
+		local dauthor = {}
 		for key,value in pairs(theta) do
 			dtheta[key] = 0
+		end
+		for i,author in ipairs(author_names) do
+			dauthor[i] = 0
 		end
 		for s,sel in ipairs(steps) do
 			local prediction = 0
 			for key,value in pairs(theta) do
 				prediction = prediction + value * sel.factors[key]
 			end
+			prediction = prediction + author_theta[sel.author_id]
 			local error = prediction - sel.score
 			for key,value in pairs(dtheta) do
 				dtheta[key] = dtheta[key] + error * sel.factors[key]
 			end
+			dauthor[sel.author_id] = dauthor[sel.author_id] + error
 		end
 		for key,value in pairs(theta) do
 			theta[key] = theta[key] - alpha * (dtheta[key] / #steps)
+		end
+		for i,value in ipairs(dauthor) do
+			author_theta[i] = author_theta[i] - alpha * (dauthor[i] / #steps)
 		end
 		cost_history[#cost_history+1] = ComputeCost(steps, theta)
 	end
@@ -782,6 +831,12 @@ local function WorstScore(selections)
 end
 
 local possible_steps = PossibleSteps()
+
+for i,author in ipairs(author_names) do
+	author_theta[i] = 0
+end
+lua.ReportScriptError(#author_theta)
+
 AddFactors(possible_steps)
 
 local fake_played_steps = {}
@@ -1330,6 +1385,7 @@ local function IncrementalGraphPredictions(steps, theta, color)
 		for key,value in pairs(theta) do
 			prediction = prediction + value * sel.factors[key]
 		end
+		prediction = prediction + author_theta[sel.author_id]
 		graph:SetPoint(incremental_step, sel.score, prediction, color)
 		incremental_step = (incremental_step % #steps) + 1
 	end
@@ -1436,6 +1492,10 @@ local function PerformPick(frame)
 	song_list:SetSelections(selection_snapshot)
 	DisplaySelectionForCurrentStage(selection_snapshot)
 	GraphSelection(considered_snapshot, current_flow, show_score_settings or (current_controls ~= "default"))
+
+	--for i,name in ipairs(author_names) do
+		--lua.ReportScriptError(name .. ' ' .. author_theta[i])
+	--end
 
 	--local curve_graph = song_list_overlay:GetChild("curve graph")
 	--curve_graph:baserotationz(90)
@@ -1823,6 +1883,68 @@ local function ModelFactors(x, y, scale)
 	return frame
 end
 
+local function AuthorFactors(x, y, scale)
+	local names = {}
+	for i,key in ipairs(author_names) do
+		table.insert(names, key)
+	end
+	table.sort(names)
+
+	local frame = Def.ActorFrame{
+		Name = "author factors", InitCommand = function(self)
+			self:xy(x, y)
+			self:zoom(scale)
+			self:visible(true)
+		end,
+	}
+	local rows = 75
+	for i,key in ipairs(names) do
+		frame[#frame+1] = Def.ActorFrame {
+			Name = key, InitCommand = function(self)
+					self:xy(math.floor(i/rows) * 200, i%rows * 5)
+					self:SetUpdateFunction(function(self)
+						local value = self:GetChild("value")
+						local v = author_theta[i] * 300
+						value:setsize(math.abs(v), 3)
+						value:xy(v / 2, 0)
+
+						if authorerror[i] then
+							local error = self:GetChild("error")
+							local e = authorerror[i] * 20
+							error:setsize(math.abs(e), 3)
+							error:xy(e / 2 + 20, 0)
+						end
+
+						if authorcost[i] then
+							local cost = self:GetChild("cost")
+							local c = authorcost[i] * 1000
+							cost:setsize(math.abs(c), 3)
+							cost:xy(c / 2 + 40, 0)
+						end
+					end)
+				end,
+			Def.BitmapText{
+				Name = "label", Font = "Common Normal", InitCommand = function(self)
+					local zoom = 0.25
+					self:settext(key)
+					self:zoom(zoom)
+					self:xy(-20-self:GetWidth()*0.5*zoom, 0)
+				end,
+			},
+			Def.Quad{
+				Name= "value"
+			},
+			Def.Quad{
+				Name= "error"
+			},
+			Def.Quad{
+				Name= "cost"
+			},
+		}
+	end
+	return frame
+end
+
 local banner_column = SCREEN_WIDTH * 0.78
 local song_list_column = SCREEN_WIDTH * 0.3
 
@@ -2041,6 +2163,7 @@ local t = Def.ActorFrame{
 		end,
 		Graph("graph", SCREEN_WIDTH * 0.2, SCREEN_HEIGHT * -0.32, SCREEN_HEIGHT * 0.62),
 		ModelFactors(SCREEN_WIDTH * -0.1, SCREEN_HEIGHT*-0.36, SCREEN_HEIGHT * 0.004),
+		AuthorFactors(SCREEN_WIDTH * 0.4, SCREEN_HEIGHT*-0.36, SCREEN_HEIGHT * 0.002),
 		Def.Quad{
 			Name= "cost", InitCommand = function(self)
 				cost_quad = self
