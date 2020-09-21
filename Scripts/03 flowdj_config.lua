@@ -47,7 +47,7 @@ function FlowDJGetTheta(theta)
 end
 
 function FlowDJSetTheta(theta)
-	for key,value in pairs(FlowDJ.theta) do
+	for key,value in pairs(theta) do
 		flowdj_theta:get_data('PlayerNumber_P1')[key] = value
 	end
 	flowdj_theta:set_dirty('PlayerNumber_P1')

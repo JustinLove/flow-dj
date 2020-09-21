@@ -12,6 +12,8 @@ local minimum_iteration = 1000
 local maximum_iteration = 5000
 
 local author_theta = {}
+local author_names = {}
+local author_ids = {}
 
 local text_height = SCREEN_HEIGHT/48
 local function SongListScale()
@@ -551,9 +553,6 @@ local function GetScore(song, steps)
 	return 0
 end
 
-local author_names = {}
-local author_ids = {}
-
 local function PossibleSteps()
 	math.randomseed(FlowDJ.seed)
 	local all_songs, weighted = WeightByPlayCount(RemoveUnwantedGroups(SONGMAN:GetAllSongs()))
@@ -666,6 +665,25 @@ local function Cross(factors)
 	end
 end
 
+local function LoadAuthorTheta()
+	local author_map = {}
+	for i,author in ipairs(author_names) do
+		author_map[author] = 0
+	end
+	FlowDJGetTheta(author_map)
+	for i,author in ipairs(author_names) do
+		author_theta[i] = author_map[author]
+	end
+end
+
+local function SaveAuthorTheta()
+	local author_map = {}
+	for i,author in ipairs(author_names) do
+		author_map[author] = author_theta[i]
+	end
+	FlowDJSetTheta(author_map)
+end
+
 local poly = 2
 
 Polynomial(initial_theta, poly)
@@ -680,9 +698,6 @@ end
 if not FlowDJ.theta['c'] or FlowDJ.theta['c'] ~= FlowDJ.theta['c'] then
 	lua.ReportScriptError("reset theta")
 	FlowDJ.theta = CopyTable(initial_theta)
-	for i,author in ipairs(author_names) do
-		author_theta[i] = 0
-	end
 	FlowDJGetTheta(FlowDJ.theta)
 end
 
@@ -831,12 +846,7 @@ local function WorstScore(selections)
 end
 
 local possible_steps = PossibleSteps()
-
-for i,author in ipairs(author_names) do
-	author_theta[i] = 0
-end
-lua.ReportScriptError(#author_theta)
-
+LoadAuthorTheta()
 AddFactors(possible_steps)
 
 local fake_played_steps = {}
@@ -1721,6 +1731,7 @@ local function input(event)
 			SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 		elseif #selection_snapshot > 0 then
 			flowdj_config:save("PlayerNumber_P1")
+			SaveAuthorTheta()
 			FlowDJSetTheta(FlowDJ.theta)
 			flowdj_theta:save("PlayerNumber_P1")
 			StartNextGame(selection_snapshot)
@@ -1733,6 +1744,7 @@ local function input(event)
 		FlowDJ.stage = 0
 		stop_music()
 		flowdj_config:save("PlayerNumber_P1")
+		SaveAuthorTheta()
 		FlowDJSetTheta(FlowDJ.theta)
 		flowdj_theta:save("PlayerNumber_P1")
 		trans_new_screen("ScreenTitleMenu")
@@ -1901,10 +1913,10 @@ local function AuthorFactors(x, y, scale)
 	for i,key in ipairs(names) do
 		frame[#frame+1] = Def.ActorFrame {
 			Name = key, InitCommand = function(self)
-					self:xy(math.floor(i/rows) * 200, i%rows * 5)
+					self:xy(math.floor(i/rows) * 180, i%rows * 5)
 					self:SetUpdateFunction(function(self)
 						local value = self:GetChild("value")
-						local v = author_theta[i] * 300
+						local v = author_theta[i] * 250
 						value:setsize(math.abs(v), 3)
 						value:xy(v / 2, 0)
 

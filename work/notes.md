@@ -2,13 +2,14 @@
 
 - x settings not being saved in profile
 - x save factors?
-- recent scores?
+- xx recent scores?
 - x selection visualization?
   - x not all the points
   - x axis labels
   - x row and high exclusion ranges
-- factor selection?
 - author factor?
+  - fix screen layout
+- factor selection?
 - discord?
 
 - testing mixed mode selection
