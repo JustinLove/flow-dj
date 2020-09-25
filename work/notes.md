@@ -6,11 +6,10 @@
 - x selection visualization?
   - x not all the points
   - x axis labels
-  - x row and high exclusion ranges
+  - x low and high exclusion ranges
 - author factor?
   - fix screen layout
 - factor selection?
-- discord?
 
 - testing mixed mode selection
 - too many settings?
@@ -33,6 +32,7 @@
 - more selection factors ?
 - actual score reaction ?
 - More config?
+- discord?
 
 Simply love
 - broke eval screens

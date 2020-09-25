@@ -7,7 +7,7 @@ local percent_wiggle = FlowDJGetSetting("PercentWiggle")/100
 local sample_music = FlowDJGetSetting("SampleMusic")
 local slowest_speed = FlowDJGetSetting("SlowestSpeed")
 local maximum_cost = 0.0015
-local minimum_iteration_per_stage = 1200
+local minimum_iteration_per_stage = 200
 local minimum_iteration = 1000
 local maximum_iteration = 5000
 
@@ -34,6 +34,7 @@ end
 local top_frame = false
 local flow_frame = false
 local model_frame = false
+local author_frame = false
 local graph = false
 local cost_quad = false
 local song_text = false
@@ -1466,11 +1467,17 @@ local function SetView(view)
 	current_view = view
 	local time = 0.5
 	if view == "flow" then
-		flow_frame:linear(time):xy(0, 0)
-		model_frame:linear(time):xy(_screen.cx - 200, _screen.cy - SCREEN_HEIGHT)
-	else
-		flow_frame:linear(time):xy(0, SCREEN_HEIGHT)
-		model_frame:linear(time):xy(_screen.cx - 200, _screen.cy)
+		author_frame:linear(time):xy(_screen.cx, _screen.cy - SCREEN_HEIGHT):queuecommand("Hide")
+		model_frame:linear(time):xy(_screen.cx - 200, _screen.cy - SCREEN_HEIGHT):queuecommand("Hide")
+		flow_frame:queuecommand("Show"):linear(time):xy(0, 0)
+	elseif view == "model" then
+		author_frame:linear(time):xy(_screen.cx, _screen.cy - SCREEN_HEIGHT):queuecommand("Hide")
+		model_frame:queuecommand("Show"):linear(time):xy(_screen.cx - 200, _screen.cy)
+		flow_frame:linear(time):xy(0, SCREEN_HEIGHT):queuecommand("Hide")
+	else -- author
+		author_frame:queuecommand("Show"):linear(time):xy(_screen.cx, _screen.cy)
+		model_frame:linear(time):xy(_screen.cx - 200, _screen.cy + SCREEN_HEIGHT):queuecommand("Hide")
+		flow_frame:linear(time):xy(0, SCREEN_HEIGHT):queuecommand("Hide")
 	end
 	SetControls(current_controls)
 end
@@ -1478,6 +1485,8 @@ end
 local function SwitchView()
 	if current_view == "flow" then
 		SetView("model")
+	elseif current_view == "model" then
+		SetView("author")
 	else
 		SetView("flow")
 	end
@@ -1620,6 +1629,7 @@ local function update(self)
 		--MultipleTraining(PossibleSteps())
 		song_text:settext("Modeling score of unplayed steps")
 		SetControls(current_controls)
+		SetView(current_view)
 	end
 	if frame >= 2 then
 
@@ -1846,6 +1856,7 @@ local function ModelFactors(x, y, scale)
 			self:xy(x, y)
 			self:zoom(scale)
 			self:visible(true)
+			self:propagate(true)
 		end,
 	}
 	for i,key in ipairs(names) do
@@ -1853,6 +1864,7 @@ local function ModelFactors(x, y, scale)
 			Name = key, InitCommand = function(self)
 					self:xy(0, i*5)
 					self:SetUpdateFunction(function(self)
+						if not self:GetVisible() then return end
 						local value = self:GetChild("value")
 						local v = FlowDJ.theta[key] * 20
 						value:setsize(math.abs(v), 3)
@@ -1873,6 +1885,12 @@ local function ModelFactors(x, y, scale)
 						end
 					end)
 				end,
+			HideCommand = function(self)
+				self:visible(false)
+			end,
+			ShowCommand = function(self)
+				self:visible(true)
+			end,
 			Def.BitmapText{
 				Name = "label", Font = "Common Normal", InitCommand = function(self)
 					local zoom = 0.25
@@ -1907,6 +1925,7 @@ local function AuthorFactors(x, y, scale)
 			self:xy(x, y)
 			self:zoom(scale)
 			self:visible(true)
+			self:propagate(true)
 		end,
 	}
 	local rows = 75
@@ -1915,8 +1934,9 @@ local function AuthorFactors(x, y, scale)
 			Name = key, InitCommand = function(self)
 					self:xy(math.floor(i/rows) * 180, i%rows * 5)
 					self:SetUpdateFunction(function(self)
+						if not self:GetVisible() then return end
 						local value = self:GetChild("value")
-						local v = author_theta[i] * 250
+						local v = author_theta[i] * 100
 						value:setsize(math.abs(v), 3)
 						value:xy(v / 2, 0)
 
@@ -1935,6 +1955,12 @@ local function AuthorFactors(x, y, scale)
 						end
 					end)
 				end,
+			HideCommand = function(self)
+				self:visible(false)
+			end,
+			ShowCommand = function(self)
+				self:visible(true)
+			end,
 			Def.BitmapText{
 				Name = "label", Font = "Common Normal", InitCommand = function(self)
 					local zoom = 0.25
@@ -1975,6 +2001,12 @@ local t = Def.ActorFrame{
 		Name = "Flow Display", OnCommand = function(self)
 			flow_frame = self
 			self:xy(0, SCREEN_HEIGHT)
+			self:visible(true)
+		end,
+		HideCommand = function(self)
+			self:visible(false)
+		end,
+		ShowCommand = function(self)
 			self:visible(true)
 		end,
 		Def.Sprite {
@@ -2172,10 +2204,16 @@ local t = Def.ActorFrame{
 			model_frame = self
 			self:xy(_screen.cx - SCREEN_WIDTH * 0.2, _screen.cy)
 			self:visible(true)
+			self:propagate(true)
+		end,
+		HideCommand = function(self)
+			self:visible(false)
+		end,
+		ShowCommand = function(self)
+			self:visible(true)
 		end,
 		Graph("graph", SCREEN_WIDTH * 0.2, SCREEN_HEIGHT * -0.32, SCREEN_HEIGHT * 0.62),
 		ModelFactors(SCREEN_WIDTH * -0.1, SCREEN_HEIGHT*-0.36, SCREEN_HEIGHT * 0.004),
-		AuthorFactors(SCREEN_WIDTH * 0.4, SCREEN_HEIGHT*-0.36, SCREEN_HEIGHT * 0.002),
 		Def.Quad{
 			Name= "cost", InitCommand = function(self)
 				cost_quad = self
@@ -2197,6 +2235,21 @@ local t = Def.ActorFrame{
 				self:settext("estimated score")
 			end,
 		},
+	},
+	Def.ActorFrame {
+		Name = "author frame", InitCommand = function(self)
+			author_frame = self
+			self:xy(_screen.cx, _screen.cy - SCREEN_HEIGHT)
+			self:visible(true)
+			self:propagate(true)
+		end,
+		HideCommand = function(self)
+			self:visible(false)
+		end,
+		ShowCommand = function(self)
+			self:visible(true)
+		end,
+		AuthorFactors(0, SCREEN_HEIGHT*-0.36, SCREEN_HEIGHT * 0.002),
 	},
 	Def.ActorFrame{
 		Name = "help text", InitCommand = function(self)
