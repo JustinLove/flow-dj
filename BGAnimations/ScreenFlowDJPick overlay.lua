@@ -567,6 +567,11 @@ local function PossibleSteps()
 			local author = steps:GetAuthorCredit()
 			if author == '' then
 				author = song:GetGroupName()
+				if string.match(author, 'Fraxtil') then
+					author = 'Fraxtil'
+				--elseif author ~= 'BGS Mania' and author ~= 'Muted' then
+					--lua.ReportScriptError(author .. " " .. song:GetDisplayMainTitle())
+				end
 			end
 			local author_id = author_ids[author]
 			if not author_id then
