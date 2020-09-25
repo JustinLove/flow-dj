@@ -1913,26 +1913,42 @@ local function ModelFactors(x, y, scale)
 	return frame
 end
 
-local function AuthorFactors(x, y, scale)
+local function AuthorFactors(x, y, width, height)
 	local names = {}
 	for i,key in ipairs(author_names) do
 		table.insert(names, key)
 	end
 	table.sort(names)
 
+	local item_width = 180
+	local item_height = 5
+	local best_scale = 0
+	local best_rows = 1
+	for columns = 1,10 do
+		local rows = math.ceil(#author_theta / columns)
+		local row_scale = height / (rows * item_height)
+		local col_scale = width / (columns * item_width)
+		local this_scale = math.min(row_scale, col_scale)
+		if this_scale > best_scale then
+			best_scale = this_scale
+			best_rows = rows
+		end
+	end
+	--lua.ReportScriptError(best_scale)
+	--lua.ReportScriptError(best_rows)
+
 	local frame = Def.ActorFrame{
 		Name = "author factors", InitCommand = function(self)
-			self:xy(x, y)
-			self:zoom(scale)
+			self:xy(x - width/4, y)
+			self:zoom(best_scale)
 			self:visible(true)
 			self:propagate(true)
 		end,
 	}
-	local rows = 75
 	for i,key in ipairs(names) do
 		frame[#frame+1] = Def.ActorFrame {
 			Name = key, InitCommand = function(self)
-					self:xy(math.floor(i/rows) * 180, i%rows * 5)
+					self:xy(math.floor(i/best_rows) * item_width, i%best_rows * item_height)
 					self:SetUpdateFunction(function(self)
 						if not self:GetVisible() then return end
 						local value = self:GetChild("value")
@@ -2249,7 +2265,7 @@ local t = Def.ActorFrame{
 		ShowCommand = function(self)
 			self:visible(true)
 		end,
-		AuthorFactors(0, SCREEN_HEIGHT*-0.36, SCREEN_HEIGHT * 0.002),
+		AuthorFactors(0, SCREEN_HEIGHT*-0.36, SCREEN_WIDTH - 50, SCREEN_HEIGHT - 200),
 	},
 	Def.ActorFrame{
 		Name = "help text", InitCommand = function(self)
