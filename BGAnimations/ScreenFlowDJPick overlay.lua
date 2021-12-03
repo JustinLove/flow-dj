@@ -53,7 +53,7 @@ local current_controls = "default"
 local entering_song = false
 local show_score_settings = false
 
-lua.ReportScriptError('----------------' .. math.random())
+--lua.ReportScriptError('----------------' .. math.random())
 
 local player_state = GAMESTATE:GetPlayerState(pn)
 local player_options = player_state:GetPlayerOptionsString("ModsLevel_Current")
@@ -63,11 +63,13 @@ if not FlowDJ.fake_play then
 end
 if FlowDJ.stage == 0 then
 	FlowDJ.seed = GAMESTATE:GetGameSeed()
+	-- gameseed() / resetgameseed
 	FlowDJ.offset = math.random() * math.pi
 	FlowDJ.scale = math.random() * 2 + 1
 end
 
-if FlowDJ.seed == 8365 then
+if FlowDJ.seed == 3922919429 then
+	lua.ReportScriptError('seed borked')
 	FlowDJ.seed = math.floor(math.random() * 32767)
 end
 
@@ -678,7 +680,7 @@ local function LoadAuthorTheta()
 	end
 	FlowDJGetTheta(author_map)
 	for i,author in ipairs(author_names) do
-		author_theta[i] = author_map[author]
+		author_theta[i] = author_map[author] or 0
 	end
 end
 
@@ -702,7 +704,7 @@ end
 
 -- ~= nan check
 if not FlowDJ.theta['c'] or FlowDJ.theta['c'] ~= FlowDJ.theta['c'] then
-	lua.ReportScriptError("reset theta")
+	--lua.ReportScriptError("reset theta")
 	FlowDJ.theta = CopyTable(initial_theta)
 	FlowDJGetTheta(FlowDJ.theta)
 end
